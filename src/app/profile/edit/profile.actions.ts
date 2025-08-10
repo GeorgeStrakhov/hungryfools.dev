@@ -6,7 +6,7 @@ import { profiles, type ProfileAvailability, type ProfileLinks } from "@/db/sche
 import { eq } from "drizzle-orm";
 
 type Input = {
-  handle: string;
+  handle?: string;
   displayName: string;
   headline: string;
   bio?: string;
@@ -35,6 +35,41 @@ export async function createOrUpdateProfileAction(input: Input) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
+  function slugify(str: string): string {
+    return str
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  // Derive handle when not provided
+  let derivedHandle = (input.handle || "").toString().trim();
+  if (!derivedHandle) {
+    const displayName = session.user.name || "";
+    const emailLocal = (session.user as any).email?.split("@")[0] || "";
+    if (displayName && slugify(displayName)) derivedHandle = slugify(displayName);
+    else if (emailLocal) derivedHandle = slugify(emailLocal);
+    else derivedHandle = `user-${session.user.id.slice(0, 8)}`;
+  }
+  // Ensure handle not empty after slugify
+  if (!derivedHandle) {
+    derivedHandle = `user-${session.user.id.slice(0, 8)}`;
+  }
+
+  // Ensure uniqueness: if handle is taken by another user, append suffix
+  const existingSameHandle = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.handle, derivedHandle))
+    .limit(1);
+  if (existingSameHandle[0] && existingSameHandle[0].userId !== session.user.id) {
+    const suffix = Math.random().toString(36).slice(2, 6);
+    derivedHandle = `${derivedHandle}-${suffix}`;
+  }
+
   const links: ProfileLinks = {
     github: input.github || undefined,
     x: input.x || undefined,
@@ -50,7 +85,7 @@ export async function createOrUpdateProfileAction(input: Input) {
 
   const values = {
     userId: session.user.id,
-    handle: input.handle.toLowerCase(),
+    handle: derivedHandle.toLowerCase(),
     displayName: input.displayName,
     headline: input.headline,
     bio: input.bio || null,

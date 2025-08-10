@@ -1,16 +1,17 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import posthog from 'posthog-js';
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 function Logo() {
   return (
-    <div className="text-hf-accent font-bold text-xl md:text-2xl tracking-tight">
-      hungryfools.ai
+    <div className="flex items-center justify-center mt-12 mb-0">
+      <Image src="/images/PacDuck.png" alt="PacDuck" width={150} height={150} />
     </div>
   );
 }
@@ -50,6 +51,8 @@ function SearchBar() {
 }
 
 function InlineDivider() {
+  const { data: session } = useSession();
+  if (session?.user) return null;
   return (
     <div className="relative w-full max-w-[600px] flex items-center">
       <Separator className="w-full" />
@@ -61,13 +64,15 @@ function InlineDivider() {
 }
 
 function CTA() {
+  const { data: session } = useSession();
+  if (session?.user) return null;
   return (
     <Button
       size="lg"
       className="hf-cta"
       onClick={() => {
         posthog.capture('github_signin_initiated', { provider: 'github' });
-        signIn("github");
+        signIn("github", { callbackUrl: "/post-auth" });
       }}
     >
       Sign in with GitHub

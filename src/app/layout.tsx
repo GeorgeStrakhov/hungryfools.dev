@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Topbar } from "@/components/topbar";
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HungryFools.ai — AI-First Developer Platform",
+  title: "HungryFools.dev — Directory of proud vibecoders who ship at superhuman speed.",
   description:
-    "The hiring platform for AI-first developers who ship at superhuman speed.",
+    "The directory of proud vibecoders who ship at superhuman speed.",
 };
 
 export default function RootLayout({
@@ -31,6 +32,7 @@ export default function RootLayout({
         <SessionProvider>
           <Topbar />
           {children}
+          <Toaster />
         </SessionProvider>
       </body>
     </html>

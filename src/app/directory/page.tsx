@@ -5,7 +5,8 @@ import { ilike } from "drizzle-orm";
 type SearchParams = { searchParams: { q?: string } };
 
 export default async function DirectoryPage({ searchParams }: SearchParams) {
-  const q = (searchParams.q ?? "").trim().toLowerCase();
+  const params = await searchParams;
+  const q = (params.q ?? "").trim().toLowerCase();
   const results = await db
     .select()
     .from(profiles)

@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { createOrUpdateProfileAction } from "./profile.actions";
 import posthog from "posthog-js";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
   handle: z
@@ -36,6 +38,7 @@ export function ProfileForm({
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [pending, setPending] = React.useState(false);
+  const router = useRouter();
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formRef.current) return;
@@ -59,7 +62,8 @@ export function ProfileForm({
     try {
       await createOrUpdateProfileAction(parsed.data);
       posthog.capture("profile_update");
-      alert("Profile saved");
+      toast.success("Profile saved");
+      router.push("/directory");
     } catch (err) {
       console.error(err);
       alert("Failed to save");
