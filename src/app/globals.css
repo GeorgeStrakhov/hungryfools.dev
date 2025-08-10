@@ -50,6 +50,7 @@
   --hf-accent-dim: #00cc6a;
   --hf-surface: #0a0a0a;
   --hf-muted: #666666;
+  --hf-yellow: #FFC700;
 
   /* Light theme tokens (kept for completeness) */
   --background: oklch(1 0 0);
@@ -142,6 +143,10 @@
   }
   .text-hf-accent {
     color: var(--hf-accent);
+  }
+  .text-hf-yellow {
+    color: var(--hf-yellow);
+    -webkit-text-fill-color: currentColor;
   }
   .bg-hf-surface {
     background-color: var(--hf-surface);

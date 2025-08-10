@@ -21,7 +21,7 @@ function HeroTagline() {
     <h1 className="hf-gradient-text text-4xl md:text-5xl font-semibold leading-tight md:leading-[1.2]">
       First they ignore you.
       <br />
-      Then they call you a vibecoder.
+      Then they call you a <span className="text-hf-yellow italic">vibecoder</span>.
       <br />
       Then they try to hire you.
       <br />
