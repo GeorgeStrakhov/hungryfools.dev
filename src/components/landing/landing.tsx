@@ -31,7 +31,7 @@ function HeroTagline() {
 function Subtitle() {
   return (
     <p className="text-muted-foreground text-lg md:text-xl">
-      The hiring platform for AI-first developers who ship at superhuman speed.
+      The directory of proud vibecoders who ship at superhuman speed.
     </p>
   );
 }
