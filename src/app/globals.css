@@ -45,6 +45,13 @@
 
 :root {
   --radius: 0.625rem;
+  /* Brand */
+  --hf-accent: #00ff88;
+  --hf-accent-dim: #00cc6a;
+  --hf-surface: #0a0a0a;
+  --hf-muted: #666666;
+
+  /* Light theme tokens (kept for completeness) */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -79,6 +86,7 @@
 }
 
 .dark {
+  /* Dark baseline that matches the landing */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -118,5 +126,33 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Reusable HungryFools helpers */
+@layer utilities {
+  .hf-container {
+    @apply max-w-[800px] mx-auto px-6 md:px-8;
+  }
+  .hf-gradient-text {
+    background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-hf-accent {
+    color: var(--hf-accent);
+  }
+  .bg-hf-surface {
+    background-color: var(--hf-surface);
+  }
+  .hf-cta {
+    background: linear-gradient(135deg, var(--hf-accent) 0%, var(--hf-accent-dim) 100%);
+    color: #000;
+    @apply px-8 py-5 rounded-xl text-base font-semibold shadow-md transition-transform;
+  }
+  .hf-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 255, 136, 0.3);
   }
 }

@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HungryFools.dev
 
-## Getting Started
+_a directory of proud vibecoders who get shit done_
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+This is a simple lil' website where AI-first developers can list themselves, find each other for collaborations and get hired.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Developers who are not afraid of being called vibecoders can login with github and list their profile, their preferred tech/stack and other skills, their fav. projects and what they are interested in and maybe location - and whether they are open for hire, open for collabs, or hiring etc.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Other developers can search and find and contact potential collaborators
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- for a small fee companies can list themselves as vibecoder-friendly and say they are hiring.
 
-## Learn More
+- for good search - we build embeddings of the profiles and have a hybrid search (both keywords and vector similarity + text to sql)
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- typescript
+- pnpm
+- nextjs
+- authjs
+- drizzleORM
+- postgres17 on NEON
+- vercel
+- tailwind
+- shadcn
+- dev: claude code + gemini + gpt5 + cursror
