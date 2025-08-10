@@ -18,7 +18,7 @@ export default async function PostAuthRouter() {
   if (existing) {
     redirect("/directory");
   } else {
-    redirect("/onboarding");
+    redirect("/onboarding/purpose");
   }
 }
 

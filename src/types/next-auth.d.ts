@@ -8,7 +8,3 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 }
-
-// No JWT augmentation needed for database sessions
-
-

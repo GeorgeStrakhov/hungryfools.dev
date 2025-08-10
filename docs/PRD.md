@@ -37,8 +37,9 @@ Acceptance: User can sign in and see avatar; DB has `user`, `account`, `session`
   - Create/Edit Profile (server actions or API routes).
   - Public Profile page (SEO‑friendly).
 - Directory: Basic list of profiles with pagination/sort.
+- Showcase: simple way to list things shipped (mini cards with title/link/one‑liner). This is core to the product.
 - Analytics: instrument sign‑in, profile create/update, profile view.
-Acceptance: Signed‑in dev can create/edit profile; profile appears in directory and is viewable publicly; analytics events recorded.
+Acceptance: Signed‑in dev can create/edit profile; profile appears in directory and is viewable publicly; can add at least one showcase item; analytics events recorded.
 
 #### Stage 2 — Search & Filters for Profiles
 - Search (v1): keyword search over name/headline/skills with simple ranking.
@@ -80,6 +81,8 @@ Acceptance: NL queries produce useful filtered results reliably for top use case
 - auth: `user`, `account`, `session`, `verificationToken`, `authenticator` (Auth.js Drizzle schema; `user.isAdmin` boolean).
 - app content:
   - `profile` (1:1 user): name, headline, bio, skills (array/json), interests (array/json), location, links, availability flags, timestamps.
+  - `profile_expertise_other` (optional): non‑dev expertise/identity tags (array/json) — e.g., musician, teacher, writer, climber, runner.
+  - `profile_showcase` (1:many user): title, link (GitHub/Live), one‑liner summary, createdAt.
   - `company`: name, description, website, logo, isActive, plan/meta, timestamps.
   - `payment` (optional later): provider, amount, status, timestamps.
   - `profile_embedding` (later): userId, vector.

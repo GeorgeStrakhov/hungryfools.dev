@@ -17,6 +17,7 @@ function UserAvatar() {
   const { data: session } = useSession();
   const user = session?.user;
   const initials = user?.name?.split(" ").map((s) => s[0]).join("")?.toUpperCase() ?? "U";
+  const isAdmin = user?.isAdmin ?? false;
 
   if (!user) return null;
 
@@ -32,6 +33,11 @@ function UserAvatar() {
         <DropdownMenuItem asChild>
           <Link href="/profile/edit">Edit profile</Link>
         </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin">Admin</Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <button
             onClick={() => {
@@ -52,7 +58,7 @@ export function Topbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/60">
-      <div className="hf-container h-14 flex items-center justify-between gap-3">
+      <div className="flex h-14 w-full items-center justify-between gap-3 px-6 md:px-8">
         <Link href="/" className="flex items-center gap-2 text-hf-accent font-semibold">
           <Image src="/images/PacDuck.png" alt="PacDuck" width={20} height={20} />
         </Link>

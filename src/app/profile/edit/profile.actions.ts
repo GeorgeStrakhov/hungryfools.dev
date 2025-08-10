@@ -46,6 +46,7 @@ export async function createOrUpdateProfileAction(input: Input) {
   }
 
   // Derive handle when not provided
+  const userProvidedHandle = Boolean(input.handle && String(input.handle).trim());
   let derivedHandle = (input.handle || "").toString().trim();
   if (!derivedHandle) {
     const displayName = session.user.name || "";
@@ -66,8 +67,13 @@ export async function createOrUpdateProfileAction(input: Input) {
     .where(eq(profiles.handle, derivedHandle))
     .limit(1);
   if (existingSameHandle[0] && existingSameHandle[0].userId !== session.user.id) {
-    const suffix = Math.random().toString(36).slice(2, 6);
-    derivedHandle = `${derivedHandle}-${suffix}`;
+    if (userProvidedHandle) {
+      // If user explicitly chose this handle, surface an error to the UI instead of silently changing it
+      throw new Error("HANDLE_TAKEN");
+    } else {
+      const suffix = Math.random().toString(36).slice(2, 6);
+      derivedHandle = `${derivedHandle}-${suffix}`;
+    }
   }
 
   const links: ProfileLinks = {
@@ -107,6 +113,17 @@ export async function createOrUpdateProfileAction(input: Input) {
       target: profiles.userId,
       set: values,
     });
+}
+
+export async function getOwnProfileAction() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  const [row] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.userId, session.user.id))
+    .limit(1);
+  return row ?? null;
 }
 
 

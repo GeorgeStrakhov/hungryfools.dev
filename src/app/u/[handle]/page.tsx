@@ -5,10 +5,11 @@ import { eq } from "drizzle-orm";
 type Params = { params: { handle: string } };
 
 export default async function PublicProfilePage({ params }: Params) {
+  const resolvedParams = await params;
   const [profile] = await db
     .select()
     .from(profiles)
-    .where(eq(profiles.handle, params.handle.toLowerCase()))
+    .where(eq(profiles.handle, resolvedParams.handle.toLowerCase()))
     .limit(1);
 
   if (!profile) {
