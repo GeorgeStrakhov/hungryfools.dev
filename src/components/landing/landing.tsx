@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import posthog from 'posthog-js';
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -64,7 +65,10 @@ function CTA() {
     <Button
       size="lg"
       className="hf-cta"
-      onClick={() => signIn("github")}
+      onClick={() => {
+        posthog.capture('github_signin_initiated', { provider: 'github' });
+        signIn("github");
+      }}
     >
       Sign in with GitHub
     </Button>
@@ -101,5 +105,3 @@ export function Landing() {
 }
 
 export default Landing;
-
-

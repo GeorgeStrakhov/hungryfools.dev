@@ -64,7 +64,7 @@ URL strategy
 - Prefer `/u/[handle]` for public permalinks; fallback to `/u/[userId]` if handle missing.
 
 ### Analytics (initial)
-Tool: PostHog or Vercel Web Analytics (if we want events, PostHog is better). Add client SDK + simple server event helper.
+Tool: PostHog (EU). Use client SDK as in `src/components/topbar.tsx` and add a minimal server event helper for server-side events.
 
 Events & properties
 - `auth_login` { provider, userId }
@@ -78,7 +78,7 @@ Events & properties
 - `outbound_click` { type: github|x|website|email, handle }
 
 Privacy
-- No PII beyond userId/handle; avoid sending emails. Respect Do Not Track; provide opt-out later.
+- No PII beyond userId/handle; avoid sending emails. Respect Do Not Track; gate analytics behind consent (cookie banner) and provide settings to revoke.
 
 ### Validation & Security
 - Zod validation on server; reject oversized payloads (e.g., 16KB limit).

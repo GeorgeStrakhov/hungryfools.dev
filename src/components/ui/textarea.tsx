@@ -1,8 +1,18 @@
 import * as React from "react"
+import posthog from "posthog-js"
 
 import { cn } from "@/lib/utils"
 
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+  const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    posthog.capture("textarea-input-finished", {
+      component_id: props.id,
+      component_name: props.name,
+      input_length: e.target.value.length,
+    })
+    props.onBlur?.(e)
+  }
+
   return (
     <textarea
       data-slot="textarea"
@@ -11,6 +21,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         className
       )}
       {...props}
+      onBlur={handleBlur}
     />
   )
 }

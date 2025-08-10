@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import posthog from 'posthog-js';
 
 function UserAvatar() {
   const { data } = useSession();
@@ -28,7 +29,17 @@ function UserAvatar() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <button onClick={() => signOut()}>Sign out</button>
+          <Link href="/profile/edit">Edit profile</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <button
+            onClick={() => {
+              posthog.capture('user-signed-out');
+              signOut({ callbackUrl: '/' });
+            }}
+          >
+            Sign out
+          </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -48,7 +59,10 @@ export function Topbar() {
           {status === "loading" ? null : data?.user ? (
             <UserAvatar />
           ) : (
-            <Button variant="outline" onClick={() => signIn("github")}>Sign in</Button>
+            <Button variant="outline" onClick={() => {
+              posthog.capture('sign-in-clicked', { provider: 'github' });
+              signIn("github");
+            }}>Sign in</Button>
           )}
         </div>
       </div>
@@ -57,5 +71,3 @@ export function Topbar() {
 }
 
 export default Topbar;
-
-

@@ -3,13 +3,27 @@
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import posthog from "posthog-js"
 
 import { cn } from "@/lib/utils"
 
 function Select({
+  onValueChange,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+  const handleValueChange = (value: string) => {
+    posthog.capture("select_value_changed", { value })
+    if (onValueChange) {
+      onValueChange(value)
+    }
+  }
+  return (
+    <SelectPrimitive.Root
+      data-slot="select"
+      {...props}
+      onValueChange={handleValueChange}
+    />
+  )
 }
 
 function SelectGroup({

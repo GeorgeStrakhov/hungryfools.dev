@@ -96,9 +96,9 @@ Acceptance: NL queries produce useful filtered results reliably for top use case
 - Drizzle ORM migrations; Neon Postgres.
 - Auth.js v5 database sessions; `SessionProvider` on client.
 - Tailwind + shadcn for UI; minimal, responsive, dark default.
-- Search v1: SQL ILIKE over indexed columns; later hybrid with embeddings.
+- Search v1: SQL ILIKE over indexed columns; later hybrid with embeddings using pgvector on Neon (EU region).
 - Payments: Stripe Checkout (company listings); secure webhooks.
- - Analytics: PostHog (self‑host or cloud) or Vercel Web Analytics; client + server event capture; GDPR‑aware.
+- Analytics: PostHog (EU data residency) as primary product analytics; client + server event capture, GDPR‑aware.
 
 ### 9) Metrics
 - Supply‑side: profiles created, profile completeness, active users/week.
@@ -110,12 +110,21 @@ Acceptance: NL queries produce useful filtered results reliably for top use case
 - Abuse/spam → admin moderation tools and rate limits.
 - Search quality → iterate on embeddings/hybrid scoring.
 
-### 11) Open Questions
-- Preferred vector store (pgvector on Neon vs. external)?
-- Messaging later (in‑app vs. email only)?
-- Company verification/badges?
+### 11) Decisions (closed)
+- Vector store: pgvector on Neon (EU).
+- Messaging: email only (no in‑app messaging for now).
+- Company verification/badges: not in initial scope.
 
-### 12) Milestones & Timeline (suggested)
+### 12) Compliance & Privacy (GDPR)
+- Data residency: Neon DB (EU), PostHog (EU) configured.
+- Consent: cookie banner for analytics; block analytics until consent (functional cookies only by default). Provide settings to revoke/change consent.
+- Policies: publish Privacy Policy and Terms of Service (see `docs/LEGAL-PRIVACY.md`).
+- Data minimization: avoid PII in analytics; use userId/handle only.
+- Rights: implement data export/delete process on request; document contact email.
+- Retention: define retention for logs/analytics; regularly purge unneeded data.
+- Subprocessors: document PostHog and Vercel as subprocessors with EU processing.
+
+### 13) Milestones & Timeline (suggested)
 - Week 1: Stage 1 (Profiles MVP) end‑to‑end.
 - Week 2: Stage 2 filters + Stage 3 payment scaffolding.
 - Week 3: Stage 3 go‑live + Stage 4 hybrid search prototype.

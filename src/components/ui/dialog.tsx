@@ -3,13 +3,24 @@
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
+import posthog from "posthog-js"
 
 import { cn } from "@/lib/utils"
 
 function Dialog({
+  onOpenChange,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      posthog.capture("dialog_opened")
+    } else {
+      posthog.capture("dialog_closed")
+    }
+    onOpenChange?.(open)
+  }
+
+  return <DialogPrimitive.Root data-slot="dialog" onOpenChange={handleOpenChange} {...props} />
 }
 
 function DialogTrigger({
