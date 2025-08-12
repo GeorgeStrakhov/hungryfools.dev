@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Pixelify_Sans } from "next/font/google";
 import "./globals.css";
 import { Topbar } from "@/components/topbar";
 import { SessionProvider } from "next-auth/react";
@@ -12,6 +12,11 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const pixelifySans = Pixelify_Sans({
+  variable: "--font-pixelify-sans",
   subsets: ["latin"],
 });
 
@@ -28,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${pixelifySans.variable} antialiased`}>
         <SessionProvider>
           <Topbar />
           {children}

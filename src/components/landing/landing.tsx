@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import posthog from 'posthog-js';
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -10,15 +9,33 @@ import { signIn, useSession } from "next-auth/react";
 
 function Logo() {
   return (
-    <div className="flex items-center justify-center mt-12 mb-0">
-      <Image src="/images/PacDuck.png" alt="PacDuck" width={150} height={150} />
+    <div className="flex items-center justify-center gap-4 md:gap-6 mt-12 mb-0">
+      <img
+        src="/video/pacduck_only.gif"
+        alt="PacDuck animation"
+        className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24"
+      />
+      <div 
+        className="text-hf-accent text-xl sm:text-3xl md:text-5xl animate-pulse-glow"
+        style={{ 
+          fontFamily: 'var(--font-pixelify-sans)',
+          textShadow: '0 0 5px #00ff88'
+        }}
+      >
+        hungryfools.dev
+      </div>
+      <img
+        src="/video/pacduck_only_flipped.gif"
+        alt="PacDuck animation flipped"
+        className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24"
+      />
     </div>
   );
 }
 
 function HeroTagline() {
   return (
-    <h1 className="hf-gradient-text text-4xl md:text-5xl font-semibold leading-tight md:leading-[1.2]">
+    <h1 className="hf-gradient-text text-2xl sm:text-3xl md:text-5xl font-semibold leading-tight md:leading-[1.2]">
       First they ignore you.
       <br />
       Then they call you a <span className="text-hf-yellow italic">vibecoder</span>.
@@ -85,7 +102,7 @@ export function Landing() {
     <div className="min-h-screen flex flex-col">
       <main className="flex-1 flex items-center">
         <div className="hf-container text-center">
-          <div className="mb-20">
+          <div className="mb-8 md:mb-12">
             <Logo />
           </div>
 
