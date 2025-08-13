@@ -45,20 +45,20 @@ export default async function PublicProfilePage({ params }: Params) {
           ))}
         </div>
       ) : null}
-      
+
       {/* Projects Section */}
       {userProjects.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Projects</h2>
+          <h2 className="mb-4 text-xl font-semibold">Projects</h2>
           <div className="grid gap-4">
             {userProjects.map((project) => {
-              const firstImage = project.media?.find((m: any) => m.type === "image");
-              
+              const firstImage = project.media?.find((m) => m.type === "image");
+
               return (
                 <a
                   key={project.id}
                   href={`/u/${profile.handle}/p/${project.slug}`}
-                  className="block border rounded-lg p-4 hover:bg-accent transition-colors"
+                  className="hover:bg-accent block rounded-lg border p-4 transition-colors"
                 >
                   <div className="flex items-start gap-4">
                     {/* Project Image */}
@@ -67,30 +67,30 @@ export default async function PublicProfilePage({ params }: Params) {
                         <img
                           src={getTransformedImageUrl(firstImage.url)}
                           alt={project.name}
-                          className="w-16 h-16 object-cover rounded"
+                          className="h-16 w-16 rounded object-cover"
                           loading="lazy"
                         />
                       </div>
                     )}
-                    
+
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="font-semibold">{project.name}</h3>
                           {project.oneliner && (
-                            <p className="text-muted-foreground text-sm mt-1">
+                            <p className="text-muted-foreground mt-1 text-sm">
                               {project.oneliner}
                             </p>
                           )}
                         </div>
                         {project.featured && (
-                          <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded ml-2">
+                          <span className="bg-primary text-primary-foreground ml-2 rounded px-2 py-1 text-xs">
                             Featured
                           </span>
                         )}
                       </div>
                       {project.url && (
-                        <p className="text-xs text-muted-foreground mt-2">
+                        <p className="text-muted-foreground mt-2 text-xs">
                           {project.url}
                         </p>
                       )}

@@ -20,9 +20,9 @@ Welcome to HungryFools.dev. By accessing or using our website, products, or serv
 - Outbound links to user-provided sites (e.g., GitHub, X, personal website)
 - Optional company listings (planned for future releases)
 
-2.2. All features are subject to availability and may be updated, modified, or discontinued at our sole discretion.  
+  2.2. All features are subject to availability and may be updated, modified, or discontinued at our sole discretion.
 
-2.3. Service availability may vary and is not guaranteed.
+  2.3. Service availability may vary and is not guaranteed.
 
 ## 3. User Responsibilities
 

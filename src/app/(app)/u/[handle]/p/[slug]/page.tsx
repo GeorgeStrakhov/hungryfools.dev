@@ -3,13 +3,13 @@ import { profiles, projects } from "@/db/schema/profile";
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
-type Params = { 
-  params: Promise<{ handle: string; slug: string }> 
+type Params = {
+  params: Promise<{ handle: string; slug: string }>;
 };
 
 export default async function ProjectPage({ params }: Params) {
   const resolvedParams = await params;
-  
+
   // First get the profile to get userId
   const [profile] = await db
     .select()
@@ -28,8 +28,8 @@ export default async function ProjectPage({ params }: Params) {
     .where(
       and(
         eq(projects.userId, profile.userId),
-        eq(projects.slug, resolvedParams.slug)
-      )
+        eq(projects.slug, resolvedParams.slug),
+      ),
     )
     .limit(1);
 
@@ -40,7 +40,7 @@ export default async function ProjectPage({ params }: Params) {
   return (
     <div className="hf-container py-10">
       {/* Breadcrumb */}
-      <div className="mb-6 text-sm text-muted-foreground">
+      <div className="text-muted-foreground mb-6 text-sm">
         <a href={`/u/${profile.handle}`} className="hover:underline">
           @{profile.handle}
         </a>
@@ -50,17 +50,17 @@ export default async function ProjectPage({ params }: Params) {
 
       {/* Project Header */}
       <div className="mb-8">
-        <div className="flex items-start justify-between mb-4">
+        <div className="mb-4 flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold">{project.name}</h1>
             {project.oneliner && (
-              <p className="text-xl text-muted-foreground mt-2">
+              <p className="text-muted-foreground mt-2 text-xl">
                 {project.oneliner}
               </p>
             )}
           </div>
           {project.featured && (
-            <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm">
+            <span className="bg-primary text-primary-foreground rounded-full px-3 py-1 text-sm">
               Featured
             </span>
           )}
@@ -73,11 +73,21 @@ export default async function ProjectPage({ params }: Params) {
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+              className="bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-lg px-4 py-2 transition-opacity hover:opacity-90"
             >
               <span>View Project</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
               </svg>
             </a>
           </div>
@@ -89,19 +99,15 @@ export default async function ProjectPage({ params }: Params) {
         <div className="mb-8">
           <div className="grid gap-4">
             {project.media.map((item, index) => (
-              <div key={index} className="rounded-lg overflow-hidden border">
+              <div key={index} className="overflow-hidden rounded-lg border">
                 {item.type === "image" ? (
                   <img
                     src={item.url}
                     alt={item.filename}
-                    className="w-full h-auto"
+                    className="h-auto w-full"
                   />
                 ) : (
-                  <video
-                    src={item.url}
-                    controls
-                    className="w-full h-auto"
-                  >
+                  <video src={item.url} controls className="h-auto w-full">
                     Your browser does not support the video tag.
                   </video>
                 )}
@@ -114,7 +120,7 @@ export default async function ProjectPage({ params }: Params) {
       {/* Project Description */}
       {project.description && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">About this project</h2>
+          <h2 className="mb-4 text-xl font-semibold">About this project</h2>
           <div className="prose prose-gray max-w-none">
             <p className="whitespace-pre-wrap">{project.description}</p>
           </div>
@@ -122,15 +128,27 @@ export default async function ProjectPage({ params }: Params) {
       )}
 
       {/* Back to Profile */}
-      <div className="pt-8 border-t">
+      <div className="border-t pt-8">
         <a
           href={`/u/${profile.handle}`}
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
           </svg>
-          <span>Back to {profile.displayName || profile.handle}'s profile</span>
+          <span>
+            Back to {profile.displayName || profile.handle}&apos;s profile
+          </span>
         </a>
       </div>
     </div>
@@ -139,7 +157,7 @@ export default async function ProjectPage({ params }: Params) {
 
 export async function generateMetadata({ params }: Params) {
   const resolvedParams = await params;
-  
+
   const [profile] = await db
     .select()
     .from(profiles)
@@ -156,8 +174,8 @@ export async function generateMetadata({ params }: Params) {
     .where(
       and(
         eq(projects.userId, profile.userId),
-        eq(projects.slug, resolvedParams.slug)
-      )
+        eq(projects.slug, resolvedParams.slug),
+      ),
     )
     .limit(1);
 
@@ -167,6 +185,9 @@ export async function generateMetadata({ params }: Params) {
 
   return {
     title: `${project.name} by ${profile.displayName || profile.handle}`,
-    description: project.oneliner || project.description || `A project by ${profile.displayName || profile.handle}`,
+    description:
+      project.oneliner ||
+      project.description ||
+      `A project by ${profile.displayName || profile.handle}`,
   };
 }

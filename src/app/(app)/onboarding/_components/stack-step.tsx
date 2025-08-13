@@ -197,13 +197,14 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
           />
         </div>
 
-        <div className="bg-muted/30 border border-primary/20 rounded-lg p-4 text-sm">
+        <div className="bg-muted/30 border-primary/20 rounded-lg border p-4 text-sm">
           <p className="flex items-start gap-2">
             <span className="text-lg">🦆</span>
             <span>
-              <strong>Note:</strong> PacDuck will normalize your tech stack into 
-              standard terms (e.g., "JS" → "javascript", "React.js" → "react") to 
-              help with search and matching.
+              <strong>Note:</strong> PacDuck will normalize your tech stack into
+              standard terms (e.g., &quot;JS&quot; → &quot;javascript&quot;,
+              &quot;React.js&quot; → &quot;react&quot;) to help with search and
+              matching.
             </span>
           </p>
         </div>

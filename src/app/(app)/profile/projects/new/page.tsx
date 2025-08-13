@@ -19,10 +19,7 @@ export default async function NewProjectPage() {
       </div>
 
       <div className="max-w-2xl">
-        <ProjectForm
-          onSubmit={createProject}
-          submitLabel="Create Project"
-        />
+        <ProjectForm onSubmit={createProject} submitLabel="Create Project" />
       </div>
     </div>
   );

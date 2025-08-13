@@ -109,11 +109,11 @@ export async function validateStep(
 // Client-side batch validation function
 export async function validateFieldsClient(
   fields: Array<{ text: string; context: string; maxLength?: number }>,
-  constraints: string[] = ["no-ads", "professional-only"]
+  constraints: string[] = ["no-ads", "professional-only"],
 ): Promise<void> {
   // Filter out empty fields
-  const nonEmptyFields = fields.filter(f => f.text.trim() !== "");
-  
+  const nonEmptyFields = fields.filter((f) => f.text.trim() !== "");
+
   if (nonEmptyFields.length === 0) {
     return; // Nothing to validate
   }

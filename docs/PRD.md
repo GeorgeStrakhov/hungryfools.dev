@@ -36,24 +36,24 @@ Primary users: AI‑first developers; Secondary users: hiring managers/companies
 - Top bar login/logout and avatar dropdown.
   Acceptance: User can sign in and see avatar; DB has `user`, `account`, `session` rows.
 
-#### Stage 1 — Developer Profiles MVP (Create/Edit/View)
+#### Stage 1 — Developer Profiles MVP (Create/Edit/View) ✅ COMPLETED
 
 - Profile model: fields (display name, headline, bio, skills/stack, interests, location, links: GitHub/X/site, availability flags).
 - Pages:
   - Create/Edit Profile (server actions or API routes).
   - Public Profile page (SEO‑friendly).
 - Directory: Basic list of profiles with pagination/sort.
-- Showcase: simple way to list things shipped (mini cards with title/link/one‑liner). This is core to the product.
+- **Projects System**: Prominent project showcase with rich media support (images/videos), individual project pages at `/u/{handle}/p/{slug}`, S3 media upload, batch moderation, full CRUD operations.
 - Analytics: instrument sign‑in, profile create/update, profile view.
-  Acceptance: Signed‑in dev can create/edit profile; profile appears in directory and is viewable publicly; can add at least one showcase item; analytics events recorded.
+  Acceptance: ✅ Signed‑in dev can create/edit profile; profile appears in directory and is viewable publicly; can add/edit/delete projects with media uploads; projects searchable in directory; individual project pages with SEO-friendly URLs.
 
-#### Stage 2 — Search & Filters for Profiles
+#### Stage 2 — Search & Filters for Profiles ✅ COMPLETED (Enhanced)
 
-- Search (v1): keyword search over name/headline/skills with simple ranking.
-- Filters: availability (hire/collabs/hiring), skills/stack chips, location.
-- Contact: external links (GitHub/email/X) on profile; optional “mailto” CTA.
-- Analytics: instrument search queries, filter usage, profile click‑throughs (CTR).
-  Acceptance: Users can filter and search profiles; relevant analytics captured.
+- **Search (v1)**: ✅ Enhanced keyword search over name/headline/skills + projects (name, oneliner, description) with ranking.
+- Filters: availability (hire/collabs/hiring), skills/stack chips, location. ⏳ TODO
+- Contact: external links (GitHub/email/X) on profile; optional "mailto" CTA.
+- Analytics: instrument search queries, filter usage, profile click‑throughs (CTR). ⏳ TODO
+  Acceptance: ✅ Users can search profiles and projects with enhanced results showing matching projects; filters and analytics remain TODO.
 
 #### Stage 3 — Analytics & Observability (Hardening)
 
@@ -95,14 +95,15 @@ Primary users: AI‑first developers; Secondary users: hiring managers/companies
 - app content:
   - `profile` (1:1 user): name, headline, bio, skills (array/json), interests (array/json), location, links, availability flags, timestamps.
   - `profile_expertise_other` (optional): non‑dev expertise/identity tags (array/json) — e.g., musician, teacher, writer, climber, runner.
-  - `profile_showcase` (1:many user): title, link (GitHub/Live), one‑liner summary, createdAt.
+  - **`projects`** (1:many user): ✅ name, slug, url, oneliner, description, media (S3 uploads), featured flag, timestamps. SEO-friendly URLs at `/u/{handle}/p/{slug}`.
   - `company`: name, description, website, logo, isActive, plan/meta, timestamps.
   - `payment` (optional later): provider, amount, status, timestamps.
   - `profile_embedding` (later): userId, vector.
 
 ### 6) Key Flows
 
-- Sign in → create/edit profile → directory visibility → search & filter → contact.
+- Sign in → create/edit profile → add projects with media → directory visibility → search & filter → contact.
+- ✅ **Project Management**: Create/edit/delete projects → S3 media upload → individual project pages → enhanced search discovery.
 - Company checkout → listing active → appears in company directory.
 
 ### 7) Acceptance Criteria by Stage
@@ -147,9 +148,12 @@ Primary users: AI‑first developers; Secondary users: hiring managers/companies
 - Retention: define retention for logs/analytics; regularly purge unneeded data.
 - Subprocessors: document PostHog and Vercel as subprocessors with EU processing.
 
-### 13) Milestones & Timeline (suggested)
+### 13) Milestones & Timeline (updated)
 
-- Week 1: Stage 1 (Profiles MVP) end‑to‑end.
-- Week 2: Stage 2 filters + Stage 3 payment scaffolding.
-- Week 3: Stage 3 go‑live + Stage 4 hybrid search prototype.
-- Week 4: Stage 5 admin tooling, polish, deploy.
+- ✅ **Week 1**: Stage 1 (Profiles MVP + Projects System) end‑to‑end completed.
+- ✅ **Enhanced**: Stage 2 search extended for projects; S3 media pipeline implemented.
+- **Next priorities**:
+  - Stage 2: Filters (availability, skills/stack chips, location)
+  - Stage 3: Analytics & Observability (PostHog integration)
+  - Stage 4: Company Listings (Monetization v1)
+  - Stage 5: Hybrid Search Quality (Vector embeddings)

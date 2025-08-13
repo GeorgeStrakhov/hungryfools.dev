@@ -8,7 +8,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { validateFields } from "@/lib/moderation/server";
-import type { ProjectMedia } from "@/db/schema/profile";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required").max(100),
@@ -17,13 +16,15 @@ const projectSchema = z.object({
   oneliner: z.string().max(140).optional(),
   description: z.string().max(2000).optional(),
   featured: z.boolean(),
-  media: z.array(z.object({
-    url: z.string(),
-    type: z.enum(["image", "video"]),
-    filename: z.string(),
-    size: z.number(),
-    key: z.string(),
-  })),
+  media: z.array(
+    z.object({
+      url: z.string(),
+      type: z.enum(["image", "video"]),
+      filename: z.string(),
+      size: z.number(),
+      key: z.string(),
+    }),
+  ),
 });
 
 export async function createProject(data: unknown) {
@@ -36,15 +37,27 @@ export async function createProject(data: unknown) {
 
   // Validate content for inappropriate material (batch validation)
   const fieldsToValidate = [];
-  
+
   if (validatedData.name?.trim()) {
-    fieldsToValidate.push({ text: validatedData.name.trim(), context: "project-name", maxLength: 100 });
+    fieldsToValidate.push({
+      text: validatedData.name.trim(),
+      context: "project-name",
+      maxLength: 100,
+    });
   }
   if (validatedData.oneliner?.trim()) {
-    fieldsToValidate.push({ text: validatedData.oneliner.trim(), context: "project-oneliner", maxLength: 140 });
+    fieldsToValidate.push({
+      text: validatedData.oneliner.trim(),
+      context: "project-oneliner",
+      maxLength: 140,
+    });
   }
   if (validatedData.description?.trim()) {
-    fieldsToValidate.push({ text: validatedData.description.trim(), context: "project-description", maxLength: 2000 });
+    fieldsToValidate.push({
+      text: validatedData.description.trim(),
+      context: "project-description",
+      maxLength: 2000,
+    });
   }
 
   // Single API call for all fields
@@ -57,8 +70,8 @@ export async function createProject(data: unknown) {
     .where(
       and(
         eq(projects.userId, session.user.id),
-        eq(projects.slug, validatedData.slug)
-      )
+        eq(projects.slug, validatedData.slug),
+      ),
     )
     .limit(1);
 
@@ -68,7 +81,7 @@ export async function createProject(data: unknown) {
 
   const now = new Date();
 
-  const [newProject] = await db
+  await db
     .insert(projects)
     .values({
       userId: session.user.id,
@@ -85,7 +98,7 @@ export async function createProject(data: unknown) {
     .returning();
 
   revalidatePath("/profile/projects");
-  
+
   // Get user's handle for redirect
   const [profile] = await db
     .select()
@@ -110,15 +123,27 @@ export async function updateProject(projectId: string, data: unknown) {
 
   // Validate content for inappropriate material (batch validation)
   const fieldsToValidate = [];
-  
+
   if (validatedData.name?.trim()) {
-    fieldsToValidate.push({ text: validatedData.name.trim(), context: "project-name", maxLength: 100 });
+    fieldsToValidate.push({
+      text: validatedData.name.trim(),
+      context: "project-name",
+      maxLength: 100,
+    });
   }
   if (validatedData.oneliner?.trim()) {
-    fieldsToValidate.push({ text: validatedData.oneliner.trim(), context: "project-oneliner", maxLength: 140 });
+    fieldsToValidate.push({
+      text: validatedData.oneliner.trim(),
+      context: "project-oneliner",
+      maxLength: 140,
+    });
   }
   if (validatedData.description?.trim()) {
-    fieldsToValidate.push({ text: validatedData.description.trim(), context: "project-description", maxLength: 2000 });
+    fieldsToValidate.push({
+      text: validatedData.description.trim(),
+      context: "project-description",
+      maxLength: 2000,
+    });
   }
 
   // Single API call for all fields
@@ -129,10 +154,7 @@ export async function updateProject(projectId: string, data: unknown) {
     .select()
     .from(projects)
     .where(
-      and(
-        eq(projects.id, projectId),
-        eq(projects.userId, session.user.id)
-      )
+      and(eq(projects.id, projectId), eq(projects.userId, session.user.id)),
     )
     .limit(1);
 
@@ -148,8 +170,8 @@ export async function updateProject(projectId: string, data: unknown) {
       .where(
         and(
           eq(projects.userId, session.user.id),
-          eq(projects.slug, validatedData.slug)
-        )
+          eq(projects.slug, validatedData.slug),
+        ),
       )
       .limit(1);
 
@@ -173,7 +195,7 @@ export async function updateProject(projectId: string, data: unknown) {
     .where(eq(projects.id, projectId));
 
   revalidatePath("/profile/projects");
-  
+
   // Get user's handle for redirect
   const [profile] = await db
     .select()
@@ -200,10 +222,7 @@ export async function deleteProject(projectId: string) {
     .select()
     .from(projects)
     .where(
-      and(
-        eq(projects.id, projectId),
-        eq(projects.userId, session.user.id)
-      )
+      and(eq(projects.id, projectId), eq(projects.userId, session.user.id)),
     )
     .limit(1);
 
@@ -218,12 +237,10 @@ export async function deleteProject(projectId: string) {
   //   }
   // }
 
-  await db
-    .delete(projects)
-    .where(eq(projects.id, projectId));
+  await db.delete(projects).where(eq(projects.id, projectId));
 
   revalidatePath("/profile/projects");
-  
+
   // Get user's handle for revalidation
   const [profile] = await db
     .select()

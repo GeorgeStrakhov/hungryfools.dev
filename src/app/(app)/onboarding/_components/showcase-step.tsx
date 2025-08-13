@@ -54,11 +54,9 @@ export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">
-          Add your first project?
-        </h1>
+        <h1 className="text-2xl font-semibold">Add your first project?</h1>
         <p className="text-muted-foreground mt-2">
-          Show off something cool you've built
+          Show off something cool you&apos;ve built
         </p>
       </div>
 

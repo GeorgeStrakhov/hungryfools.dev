@@ -101,7 +101,6 @@ You are a helpful assistant that normalizes a developer's vibe into a short head
   await upsert({ headline: out.headline /* store tags later */ });
 }
 
-
 export async function saveStackAction(payload: unknown) {
   const out = await normalizeAndModerate(
     payload,
@@ -149,7 +148,7 @@ Clean up project info:
   }
 
   // Generate a slug from the project name
-  const projectSlug = out.name 
+  const projectSlug = out.name
     ? slugify(out.name, { lower: true, strict: true, trim: true })
     : `project-${Date.now()}`;
 

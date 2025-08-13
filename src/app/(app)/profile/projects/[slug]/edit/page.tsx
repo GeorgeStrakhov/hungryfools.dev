@@ -1,13 +1,23 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
-import { projects } from "@/db/schema/profile";
+import { projects, type ProjectMedia } from "@/db/schema/profile";
 import { eq, and } from "drizzle-orm";
 import { redirect, notFound } from "next/navigation";
 import { ProjectForm } from "@/components/projects/project-form";
 import { updateProject, deleteProject } from "../../actions";
 
-type Params = { 
-  params: Promise<{ slug: string }> 
+interface ProjectFormData {
+  name: string;
+  slug: string;
+  url: string;
+  oneliner: string;
+  description: string;
+  featured: boolean;
+  media: ProjectMedia[];
+}
+
+type Params = {
+  params: Promise<{ slug: string }>;
 };
 
 export default async function EditProjectPage({ params }: Params) {
@@ -25,8 +35,8 @@ export default async function EditProjectPage({ params }: Params) {
     .where(
       and(
         eq(projects.userId, session.user.id),
-        eq(projects.slug, resolvedParams.slug)
-      )
+        eq(projects.slug, resolvedParams.slug),
+      ),
     )
     .limit(1);
 
@@ -34,7 +44,7 @@ export default async function EditProjectPage({ params }: Params) {
     notFound();
   }
 
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (data: ProjectFormData) => {
     "use server";
     await updateProject(project.id, data);
   };
@@ -62,7 +72,7 @@ export default async function EditProjectPage({ params }: Params) {
             oneliner: project.oneliner || "",
             description: project.description || "",
             featured: project.featured,
-            media: project.media || [],
+            media: (project.media as ProjectMedia[]) || [],
           }}
           onSubmit={handleUpdate}
           onDelete={handleDelete}

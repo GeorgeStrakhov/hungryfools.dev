@@ -19,7 +19,10 @@ interface DeleteProjectButtonProps {
   projectName: string;
 }
 
-export function DeleteProjectButton({ onDelete, projectName }: DeleteProjectButtonProps) {
+export function DeleteProjectButton({
+  onDelete,
+  projectName,
+}: DeleteProjectButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -28,7 +31,7 @@ export function DeleteProjectButton({ onDelete, projectName }: DeleteProjectButt
     try {
       await onDelete();
       setOpen(false);
-    } catch (error) {
+    } catch {
       setIsDeleting(false);
       // Keep dialog open if there's an error
     }
@@ -37,11 +40,7 @@ export function DeleteProjectButton({ onDelete, projectName }: DeleteProjectButt
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button 
-          type="button"
-          variant="destructive" 
-          disabled={isDeleting}
-        >
+        <Button type="button" variant="destructive" disabled={isDeleting}>
           Delete Project
         </Button>
       </AlertDialogTrigger>
@@ -49,13 +48,14 @@ export function DeleteProjectButton({ onDelete, projectName }: DeleteProjectButt
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Project</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete "{projectName}"? This action cannot be undone.
-            All associated media and data will be permanently removed.
+            Are you sure you want to delete &quot;{projectName}&quot;? This
+            action cannot be undone. All associated media and data will be
+            permanently removed.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-          <AlertDialogAction 
+          <AlertDialogAction
             onClick={handleDelete}
             disabled={isDeleting}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

@@ -7,8 +7,19 @@ import type { ProjectMedia } from "@/db/schema/profile";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 // Allowed file types
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/mov", "video/avi"];
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+const ALLOWED_VIDEO_TYPES = [
+  "video/mp4",
+  "video/webm",
+  "video/mov",
+  "video/avi",
+];
 const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 
 export async function POST(request: NextRequest) {
@@ -25,15 +36,12 @@ export async function POST(request: NextRequest) {
     if (!projectSlug) {
       return NextResponse.json(
         { error: "Project slug is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!files || files.length === 0) {
-      return NextResponse.json(
-        { error: "No files provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
     // Validate files
@@ -58,18 +66,18 @@ export async function POST(request: NextRequest) {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         validFiles.push({ file, buffer });
-      } catch (error) {
+      } catch {
         errors.push(`${file.name}: Failed to process file`);
       }
     }
 
     if (validFiles.length === 0) {
       return NextResponse.json(
-        { 
+        {
           error: "No valid files to upload",
-          details: errors 
+          details: errors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -95,7 +103,9 @@ export async function POST(request: NextRequest) {
       const originalFile = validFiles[index].file;
       return {
         url: result.publicUrl,
-        type: ALLOWED_IMAGE_TYPES.includes(originalFile.type) ? "image" : "video",
+        type: ALLOWED_IMAGE_TYPES.includes(originalFile.type)
+          ? "image"
+          : "video",
         filename: originalFile.name,
         size: result.size,
         key: result.key,
@@ -107,15 +117,14 @@ export async function POST(request: NextRequest) {
       media: mediaItems,
       errors: errors.length > 0 ? errors : undefined,
     });
-
   } catch (error) {
     console.error("Media upload error:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Upload failed",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

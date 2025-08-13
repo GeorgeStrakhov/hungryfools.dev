@@ -1,9 +1,9 @@
 // Server-side moderation utilities
-import { 
-  containsBlockedContent, 
-  containsUrls, 
+import {
+  containsBlockedContent,
+  containsUrls,
   formatConstraints,
-  PACDUCK_MESSAGES 
+  PACDUCK_MESSAGES,
 } from "./shared";
 import { answerStructured } from "@/lib/services/llm/llm";
 import { z } from "zod";
@@ -25,11 +25,11 @@ const moderationResponse = z.object({
  */
 export async function validateFields(
   fields: ValidationField[],
-  constraints: string[] = ["no-ads", "professional-only"]
+  constraints: string[] = ["no-ads", "professional-only"],
 ): Promise<void> {
   // Filter out empty fields
-  const nonEmptyFields = fields.filter(f => f.text.trim() !== "");
-  
+  const nonEmptyFields = fields.filter((f) => f.text.trim() !== "");
+
   if (nonEmptyFields.length === 0) {
     return; // Nothing to validate
   }
@@ -43,7 +43,9 @@ export async function validateFields(
     }
 
     if (field.maxLength && field.text.length > field.maxLength) {
-      const error = new Error(PACDUCK_MESSAGES.length(field.text.length, field.maxLength));
+      const error = new Error(
+        PACDUCK_MESSAGES.length(field.text.length, field.maxLength),
+      );
       error.name = "ModerationError";
       throw error;
     }
@@ -65,7 +67,7 @@ export async function validateFields(
 
   // LLM moderation for multiple fields
   const activeConstraints = formatConstraints(constraints);
-  
+
   const systemPrompt = `
 You are PacDuck, the fun and quirky mascot of a developer community platform. You're moderating multiple fields of content at once!
 
@@ -88,7 +90,9 @@ Examples:
 - "PacDuck says: *flaps wings* The tagline needs to be more professional, fellow coder!"
     `.trim();
 
-  const fieldsText = nonEmptyFields.map(f => `${f.context}: "${f.text}"`).join('\n');
+  const fieldsText = nonEmptyFields
+    .map((f) => `${f.context}: "${f.text}"`)
+    .join("\n");
   const userPrompt = `Please moderate these fields:\n${fieldsText}`;
 
   const result = await answerStructured({

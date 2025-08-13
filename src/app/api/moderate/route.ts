@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { z } from "zod";
 import { answerStructured } from "@/lib/services/llm/llm";
-import { 
-  containsBlockedContent, 
-  containsUrls, 
+import {
+  containsBlockedContent,
+  containsUrls,
   formatConstraints,
-  PACDUCK_MESSAGES 
+  PACDUCK_MESSAGES,
 } from "@/lib/moderation/shared";
 
 const singleModerationRequest = z.object({
@@ -17,15 +17,20 @@ const singleModerationRequest = z.object({
 });
 
 const batchModerationRequest = z.object({
-  fields: z.array(z.object({
-    text: z.string(),
-    context: z.string(),
-    maxLength: z.number().optional(),
-  })),
+  fields: z.array(
+    z.object({
+      text: z.string(),
+      context: z.string(),
+      maxLength: z.number().optional(),
+    }),
+  ),
   constraints: z.array(z.string()).optional(),
 });
 
-const moderationRequest = z.union([singleModerationRequest, batchModerationRequest]);
+const moderationRequest = z.union([
+  singleModerationRequest,
+  batchModerationRequest,
+]);
 
 const singleModerationResponse = z.object({
   allowed: z.boolean(),
@@ -38,11 +43,15 @@ const batchModerationResponse = z.object({
   allowed: z.boolean(),
   confidence: z.number().min(0).max(1),
   reason: z.string().optional(), // Overall reason if any field failed
-  fields: z.array(z.object({
-    context: z.string(),
-    allowed: z.boolean(),
-    reason: z.string().optional(),
-  })).optional(), // Details per field (only included if something failed)
+  fields: z
+    .array(
+      z.object({
+        context: z.string(),
+        allowed: z.boolean(),
+        reason: z.string().optional(),
+      }),
+    )
+    .optional(), // Details per field (only included if something failed)
 });
 
 // Using shared profanity filter
@@ -58,7 +67,7 @@ export async function POST(request: NextRequest) {
     const parsedRequest = moderationRequest.parse(body);
 
     // Determine if this is a single or batch request
-    const isBatch = 'fields' in parsedRequest;
+    const isBatch = "fields" in parsedRequest;
 
     if (isBatch) {
       return await handleBatchModeration(parsedRequest);
@@ -80,7 +89,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleSingleModeration(request: z.infer<typeof singleModerationRequest>) {
+async function handleSingleModeration(
+  request: z.infer<typeof singleModerationRequest>,
+) {
   const { text, context, maxLength, constraints = [] } = request;
 
   // Quick profanity check
@@ -124,7 +135,9 @@ async function handleSingleModeration(request: z.infer<typeof singleModerationRe
   return NextResponse.json(result);
 }
 
-async function handleBatchModeration(request: z.infer<typeof batchModerationRequest>) {
+async function handleBatchModeration(
+  request: z.infer<typeof batchModerationRequest>,
+) {
   const { fields, constraints = [] } = request;
 
   // Quick checks on all fields
@@ -170,13 +183,13 @@ async function handleBatchModeration(request: z.infer<typeof batchModerationRequ
 }
 
 async function runLLMModeration(
-  fields: Array<{ text: string; context: string }>, 
-  constraints: string[]
+  fields: Array<{ text: string; context: string }>,
+  constraints: string[],
 ) {
   const activeConstraints = formatConstraints(constraints);
 
   const isBatch = fields.length > 1;
-  
+
   let systemPrompt, userPrompt, responseSchema;
 
   if (isBatch) {
@@ -202,7 +215,9 @@ Examples:
 - "PacDuck says: *flaps wings* The tagline needs to be more professional, fellow coder!"
     `.trim();
 
-    const fieldsText = fields.map(f => `${f.context}: "${f.text}"`).join('\n');
+    const fieldsText = fields
+      .map((f) => `${f.context}: "${f.text}"`)
+      .join("\n");
     userPrompt = `Please moderate these fields:\n${fieldsText}`;
     responseSchema = batchModerationResponse;
   } else {

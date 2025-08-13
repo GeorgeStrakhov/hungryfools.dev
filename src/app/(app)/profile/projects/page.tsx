@@ -32,7 +32,7 @@ export default async function ProjectsManagementPage() {
 
   return (
     <div className="hf-container py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">My Projects</h1>
           <p className="text-muted-foreground mt-2">
@@ -48,7 +48,7 @@ export default async function ProjectsManagementPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
+              <h3 className="mb-2 text-lg font-semibold">No projects yet</h3>
               <p className="text-muted-foreground mb-6">
                 Start building your portfolio by adding your first project
               </p>
@@ -68,7 +68,7 @@ export default async function ProjectsManagementPage() {
                     <CardTitle className="flex items-center gap-2">
                       {project.name}
                       {project.featured && (
-                        <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
+                        <span className="bg-primary text-primary-foreground rounded px-2 py-1 text-xs">
                           Featured
                         </span>
                       )}
@@ -86,7 +86,10 @@ export default async function ProjectsManagementPage() {
                       </a>
                     </Button>
                     <Button variant="outline" size="sm" asChild>
-                      <a href={`/u/${profile.handle}/p/${project.slug}`} target="_blank">
+                      <a
+                        href={`/u/${profile.handle}/p/${project.slug}`}
+                        target="_blank"
+                      >
                         View
                       </a>
                     </Button>
@@ -96,17 +99,19 @@ export default async function ProjectsManagementPage() {
               <CardContent>
                 <div className="space-y-3">
                   {project.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-3">
+                    <p className="text-muted-foreground line-clamp-3 text-sm">
                       {project.description}
                     </p>
                   )}
-                  
+
                   {project.url && (
                     <div>
-                      <span className="text-xs text-muted-foreground">URL: </span>
-                      <a 
-                        href={project.url} 
-                        target="_blank" 
+                      <span className="text-muted-foreground text-xs">
+                        URL:{" "}
+                      </span>
+                      <a
+                        href={project.url}
+                        target="_blank"
                         className="text-xs text-blue-600 hover:underline"
                       >
                         {project.url}
@@ -116,16 +121,21 @@ export default async function ProjectsManagementPage() {
 
                   {project.media && project.media.length > 0 && (
                     <div>
-                      <span className="text-xs text-muted-foreground">
-                        Media: {project.media.length} file{project.media.length !== 1 ? 's' : ''}
+                      <span className="text-muted-foreground text-xs">
+                        Media: {project.media.length} file
+                        {project.media.length !== 1 ? "s" : ""}
                       </span>
                     </div>
                   )}
 
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-muted-foreground text-xs">
                     Created: {new Date(project.createdAt).toLocaleDateString()}
                     {project.updatedAt !== project.createdAt && (
-                      <span> • Updated: {new Date(project.updatedAt).toLocaleDateString()}</span>
+                      <span>
+                        {" "}
+                        • Updated:{" "}
+                        {new Date(project.updatedAt).toLocaleDateString()}
+                      </span>
                     )}
                   </div>
                 </div>
