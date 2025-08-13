@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Allow MDX files to be routed/imported
+  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   async rewrites() {
     return [
       {
@@ -22,4 +24,13 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
 };
 
-export default nextConfig;
+// Enable MDX with remark/rehype plugins (string names for Turbopack)
+const withMDX = createMDX({
+  extension: /\.(md|mdx)$/,
+  options: {
+    remarkPlugins: [["remark-gfm", {}]],
+    rehypePlugins: [["rehype-slug", {}]],
+  },
+});
+
+export default withMDX(nextConfig);
