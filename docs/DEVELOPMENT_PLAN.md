@@ -37,7 +37,7 @@ Natural Language Query → Query Intelligence → Multi-Modal Search → Fusion 
 - Generate structured filters + semantic query
 
 #### Multi-Modal Search Layer
-1. **BM25 (Keyword)**: Fast exact matching on indexed fields
+1. **BM25 (Keyword)**: Fast keyword matching using wink-nlp BM25 vectorizer
 2. **Vector Similarity**: Semantic search via BGE-M3 embeddings
 3. **SQL Filters**: Structured data (location, availability, skills)
 
@@ -218,36 +218,68 @@ export async function vectorSimilaritySearch(
   return results;
 }
 
-### 6. Hybrid Search Implementation  
+### 6. BM25 Keyword Search (wink-nlp)
+```typescript
+// /src/lib/services/search/bm25-search.ts
+import winkNLP from 'wink-nlp';
+import model from 'wink-eng-lite-web-model';
+
+const nlp = winkNLP(model);
+const bm25 = nlp.utils.bm25Vectorizer();
+
+export async function setupBM25Index(profiles: Profile[]) {
+  // Build BM25 index from all profile content
+  profiles.forEach((profile, index) => {
+    const content = buildProfileContent(profile);
+    const doc = nlp.readDoc(content);
+    bm25.learn(doc.tokens().out(), index);
+  });
+  bm25.consolidate(); // Finalize the learning
+}
+
+export function bm25Search(query: string, profileIds: string[], topK: number = 20) {
+  const queryDoc = nlp.readDoc(query);
+  const queryTokens = queryDoc.tokens().out();
+  
+  const scores = bm25.vectorOf(queryTokens);
+  const results = scores
+    .map((score, index) => ({ profileId: profileIds[index], score }))
+    .filter(r => r.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topK);
+    
+  return results;
+}
+```
+
+### 7. Hybrid Search Implementation  
 ```typescript
 // /src/lib/services/search/hybrid-search.ts
 export async function hybridSearch(query: string): Promise<SearchResults> {
   const parsed = await parseSearchQuery(query);
   
-  // 1. Generate query embedding for vector search
+  // 1. Get base candidate set with SQL filters
+  const baseProfiles = await getFilteredProfiles(parsed.entities);
+  
+  // 2. BM25 keyword search on candidates
+  const bm25Results = bm25Search(parsed.freeform_query, baseProfiles.map(p => p.id));
+  
+  // 3. Vector similarity search  
   const queryEmbedding = await generateEmbeddings({ input: parsed.freeform_query });
+  const vectorResults = await vectorSimilaritySearch(queryEmbedding.embeddings[0], 0.3);
   
-  // 2. Vector similarity search
-  const vectorResults = await vectorSimilaritySearch(
-    queryEmbedding.embeddings[0], 
-    0.3, // similarity threshold
-    50   // get more candidates for reranking
-  );
+  // 4. Score fusion (combine BM25 + vector scores)
+  const fusedResults = fuseScores(bm25Results, vectorResults);
   
-  // 3. Apply additional SQL filters from parsed entities
-  const filteredResults = vectorResults.filter(result => 
-    matchesEntityFilters(result.profile, parsed.entities)
-  );
-  
-  // 4. BGE reranking for final ordering
-  const documents = filteredResults.map(r => buildProfileContent(r.profile));
+  // 5. BGE reranking for final ordering
+  const documents = fusedResults.map(r => buildProfileContent(r.profile));
   const reranked = await rerankDocuments({
     query: query,
     documents: documents,
     topK: 20
   });
   
-  return mapToSearchResults(reranked, filteredResults);
+  return mapToSearchResults(reranked, fusedResults);
 }
 ```
 
@@ -267,14 +299,15 @@ const testQueries = [
 
 ## 📋 Implementation Checklist
 
+- [ ] Install wink-nlp and wink-eng-lite-web-model for BM25
 - [ ] Generate 200-500 test profiles using LLM
 - [ ] Add pgvector extension to Neon
 - [ ] Create embedding schema migration
 - [ ] Build profile content generation function
 - [ ] Implement BGE-M3 embedding pipeline
+- [ ] Build BM25 index with wink-nlp
 - [ ] Create LLM query parser
-- [ ] Build hybrid search algorithm
-- [ ] Integrate BGE reranking
+- [ ] Build hybrid search algorithm (BM25 + Vector + Reranking)
 - [ ] Add search to directory page
 - [ ] Basic analytics tracking
 
