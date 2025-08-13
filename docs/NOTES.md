@@ -1,0 +1,2 @@
+- privacy and cookie blah blah
+- embeddings model? how should we store embeddings for vector search?

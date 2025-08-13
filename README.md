@@ -22,6 +22,8 @@ This is a simple lil' website where AI-first developers can list themselves, fin
 - authjs
 - drizzleORM
 - postgres17 on NEON
+- cloudflare
+- groq
 - vercel
 - tailwind
 - shadcn
