@@ -1,159 +1,166 @@
-## HungryFools.dev — Product Requirements Document (PRD)
+# HungryFools.dev — Product Requirements Document (PRD)
 
-### 1) Overview
+## 🎯 Overview
 
-HungryFools.dev is a directory of AI‑first “vibecoder” developers who build fast. The product enables:
+HungryFools.dev is a directory of AI‑first "vibecoder" developers who build fast. The product enables:
 
 - Developers to sign in with GitHub and publish rich profiles (skills/stack, interests, projects, availability).
-- Other developers to discover and contact collaborators.
-- Companies to list themselves as vibecoder‑friendly (paid) and source talent.
-- Great search via hybrid keyword + vector similarity and optional text‑to‑SQL.
+- Other developers to discover and contact collaborators through intelligent search.
+- Premium features for enhanced visibility (future monetization).
 
 Primary users: AI‑first developers; Secondary users: hiring managers/companies.
 
-### 2) Goals and Non‑Goals
+## 👥 User Stories
 
-- Goals:
-  - Fast, low‑friction onboarding via GitHub.
-  - Clear, searchable profiles to drive discovery and collaboration/hiring.
-  - High‑quality search and browsing UX.
-  - Lightweight monetization via paid company listings.
-- Non‑Goals (initially):
-  - Complex ATS features; deep applicant tracking.
-  - Messaging platform; we’ll start with external contact links.
+### AI-First Developer (Primary User)
+- **"I want to showcase my AI projects"**: Create a profile highlighting my AI/ML work, tools I've built, and technologies I use
+- **"I want to find collaborators"**: Search for other developers working on similar problems (e.g., "developers building AI agents with TypeScript")
+- **"I want to be discoverable"**: Get found by other developers or companies looking for my specific skills and interests
+- **"I want to see what others are building"**: Browse profiles and projects to discover new tools, techniques, and potential collaborators
 
-### 3) Personas & Core Jobs
+### Hiring Manager / Recruiter (Secondary User)
+- **"I need to find specific talent"**: Search for developers with exact skill combinations (e.g., "Next.js developers in Berlin who have built AI applications")
+- **"I want to see real work"**: View actual projects, code samples, and live demos rather than just resumes
+- **"I need to understand the person"**: See not just skills but interests, working style, and what motivates them
+- **"I want efficient outreach"**: Quickly identify and contact the right candidates through their preferred channels
 
-- Developer (Job: showcase profile, find collaborators, get hired).
-- Company (Job: list brand as friendly, source candidates, get inbound interest).
+### Community Member
+- **"I want to stay current"**: Discover trending projects and see what the AI-first community is building
+- **"I want to learn"**: Find people who've solved similar problems and learn from their approaches
+- **"I want to contribute"**: Connect with open source projects that need contributors with my skills
 
-### 4) Staged Development Plan
+## 🚀 Current State
 
-#### Stage 0 — Foundation (DONE/In Progress)
+### ✅ Completed Features
 
-- Auth: GitHub OAuth with Auth.js v5, Drizzle ORM, Neon Postgres; database sessions.
-- UI foundation: Tailwind + shadcn; landing page.
-- Top bar login/logout and avatar dropdown.
-  Acceptance: User can sign in and see avatar; DB has `user`, `account`, `session` rows.
+#### Core Platform
+- **Authentication**: GitHub OAuth with Auth.js v5, Drizzle ORM, Neon Postgres
+- **UI Foundation**: Tailwind + shadcn, responsive design, dark theme
+- **Legal Compliance**: Privacy policy, terms of service, GDPR cookie consent
 
-#### Stage 1 — Developer Profiles MVP (Create/Edit/View) ✅ COMPLETED
+#### Developer Profiles
+- **Profile System**: Complete CRUD for developer profiles (name, headline, bio, skills, interests, location, links, availability)
+- **Onboarding Flow**: Multi-step guided setup with LLM content normalization
+- **Public Pages**: SEO-friendly profile pages at `/u/{handle}`
 
-- Profile model: fields (display name, headline, bio, skills/stack, interests, location, links: GitHub/X/site, availability flags).
-- Pages:
-  - Create/Edit Profile (server actions or API routes).
-  - Public Profile page (SEO‑friendly).
-- Directory: Basic list of profiles with pagination/sort.
-- **Projects System**: Prominent project showcase with rich media support (images/videos), individual project pages at `/u/{handle}/p/{slug}`, S3 media upload, batch moderation, full CRUD operations.
-- Analytics: instrument sign‑in, profile create/update, profile view.
-  Acceptance: ✅ Signed‑in dev can create/edit profile; profile appears in directory and is viewable publicly; can add/edit/delete projects with media uploads; projects searchable in directory; individual project pages with SEO-friendly URLs.
+#### Projects Showcase
+- **Project Management**: Full CRUD system for developer projects
+- **Rich Media**: S3/Cloudflare R2 integration for images and videos
+- **Project Pages**: Individual project pages at `/u/{handle}/p/{slug}`
+- **Content Moderation**: Batch validation using LLM + profanity filtering
 
-#### Stage 2 — Search & Filters for Profiles ✅ COMPLETED (Enhanced)
+#### Search & Discovery
+- **Basic Search**: Keyword search across profiles and projects
+- **Directory**: Paginated listing with search functionality
+- **Enhanced Results**: Projects included in search results with preview cards
 
-- **Search (v1)**: ✅ Enhanced keyword search over name/headline/skills + projects (name, oneliner, description) with ranking.
-- Filters: availability (hire/collabs/hiring), skills/stack chips, location. ⏳ TODO
-- Contact: external links (GitHub/email/X) on profile; optional "mailto" CTA.
-- Analytics: instrument search queries, filter usage, profile click‑throughs (CTR). ⏳ TODO
-  Acceptance: ✅ Users can search profiles and projects with enhanced results showing matching projects; filters and analytics remain TODO.
+#### Admin & Analytics
+- **Admin Dashboard**: User stats, profile metrics, system monitoring
+- **User Management**: Admin role system with user promotion/demotion
+- **Service Testing**: Admin pages for testing LLM, S3, embeddings, email
+- **Analytics**: PostHog integration (EU) with event tracking infrastructure
+- **Moderation Tools**: Batch content validation with leo-profanity filtering
 
-#### Stage 3 — Analytics & Observability (Hardening)
+### 🔧 Technical Infrastructure
 
-- Implement product analytics provider and dashboards (e.g., PostHog or Vercel Web Analytics).
-- Track events: auth_login, profile_create, profile_update, profile_view, directory_view, search_query, filter_apply, profile_click, outbound_click.
-- Add basic performance/error monitoring (e.g., Vercel + Sentry optional).
-  Acceptance: Events flow to dashboards; basic funnels visible; no PII logged unintentionally.
+- **Backend**: Next.js App Router, Server Actions, Drizzle ORM
+- **Database**: Neon Postgres (EU region) with proper indexing
+- **Storage**: Cloudflare R2 for media with image transformations
+- **AI Services**: Cloudflare Workers AI (BGE-M3 embeddings, BGE reranker, LLM)
+- **Analytics**: PostHog (EU data residency)
+- **Moderation**: LLM-powered content validation + leo-profanity filtering
 
-#### Stage 4 — Company Listings (Monetization v1, later)
+## 🎯 Current Priority: Intelligent Search
 
-- Company model: name, description, website, logo, “vibecoder‑friendly” badge, optional openings link.
-- Paywall: simple checkout (Stripe) for listing activation; Admin can verify/feature.
-- Company directory page; badges on profiles that work there (optional later).
-  Acceptance: Company can purchase listing and goes live upon payment success.
+**Goal**: Implement intelligent hybrid search that handles natural language queries like "mastra.ai developers in Germany who also like music"
 
-#### Stage 5 — Search Quality v1 (Hybrid)
+**No release until search is demonstrably superior to basic keyword matching.**
 
-- Embeddings pipeline for profiles (e.g., OpenAI/AWS Bedrock/Fireworks). Store vectors in Postgres extension or external vector DB; keep simple first.
-- Hybrid search: combine keyword ranking + vector similarity; scoring and result merge.
-- Query UX: search bar with suggestions; highlight matches.
-  Acceptance: Hybrid search returns clearly better results vs. keyword‑only in simple tests.
+### Search Architecture
+1. **LLM Query Intelligence**: Parse natural language to extract entities (companies, locations, skills, interests)
+2. **Multi-Modal Search**: 
+   - BM25 keyword matching (wink-nlp)
+   - Vector similarity search (BGE-M3 embeddings via pgvector)
+   - SQL filters for structured data
+3. **BGE Reranking**: Final result ordering using existing reranker
+4. **Performance Target**: <200ms response time
 
-#### Stage 6 — Admin & Moderation
+### Technical Implementation
+- **Embeddings**: BGE-M3 (1024 dimensions) via Cloudflare Workers AI
+- **Vector Storage**: pgvector extension on Neon with HNSW indexing
+- **BM25**: wink-nlp library for fast keyword matching
+- **Test Data**: Generate 200-500 realistic profiles using LLM for validation
 
-- Admin role (`user.isAdmin`) gated UI.
-- Admin pages: review/feature profiles, review company listings, revoke/disable content.
-- Basic audit logs (who/when for key changes).
-  Acceptance: Admin can feature/hide entries; actions reflected in UI.
+## 📋 Future Development
 
-#### Stage 7 — Text‑to‑SQL (Stretch)
+### Next Priorities (Post-Search)
+1. **Enhanced Filtering**: Location, skills/stack chips, availability toggles
+2. **Search Analytics**: Complete PostHog instrumentation for search queries and CTR
+3. **Performance Optimization**: Caching, query optimization, response time improvements
 
-- Natural language to search filter or SQL for advanced discovery.
-- Safety: constrain to read‑only queries and whitelisted columns.
-  Acceptance: NL queries produce useful filtered results reliably for top use cases.
+### Future Monetization (Later)
+- **Premium Profiles**: Enhanced visibility, featured placement, analytics
+- **Company Directory**: Paid company listings (much later priority)
+- **Advanced Features**: Priority support, API access, team accounts
 
-### 5) Data Model (initial)
+## 🎨 Design Principles
 
-- auth: `user`, `account`, `session`, `verificationToken`, `authenticator` (Auth.js Drizzle schema; `user.isAdmin` boolean).
-- app content:
-  - `profile` (1:1 user): name, headline, bio, skills (array/json), interests (array/json), location, links, availability flags, timestamps.
-  - `profile_expertise_other` (optional): non‑dev expertise/identity tags (array/json) — e.g., musician, teacher, writer, climber, runner.
-  - **`projects`** (1:many user): ✅ name, slug, url, oneliner, description, media (S3 uploads), featured flag, timestamps. SEO-friendly URLs at `/u/{handle}/p/{slug}`.
-  - `company`: name, description, website, logo, isActive, plan/meta, timestamps.
-  - `payment` (optional later): provider, amount, status, timestamps.
-  - `profile_embedding` (later): userId, vector.
+- **Developer-First**: Built by developers, for developers
+- **Speed**: Fast loading, quick interactions, minimal friction
+- **Intelligence**: Smart search that understands context and intent
+- **Privacy**: GDPR compliant, EU data residency, user control
+- **Quality**: Curated community with content moderation
 
-### 6) Key Flows
+## 📊 Success Metrics
 
-- Sign in → create/edit profile → add projects with media → directory visibility → search & filter → contact.
-- ✅ **Project Management**: Create/edit/delete projects → S3 media upload → individual project pages → enhanced search discovery.
-- Company checkout → listing active → appears in company directory.
+### Core Metrics
+- **Profile Quality**: >80% completion rate for onboarded users
+- **Search Performance**: <200ms p95 response time
+- **Search Quality**: >40% CTR on top 3 results
+- **User Engagement**: >60% of directory visitors use search
 
-### 7) Acceptance Criteria by Stage
+### Growth Metrics
+- **Monthly Active Users**: Track growth in returning users
+- **Profile Completeness**: Monitor profile quality over time
+- **Search Satisfaction**: User feedback on search relevance
+- **Contact Conversion**: Clicks from profiles to external links
 
-- Clearly listed under each stage above; must be demoable on Vercel preview.
+## 🔒 Privacy & Compliance
 
-### 8) Technical Plan (high‑level)
+- **Data Residency**: EU-first (Neon EU, PostHog EU, Cloudflare EU)
+- **GDPR Compliance**: Cookie consent, data export, deletion rights
+- **Content Moderation**: Automated + manual review for quality
+- **Security**: Secure authentication, encrypted data, audit logs
 
-- Next.js App Router; server actions for CRUD.
-- Drizzle ORM migrations; Neon Postgres.
-- Auth.js v5 database sessions; `SessionProvider` on client.
-- Tailwind + shadcn for UI; minimal, responsive, dark default.
-- Search v1: SQL ILIKE over indexed columns; later hybrid with embeddings using pgvector on Neon (EU region).
-- Payments: Stripe Checkout (company listings); secure webhooks.
-- Analytics: PostHog (EU data residency) as primary product analytics; client + server event capture, GDPR‑aware.
+## 🛠️ Technical Architecture
 
-### 9) Metrics
+```
+Frontend (Next.js)
+├── Authentication (Auth.js + GitHub OAuth)
+├── UI (Tailwind + shadcn)
+└── Analytics (PostHog)
 
-- Supply‑side: profiles created, profile completeness, active users/week.
-- Demand‑side: searches/run, profile views, outbound clicks (contact link CTR).
-- Revenue: company listing conversion rate, MRR.
+Backend (Server Actions)
+├── Database (Drizzle + Neon Postgres)
+├── Search (BM25 + Vector + Reranking)
+├── Media (Cloudflare R2)
+├── AI Services (Cloudflare Workers AI)
+└── Moderation (LLM + Profanity Filter)
 
-### 10) Risks & Mitigations
+Infrastructure
+├── Hosting (Vercel)
+├── Database (Neon Postgres EU)
+├── Storage (Cloudflare R2)
+├── AI (Cloudflare Workers AI)
+└── Analytics (PostHog EU)
+```
 
-- Low‑quality profiles → add lightweight quality checks and featured section.
-- Abuse/spam → admin moderation tools and rate limits.
-- Search quality → iterate on embeddings/hybrid scoring.
+## 📈 Development Status
 
-### 11) Decisions (closed)
+**Current Focus**: Intelligent search implementation
+**Release Blocker**: Search quality must exceed keyword-only baseline
+**Timeline**: Ship when ready (quality over speed)
 
-- Vector store: pgvector on Neon (EU).
-- Messaging: email only (via a form users can contact other users, we will send email with postmark).
-- Company verification/badges: not in initial scope.
+---
 
-### 12) Compliance & Privacy (GDPR)
-
-- Data residency: Neon DB (EU), PostHog (EU) configured.
-- Consent: cookie banner for analytics; block analytics until consent (functional cookies only by default). Provide settings to revoke/change consent.
-- Policies: publish Privacy Policy and Terms of Service (see `docs/LEGAL-PRIVACY.md`).
-- Data minimization: avoid PII in analytics; use userId/handle only.
-- Rights: implement data export/delete process on request; document contact email.
-- Retention: define retention for logs/analytics; regularly purge unneeded data.
-- Subprocessors: document PostHog and Vercel as subprocessors with EU processing.
-
-### 13) Milestones & Timeline (updated)
-
-- ✅ **Week 1**: Stage 1 (Profiles MVP + Projects System) end‑to‑end completed.
-- ✅ **Enhanced**: Stage 2 search extended for projects; S3 media pipeline implemented.
-- **Next priorities**:
-  - Stage 2: Filters (availability, skills/stack chips, location)
-  - Stage 3: Analytics & Observability (PostHog integration)
-  - Stage 4: Company Listings (Monetization v1)
-  - Stage 5: Hybrid Search Quality (Vector embeddings)
+*Last updated: August 13, 2025*
