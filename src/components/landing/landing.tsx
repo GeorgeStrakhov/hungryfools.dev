@@ -16,10 +16,9 @@ function Logo() {
         className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24"
       />
       <div 
-        className="text-hf-accent text-xl sm:text-3xl md:text-5xl animate-pulse-glow"
+        className="text-hf-accent text-xl sm:text-3xl md:text-5xl animate-neon-glitch"
         style={{ 
-          fontFamily: 'var(--font-pixelify-sans)',
-          textShadow: '0 0 5px #00ff88'
+          fontFamily: 'var(--font-pixelify-sans)'
         }}
       >
         hungryfools.dev
@@ -49,7 +48,7 @@ function HeroTagline() {
 
 function Subtitle() {
   return (
-    <p className="text-muted-foreground text-lg md:text-xl">
+    <p className="mt-4 text-muted-foreground text-lg md:text-xl">
       The directory of proud vibecoders who ship at superhuman speed.
     </p>
   );
@@ -99,29 +98,23 @@ function CTA() {
 
 export function Landing() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1 flex items-center">
-        <div className="hf-container text-center">
-          <div className="mb-8 md:mb-12">
-            <Logo />
-          </div>
-
-          <div className="space-y-6 mb-10">
-            <HeroTagline />
-            <Subtitle />
-          </div>
-
-          <div className="flex flex-col items-center gap-6 mb-20">
-            <SearchBar />
-            <InlineDivider />
-            <CTA />
-          </div>
+    <div className="flex items-center justify-center min-h-full">
+      <div className="hf-container text-center">
+        <div className="mb-8 md:mb-12">
+          <Logo />
         </div>
-      </main>
 
-      <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-        For the hungry. For the foolish. For the dangerous.
-      </footer>
+        <div className="space-y-6 mb-10">
+          <HeroTagline />
+          <Subtitle />
+        </div>
+
+        <div className="flex flex-col items-center gap-6 mb-20">
+          <SearchBar />
+          <InlineDivider />
+          <CTA />
+        </div>
+      </div>
     </div>
   );
 }
