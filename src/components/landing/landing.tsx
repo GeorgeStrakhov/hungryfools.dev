@@ -48,8 +48,8 @@ function HeroTagline() {
 
 function Subtitle() {
   return (
-    <p className="mt-4 text-muted-foreground text-lg md:text-xl">
-      The directory of proud vibecoders who ship at superhuman speed.
+    <p className="mt-12 mb-12 text-muted-foreground text-lg md:text-xl">
+      The directory of proud vibecoders who ship good stuff at superhuman speed.
     </p>
   );
 }

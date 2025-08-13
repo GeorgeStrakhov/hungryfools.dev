@@ -15,7 +15,7 @@ This document lists all PostHog events that have been automatically added to you
 
 ### src/components/ui/button.tsx
 
-- **ui-button-clicked**: Fires when a user clicks on a generic UI button. Captures the button's variant, size, and text content.
+- (no automatic events; tracking should be added at call sites or via wrappers)
 
 ### src/components/ui/dialog.tsx
 

@@ -60,7 +60,7 @@ export function Topbar() {
     <header className="sticky top-0 z-40 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/60">
       <div className="flex h-14 w-full items-center justify-between gap-3 px-6 md:px-8">
         <Link href="/" className="flex items-center gap-2 text-hf-accent font-semibold">
-          <Image src="/images/PacDuck.png" alt="PacDuck" width={20} height={20} />
+          <Image src="/images/PacDuck.png" alt="PacDuck" width={20} height={20} className="w-auto" />
         </Link>
         <div className="flex items-center gap-3">
           {session?.user ? (

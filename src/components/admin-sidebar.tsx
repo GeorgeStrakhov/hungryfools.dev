@@ -3,16 +3,24 @@
 import * as React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { 
   LayoutDashboard, 
   Users, 
-  Shield,
   FlaskConical,
-  Settings,
-  BarChart3,
+  Brain,
+  Mail,
+  Image,
+  Upload,
+  Mic,
   ArrowLeft
 } from "lucide-react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -27,7 +35,23 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-const adminNavItems = [
+interface AdminNavItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  subItems?: Array<{
+    title: string;
+    url: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }>;
+}
+
+interface AdminNavSection {
+  title: string;
+  items: AdminNavItem[];
+}
+
+const adminNavItems: AdminNavSection[] = [
   {
     title: "Overview",
     items: [
@@ -39,7 +63,7 @@ const adminNavItems = [
     ],
   },
   {
-    title: "Management",
+    title: "Management", 
     items: [
       {
         title: "Users",
@@ -55,6 +79,42 @@ const adminNavItems = [
         title: "Testing",
         url: "/admin/testing",
         icon: FlaskConical,
+        subItems: [
+          {
+            title: "Overview",
+            url: "/admin/testing",
+          },
+          {
+            title: "Embeddings",
+            url: "/admin/testing/embeddings",
+            icon: Brain,
+          },
+          {
+            title: "LLM",
+            url: "/admin/testing/llm",
+            icon: FlaskConical,
+          },
+          {
+            title: "Email",
+            url: "/admin/testing/email",
+            icon: Mail,
+          },
+          {
+            title: "Images",
+            url: "/admin/testing/replicate", 
+            icon: Image,
+          },
+          {
+            title: "File Upload",
+            url: "/admin/testing/s3",
+            icon: Upload,
+          },
+          {
+            title: "Speech",
+            url: "/admin/testing/speech",
+            icon: Mic,
+          },
+        ],
       },
     ],
   },
@@ -80,9 +140,50 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
             <SidebarGroupContent>
               <SidebarMenu>
                 {section.items.map((item) => {
-                  const isActive = pathname === item.url;
+                  const isActive = pathname === item.url || (item.subItems && item.subItems.some(subItem => pathname === subItem.url));
                   const Icon = item.icon;
                   
+                  // If item has subItems, render as collapsible
+                  if (item.subItems) {
+                    return (
+                      <Collapsible
+                        key={item.title}
+                        defaultOpen={pathname.startsWith(item.url)}
+                        className="group/collapsible"
+                      >
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton className="flex items-center gap-2 w-full">
+                              <Icon className="h-4 w-4" />
+                              {item.title}
+                              <ChevronRight className="ml-auto h-3 w-3 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenu className="ml-4 mt-1">
+                              {item.subItems.map((subItem) => {
+                                const isSubActive = pathname === subItem.url;
+                                const SubIcon = subItem.icon;
+                                
+                                return (
+                                  <SidebarMenuItem key={subItem.title}>
+                                    <SidebarMenuButton asChild isActive={isSubActive} size="sm">
+                                      <Link href={subItem.url} className="flex items-center gap-2">
+                                        {SubIcon && <SubIcon className="h-3 w-3" />}
+                                        {subItem.title}
+                                      </Link>
+                                    </SidebarMenuButton>
+                                  </SidebarMenuItem>
+                                );
+                              })}
+                            </SidebarMenu>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    );
+                  }
+                  
+                  // Regular menu item
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive}>
