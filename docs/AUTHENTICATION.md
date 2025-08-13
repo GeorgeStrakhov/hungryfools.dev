@@ -107,4 +107,67 @@ We will run generation and migration locally; Neon applies them to the remote da
 - Any required user roles/permissions at this stage?
 - Should we add magic links or credentials later, or keep GitHub-only for now?
 
+---
+
+## Admin Authentication for API Routes
+
+### Overview
+We have a reusable admin authentication middleware for protecting admin-only API routes. This ensures consistent authentication and authorization checks across all admin endpoints.
+
+### Location
+`src/lib/api/admin-auth.ts`
+
+### Usage
+
+#### Basic Usage with `requireAdminAuth()`
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdminAuth } from "@/lib/api/admin-auth";
+
+export async function POST(request: NextRequest) {
+  // Check admin authentication
+  const authResult = await requireAdminAuth();
+  if (!authResult.isValid) {
+    return authResult.response;
+  }
+  
+  // authResult.userId is now available if needed
+  const adminUserId = authResult.userId;
+  
+  // Your admin-only logic here
+  return NextResponse.json({ success: true });
+}
+```
+
+#### Alternative: Using the `withAdminAuth()` Wrapper
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+import { withAdminAuth } from "@/lib/api/admin-auth";
+
+export const POST = withAdminAuth(async (userId, request: NextRequest) => {
+  // userId is guaranteed to be a valid admin user ID
+  // Your admin-only logic here
+  
+  return NextResponse.json({ success: true });
+});
+```
+
+### How It Works
+1. Checks if the user is authenticated via session
+2. Verifies the user has `isAdmin = true` in the database
+3. Returns appropriate error responses:
+   - 401 Unauthorized - if not logged in
+   - 403 Forbidden - if logged in but not an admin
+   - 500 Internal Server Error - if auth check fails
+
+### Benefits
+- **DRY Principle**: No need to duplicate auth/admin checks in every route
+- **Consistent Error Handling**: Same error responses across all admin endpoints
+- **Type Safety**: TypeScript interfaces ensure proper usage
+- **Maintainable**: Changes to admin auth logic only need to be made in one place
+
+### Example Routes Using This Middleware
+- `/api/admin/test-embeddings` - Testing interface for embeddings service
+- Future admin API routes can use the same pattern
+
 

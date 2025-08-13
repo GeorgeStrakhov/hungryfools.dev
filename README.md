@@ -25,6 +25,8 @@ This is a simple lil' website where AI-first developers can list themselves, fin
 - cloudflare
 - groq
 - vercel
+- replicate
+- postmark
 - tailwind
 - shadcn
-- dev: claude code + gemini + gpt5 + cursror
+- dev: claude code + gemini + gpt5 + cursor

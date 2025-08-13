@@ -3,7 +3,8 @@ import Link from "next/link";
 import { 
   LayoutDashboard, 
   Users, 
-  Shield
+  Shield,
+  FlaskConical
 } from "lucide-react";
 
 export default async function AdminLayout({
@@ -35,6 +36,14 @@ export default async function AdminLayout({
         >
           <Users className="h-4 w-4" />
           Users
+        </Link>
+        
+        <Link 
+          href="/admin/testing"
+          className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent transition-colors"
+        >
+          <FlaskConical className="h-4 w-4" />
+          Testing
         </Link>
       </div>
       

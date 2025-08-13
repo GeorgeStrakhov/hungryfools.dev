@@ -58,7 +58,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="border rounded-lg p-6">
           <div className="flex items-center gap-2 mb-2">
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -81,14 +81,6 @@ export default async function AdminDashboard() {
             <span className="text-sm text-muted-foreground">Admins</span>
           </div>
           <div className="text-2xl font-bold">{stats.totalAdmins}</div>
-        </div>
-        
-        <div className="border rounded-lg p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Growth Rate</span>
-          </div>
-          <div className="text-2xl font-bold">+12%</div>
         </div>
       </div>
 
