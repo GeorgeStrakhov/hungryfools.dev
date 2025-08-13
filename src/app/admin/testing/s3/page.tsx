@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Loader2, Upload, Copy, Check, File, Image as ImageIcon, X } from "lucide-react";
+import Image from "next/image";
+import {
+  Loader2,
+  Upload,
+  Copy,
+  Check,
+  File,
+  Image as ImageIcon,
+  X,
+} from "lucide-react";
 
 interface S3TestResult {
   success: boolean;
@@ -15,7 +24,9 @@ interface S3TestResult {
 export default function S3TestingPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [folder, setFolder] = useState("test-uploads");
-  const [metadata, setMetadata] = useState<Array<{key: string; value: string}>>([]);
+  const [metadata, setMetadata] = useState<
+    Array<{ key: string; value: string }>
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<S3TestResult | null>(null);
@@ -38,7 +49,11 @@ export default function S3TestingPage() {
     setMetadata(metadata.filter((_, i) => i !== index));
   };
 
-  const updateMetadata = (index: number, field: "key" | "value", value: string) => {
+  const updateMetadata = (
+    index: number,
+    field: "key" | "value",
+    value: string,
+  ) => {
     const updated = [...metadata];
     updated[index][field] = value;
     setMetadata(updated);
@@ -55,13 +70,20 @@ export default function S3TestingPage() {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("folder", folder);
-      
+
       // Add metadata
-      const validMetadata = metadata.filter(m => m.key.trim() && m.value.trim());
+      const validMetadata = metadata.filter(
+        (m) => m.key.trim() && m.value.trim(),
+      );
       if (validMetadata.length > 0) {
-        formData.append("metadata", JSON.stringify(
-          Object.fromEntries(validMetadata.map(m => [m.key.trim(), m.value.trim()]))
-        ));
+        formData.append(
+          "metadata",
+          JSON.stringify(
+            Object.fromEntries(
+              validMetadata.map((m) => [m.key.trim(), m.value.trim()]),
+            ),
+          ),
+        );
       }
 
       const response = await fetch("/api/admin/test-s3", {
@@ -90,22 +112,22 @@ export default function S3TestingPage() {
   };
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const isImageFile = (file: File): boolean => {
-    return file.type.startsWith('image/');
+    return file.type.startsWith("image/");
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-3xl font-bold">
           <Upload className="h-8 w-8" />
           File Upload Testing
         </h1>
@@ -128,20 +150,20 @@ export default function S3TestingPage() {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 border rounded-lg hover:bg-accent transition-colors flex items-center gap-2"
+              className="hover:bg-accent flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
             >
               <File className="h-4 w-4" />
               Choose File
             </button>
             {selectedFile && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
+              <div className="bg-muted/50 flex items-center gap-2 rounded-lg px-3 py-2">
                 {isImageFile(selectedFile) ? (
                   <ImageIcon className="h-4 w-4" />
                 ) : (
                   <File className="h-4 w-4" />
                 )}
                 <span className="text-sm">{selectedFile.name}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   ({formatFileSize(selectedFile.size)})
                 </span>
               </div>
@@ -156,7 +178,7 @@ export default function S3TestingPage() {
             value={folder}
             onChange={(e) => setFolder(e.target.value)}
             placeholder="test-uploads"
-            className="w-full p-3 border rounded-lg"
+            className="w-full rounded-lg border p-3"
           />
         </div>
 
@@ -166,7 +188,7 @@ export default function S3TestingPage() {
             <label className="text-sm font-medium">Metadata (optional)</label>
             <button
               onClick={addMetadata}
-              className="text-xs flex items-center gap-1 px-2 py-1 rounded hover:bg-accent"
+              className="hover:bg-accent flex items-center gap-1 rounded px-2 py-1 text-xs"
             >
               <Upload className="h-3 w-3" />
               Add
@@ -179,18 +201,18 @@ export default function S3TestingPage() {
                 value={item.key}
                 onChange={(e) => updateMetadata(index, "key", e.target.value)}
                 placeholder="key"
-                className="flex-1 p-2 border rounded text-sm"
+                className="flex-1 rounded border p-2 text-sm"
               />
               <input
                 type="text"
                 value={item.value}
                 onChange={(e) => updateMetadata(index, "value", e.target.value)}
                 placeholder="value"
-                className="flex-1 p-2 border rounded text-sm"
+                className="flex-1 rounded border p-2 text-sm"
               />
               <button
                 onClick={() => removeMetadata(index)}
-                className="p-2 hover:bg-accent rounded"
+                className="hover:bg-accent rounded p-2"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -203,7 +225,7 @@ export default function S3TestingPage() {
       <button
         onClick={handleTest}
         disabled={isLoading || !selectedFile}
-        className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-6 py-3 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading ? (
           <>
@@ -220,8 +242,8 @@ export default function S3TestingPage() {
 
       {/* Error Display */}
       {error && (
-        <div className="border border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+        <div className="rounded-lg border border-red-500 bg-red-50 p-4 dark:bg-red-950/20">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -229,54 +251,64 @@ export default function S3TestingPage() {
       {result && (
         <div className="space-y-4">
           {result.success && result.publicUrl ? (
-            <div className="border rounded-lg p-4 space-y-4">
+            <div className="space-y-4 rounded-lg border p-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Upload Result</h3>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>Size: {result.size ? formatFileSize(result.size) : '?'}</span>
+                <div className="text-muted-foreground flex items-center gap-4 text-sm">
+                  <span>
+                    Size: {result.size ? formatFileSize(result.size) : "?"}
+                  </span>
                   <span>Time: {result.executionTime}ms</span>
                   <button
                     onClick={() => copyToClipboard(result.publicUrl!)}
-                    className="flex items-center gap-1 px-2 py-1 rounded hover:bg-accent"
+                    className="hover:bg-accent flex items-center gap-1 rounded px-2 py-1"
                   >
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    {copied ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
                     Copy URL
                   </button>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
-                <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <p className="text-green-600 dark:text-green-400 text-sm font-medium">
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950/20">
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">
                     ✅ File uploaded successfully
                   </p>
-                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  <p className="mt-1 text-xs text-green-600 dark:text-green-400">
                     Key: {result.key}
                   </p>
                 </div>
 
                 {selectedFile && isImageFile(selectedFile) && (
-                  <div className="border rounded-lg p-4">
-                    <p className="text-sm font-medium mb-2">Preview:</p>
-                    <img
+                  <div className="rounded-lg border p-4">
+                    <p className="mb-2 text-sm font-medium">Preview:</p>
+                    <Image
                       src={result.publicUrl}
                       alt="Uploaded file"
-                      className="max-w-full h-auto rounded-lg border"
+                      width={400}
+                      height={400}
+                      className="h-auto max-w-full rounded-lg border"
                       style={{ maxHeight: "400px" }}
                     />
                   </div>
                 )}
 
-                <div className="p-3 bg-muted/30 rounded-lg">
-                  <p className="text-sm font-medium mb-1">Public URL:</p>
-                  <p className="text-xs font-mono break-all">{result.publicUrl}</p>
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="mb-1 text-sm font-medium">Public URL:</p>
+                  <p className="font-mono text-xs break-all">
+                    {result.publicUrl}
+                  </p>
                 </div>
               </div>
             </div>
           ) : (
             result.error && (
-              <div className="border border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-                <p className="text-red-600 dark:text-red-400 text-sm font-medium">
+              <div className="rounded-lg border border-red-500 bg-red-50 p-4 dark:bg-red-950/20">
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">
                   ❌ Upload failed: {result.error}
                 </p>
               </div>

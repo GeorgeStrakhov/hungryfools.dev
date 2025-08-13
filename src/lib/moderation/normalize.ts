@@ -17,8 +17,8 @@ function containsHardBlock(text: string): boolean {
   return HARD_BLOCK.some((w) => lower.includes(w));
 }
 
-function basicSanitize<T extends Record<string, any>>(input: T): T {
-  const out: Record<string, any> = {};
+function basicSanitize<T extends Record<string, unknown>>(input: T): T {
+  const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(input)) {
     if (typeof v === "string") {
       out[k] = v.trim().slice(0, 1000);
@@ -28,7 +28,7 @@ function basicSanitize<T extends Record<string, any>>(input: T): T {
         .filter(Boolean);
       out[k] = Array.from(new Set(arr)).slice(0, 50);
     } else if (typeof v === "object" && v !== null) {
-      out[k] = basicSanitize(v);
+      out[k] = basicSanitize(v as Record<string, unknown>);
     } else {
       out[k] = v;
     }
@@ -36,22 +36,21 @@ function basicSanitize<T extends Record<string, any>>(input: T): T {
   return out as T;
 }
 
-export async function normalizeAndModerate<In extends z.ZodTypeAny, Out extends z.ZodTypeAny>(
-  payload: unknown,
-  inputSchema: In,
-  outputSchema: Out,
-  systemPrompt: string,
-) {
+export async function normalizeAndModerate<
+  In extends z.ZodTypeAny,
+  Out extends z.ZodTypeAny,
+>(payload: unknown, inputSchema: In, outputSchema: Out, systemPrompt: string) {
   // Baseline validation and sanitize
   const parsed = inputSchema.parse(payload);
-  const sanitized = basicSanitize(parsed);
+  const sanitized = basicSanitize(parsed as Record<string, unknown>);
 
   // Hard-block check across all string fields
   const flatTexts: string[] = [];
-  const collect = (val: any) => {
+  const collect = (val: unknown) => {
     if (typeof val === "string") flatTexts.push(val);
     else if (Array.isArray(val)) val.forEach(collect);
-    else if (val && typeof val === "object") Object.values(val).forEach(collect);
+    else if (val && typeof val === "object")
+      Object.values(val).forEach(collect);
   };
   collect(sanitized);
   if (flatTexts.some(containsHardBlock)) {
@@ -80,5 +79,3 @@ Moderation policy:
 
   return llmResponse;
 }
-
-

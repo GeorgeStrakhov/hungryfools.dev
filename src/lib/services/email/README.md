@@ -26,22 +26,22 @@ pnpm add postmark
 ### Basic Email
 
 ```typescript
-import { sendEmail, formatEmailAddress } from '@/services/email/email';
+import { sendEmail, formatEmailAddress } from "@/services/email/email";
 
 await sendEmail({
-  from: 'STIKK Team <noreply@stikk.ai>', // With display name
-  to: 'user@example.com',
-  subject: 'Welcome to STIKK!',
-  htmlBody: '<h1>Welcome!</h1><p>Thanks for joining us.</p>',
-  textBody: 'Welcome! Thanks for joining us.',
+  from: "STIKK Team <noreply@stikk.ai>", // With display name
+  to: "user@example.com",
+  subject: "Welcome to STIKK!",
+  htmlBody: "<h1>Welcome!</h1><p>Thanks for joining us.</p>",
+  textBody: "Welcome! Thanks for joining us.",
 });
 
 // Or use the helper function
 await sendEmail({
-  from: formatEmailAddress('noreply@stikk.ai', 'STIKK Team'),
-  to: 'user@example.com',
-  subject: 'Welcome to STIKK!',
-  htmlBody: '<h1>Welcome!</h1><p>Thanks for joining us.</p>',
+  from: formatEmailAddress("noreply@stikk.ai", "STIKK Team"),
+  to: "user@example.com",
+  subject: "Welcome to STIKK!",
+  htmlBody: "<h1>Welcome!</h1><p>Thanks for joining us.</p>",
 });
 ```
 
@@ -49,12 +49,12 @@ await sendEmail({
 
 ```typescript
 await sendEmail({
-  from: 'STIKK Newsletter <newsletter@stikk.ai>',
-  to: ['user1@example.com', 'user2@example.com'],
-  cc: 'Manager <manager@stikk.ai>',
-  bcc: ['analytics@stikk.ai'],
-  subject: 'Weekly Newsletter',
-  htmlBody: '<h1>This Week at STIKK</h1>...',
+  from: "STIKK Newsletter <newsletter@stikk.ai>",
+  to: ["user1@example.com", "user2@example.com"],
+  cc: "Manager <manager@stikk.ai>",
+  bcc: ["analytics@stikk.ai"],
+  subject: "Weekly Newsletter",
+  htmlBody: "<h1>This Week at STIKK</h1>...",
 });
 ```
 
@@ -63,32 +63,32 @@ await sendEmail({
 Display names make emails look more professional in email clients:
 
 ```typescript
-import { formatEmailAddress } from '@/services/email/email';
+import { formatEmailAddress } from "@/services/email/email";
 
 // Different ways to include display names
 const examples = [
   // Direct formatting
-  'STIKK Team <noreply@stikk.ai>',
+  "STIKK Team <noreply@stikk.ai>",
 
   // Using helper function
-  formatEmailAddress('support@stikk.ai', 'STIKK Support'),
+  formatEmailAddress("support@stikk.ai", "STIKK Support"),
 
   // With special characters (automatically quoted)
-  formatEmailAddress('admin@stikk.ai', 'STIKK Admin, Inc.'),
+  formatEmailAddress("admin@stikk.ai", "STIKK Admin, Inc."),
 
   // Multiple recipients with names
   [
-    'John Doe <john@example.com>',
-    formatEmailAddress('jane@example.com', 'Jane Smith'),
+    "John Doe <john@example.com>",
+    formatEmailAddress("jane@example.com", "Jane Smith"),
   ],
 ];
 
 await sendEmail({
-  from: 'STIKK Notifications <notifications@stikk.ai>',
-  to: 'User Name <user@example.com>',
-  cc: formatEmailAddress('manager@stikk.ai', 'Team Manager'),
-  subject: 'Professional Email',
-  htmlBody: '<p>This email looks professional!</p>',
+  from: "STIKK Notifications <notifications@stikk.ai>",
+  to: "User Name <user@example.com>",
+  cc: formatEmailAddress("manager@stikk.ai", "Team Manager"),
+  subject: "Professional Email",
+  htmlBody: "<p>This email looks professional!</p>",
 });
 ```
 
@@ -100,20 +100,20 @@ await sendEmail({
 ### Attachments from Base64
 
 ```typescript
-import { sendEmail, createAttachment } from '@/services/email/email';
+import { sendEmail, createAttachment } from "@/services/email/email";
 
 // Create attachment from base64 content
 const pdfAttachment = createAttachment(
-  'report.pdf',
+  "report.pdf",
   base64PdfContent,
-  'application/pdf'
+  "application/pdf",
 );
 
 await sendEmail({
-  from: 'reports@stikk.ai',
-  to: 'user@example.com',
-  subject: 'Your Monthly Report',
-  htmlBody: '<p>Please find your report attached.</p>',
+  from: "reports@stikk.ai",
+  to: "user@example.com",
+  subject: "Your Monthly Report",
+  htmlBody: "<p>Please find your report attached.</p>",
   attachments: [pdfAttachment],
 });
 ```
@@ -122,19 +122,19 @@ await sendEmail({
 
 ```typescript
 await sendEmail({
-  from: 'reports@stikk.ai',
-  to: 'user@example.com',
-  subject: 'Your Generated Report',
-  htmlBody: '<p>Your report is ready!</p>',
+  from: "reports@stikk.ai",
+  to: "user@example.com",
+  subject: "Your Generated Report",
+  htmlBody: "<p>Your report is ready!</p>",
   attachmentUrls: [
     {
-      name: 'monthly-report.pdf',
-      url: 'https://cdn.stikk.ai/reports/user123/monthly.pdf',
-      contentType: 'application/pdf',
+      name: "monthly-report.pdf",
+      url: "https://cdn.stikk.ai/reports/user123/monthly.pdf",
+      contentType: "application/pdf",
     },
     {
-      name: 'logo.png',
-      url: 'https://cdn.stikk.ai/images/logo.png',
+      name: "logo.png",
+      url: "https://cdn.stikk.ai/images/logo.png",
       isInline: true, // For embedding in HTML
     },
   ],
@@ -145,9 +145,9 @@ await sendEmail({
 
 ```typescript
 await sendEmail({
-  from: 'marketing@stikk.ai',
-  to: 'user@example.com',
-  subject: 'Check out our new feature!',
+  from: "marketing@stikk.ai",
+  to: "user@example.com",
+  subject: "Check out our new feature!",
   htmlBody: `
     <h1>New Feature Announcement</h1>
     <p>Check out our amazing new dashboard:</p>
@@ -155,8 +155,8 @@ await sendEmail({
   `,
   attachmentUrls: [
     {
-      name: 'dashboard-screenshot.png',
-      url: 'https://cdn.stikk.ai/screenshots/dashboard.png',
+      name: "dashboard-screenshot.png",
+      url: "https://cdn.stikk.ai/screenshots/dashboard.png",
       isInline: true,
     },
   ],
@@ -166,20 +166,20 @@ await sendEmail({
 ### Bulk Emails
 
 ```typescript
-import { sendBulkEmails } from '@/services/email/email';
+import { sendBulkEmails } from "@/services/email/email";
 
 const emails = [
   {
-    from: 'noreply@stikk.ai',
-    to: 'user1@example.com',
-    subject: 'Personal Message for User 1',
-    htmlBody: '<p>Hello User 1!</p>',
+    from: "noreply@stikk.ai",
+    to: "user1@example.com",
+    subject: "Personal Message for User 1",
+    htmlBody: "<p>Hello User 1!</p>",
   },
   {
-    from: 'noreply@stikk.ai',
-    to: 'user2@example.com',
-    subject: 'Personal Message for User 2',
-    htmlBody: '<p>Hello User 2!</p>',
+    from: "noreply@stikk.ai",
+    to: "user2@example.com",
+    subject: "Personal Message for User 2",
+    htmlBody: "<p>Hello User 2!</p>",
   },
 ];
 
@@ -190,38 +190,38 @@ await sendBulkEmails(emails);
 ### Using Templates
 
 ```typescript
-import { sendTemplateEmail } from '@/services/email/email';
+import { sendTemplateEmail } from "@/services/email/email";
 
 await sendTemplateEmail(
-  'welcome-template', // Template alias in Postmark
+  "welcome-template", // Template alias in Postmark
   {
-    user_name: 'John Doe',
-    activation_url: 'https://stikk.ai/activate/abc123',
-    company_name: 'STIKK',
+    user_name: "John Doe",
+    activation_url: "https://stikk.ai/activate/abc123",
+    company_name: "STIKK",
   },
   {
-    from: 'welcome@stikk.ai',
-    to: 'john@example.com',
-  }
+    from: "welcome@stikk.ai",
+    to: "john@example.com",
+  },
 );
 ```
 
 ### Pre-built Templates
 
 ```typescript
-import { sendEmail, EmailTemplates } from '@/services/email/email';
+import { sendEmail, EmailTemplates } from "@/services/email/email";
 
 await sendEmail({
-  from: 'notifications@stikk.ai',
-  to: 'user@example.com',
-  subject: 'Account Activated',
+  from: "notifications@stikk.ai",
+  to: "user@example.com",
+  subject: "Account Activated",
   ...EmailTemplates.notification(
-    'Account Activated',
-    'Your STIKK account has been successfully activated!',
-    'https://stikk.ai/dashboard',
-    'Go to Dashboard'
+    "Account Activated",
+    "Your STIKK account has been successfully activated!",
+    "https://stikk.ai/dashboard",
+    "Go to Dashboard",
   ),
-  tag: 'account-activation',
+  tag: "account-activation",
 });
 ```
 
@@ -229,15 +229,15 @@ await sendEmail({
 
 ```typescript
 await sendEmail({
-  from: 'campaigns@stikk.ai',
-  to: 'user@example.com',
-  subject: 'Special Offer',
-  htmlBody: '<p>Limited time offer just for you!</p>',
-  tag: 'summer-campaign', // For analytics in Postmark
+  from: "campaigns@stikk.ai",
+  to: "user@example.com",
+  subject: "Special Offer",
+  htmlBody: "<p>Limited time offer just for you!</p>",
+  tag: "summer-campaign", // For analytics in Postmark
   metadata: {
-    campaign_id: 'summer2024',
-    user_segment: 'premium',
-    send_date: '2024-07-03',
+    campaign_id: "summer2024",
+    user_segment: "premium",
+    send_date: "2024-07-03",
   },
 });
 ```
@@ -295,13 +295,13 @@ The service throws descriptive errors for common issues:
 ```typescript
 try {
   await sendEmail({
-    from: 'test@stikk.ai',
-    to: 'user@example.com',
-    subject: 'Test',
+    from: "test@stikk.ai",
+    to: "user@example.com",
+    subject: "Test",
     // Missing body - will throw error
   });
 } catch (error) {
-  console.error('Email failed:', error.message);
+  console.error("Email failed:", error.message);
   // Handle specific errors like attachment fetch failures
 }
 ```

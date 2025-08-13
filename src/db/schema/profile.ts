@@ -27,8 +27,10 @@ export const profiles = pgTable("profile", {
   location: text("location"),
   links: jsonb("links").$type<ProfileLinks>(),
   availability: jsonb("availability").$type<ProfileAvailability>(),
-  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
-
-

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     if (!systemPrompt || !userPrompt || !schema) {
       return NextResponse.json(
         { error: "systemPrompt, userPrompt, and schema are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,14 +25,14 @@ export async function POST(request: NextRequest) {
     try {
       // Parse the schema string into a Zod schema
       let zodSchema: z.ZodType;
-      
+
       if (isCustomSchema) {
         // For custom schemas, execute the schema directly (user provides full z.object(...))
-        const schemaFunction = new Function('z', `return ${schema}`);
+        const schemaFunction = new Function("z", `return ${schema}`);
         zodSchema = schemaFunction(z);
       } else {
         // For predefined schemas, wrap in z.object()
-        const schemaFunction = new Function('z', `return z.object(${schema})`);
+        const schemaFunction = new Function("z", `return z.object(${schema})`);
         zodSchema = schemaFunction(z);
       }
 
@@ -46,20 +46,24 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         result,
-        model: 'moonshotai/kimi-k2-instruct',
+        model: "moonshotai/kimi-k2-instruct",
         executionTime,
       });
     } catch (schemaError) {
       return NextResponse.json(
-        { error: `Schema parsing error: ${schemaError instanceof Error ? schemaError.message : 'Invalid schema'}` },
-        { status: 400 }
+        {
+          error: `Schema parsing error: ${schemaError instanceof Error ? schemaError.message : "Invalid schema"}`,
+        },
+        { status: 400 },
       );
     }
   } catch (error) {
     console.error("LLM test error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
     );
   }
 }

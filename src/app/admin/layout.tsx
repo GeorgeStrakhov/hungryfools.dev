@@ -5,8 +5,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -32,16 +30,12 @@ export default async function AdminLayout({
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/admin">
-                  Admin
-                </BreadcrumbLink>
+                <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-6">
-          {children}
-        </div>
+        <div className="flex flex-1 flex-col gap-4 p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

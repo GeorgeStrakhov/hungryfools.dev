@@ -44,7 +44,7 @@ export const accounts = pgTable(
         columns: [account.provider, account.providerAccountId],
       }),
     },
-  ]
+  ],
 );
 
 export const sessions = pgTable("session", {
@@ -68,7 +68,7 @@ export const verificationTokens = pgTable(
         columns: [verificationToken.identifier, verificationToken.token],
       }),
     },
-  ]
+  ],
 );
 
 export const authenticators = pgTable(
@@ -91,7 +91,5 @@ export const authenticators = pgTable(
         columns: [authenticator.userId, authenticator.credentialID],
       }),
     },
-  ]
+  ],
 );
-
-

@@ -24,7 +24,7 @@ const audioExamples = [
     description: "Short instrumental piece",
   },
   {
-    name: "Sample Audio 2", 
+    name: "Sample Audio 2",
     url: "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav",
     description: "Famous movie theme",
   },
@@ -59,7 +59,7 @@ export default function SpeechTestingPage() {
     const file = event.target.files?.[0];
     if (file) {
       // Check if it's an audio file
-      if (!file.type.startsWith('audio/')) {
+      if (!file.type.startsWith("audio/")) {
         setError("Please select an audio file");
         return;
       }
@@ -68,7 +68,7 @@ export default function SpeechTestingPage() {
     }
   };
 
-  const handleExampleSelect = (example: typeof audioExamples[0]) => {
+  const handleExampleSelect = (example: (typeof audioExamples)[0]) => {
     setInputType("url");
     setAudioUrl(example.url);
   };
@@ -83,7 +83,7 @@ export default function SpeechTestingPage() {
 
     try {
       const formData = new FormData();
-      
+
       if (inputType === "file" && selectedFile) {
         formData.append("file", selectedFile);
         formData.append("inputType", "file");
@@ -91,7 +91,7 @@ export default function SpeechTestingPage() {
         formData.append("audioUrl", audioUrl);
         formData.append("inputType", "url");
       }
-      
+
       formData.append("language", language);
       formData.append("temperature", temperature.toString());
 
@@ -121,18 +121,18 @@ export default function SpeechTestingPage() {
   };
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-3xl font-bold">
           <Mic className="h-8 w-8" />
           Speech Transcription Testing
         </h1>
@@ -148,7 +148,7 @@ export default function SpeechTestingPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setInputType("file")}
-              className={`px-4 py-2 rounded-lg border transition-colors ${
+              className={`rounded-lg border px-4 py-2 transition-colors ${
                 inputType === "file"
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-accent"
@@ -158,7 +158,7 @@ export default function SpeechTestingPage() {
             </button>
             <button
               onClick={() => setInputType("url")}
-              className={`px-4 py-2 rounded-lg border transition-colors ${
+              className={`rounded-lg border px-4 py-2 transition-colors ${
                 inputType === "url"
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-accent"
@@ -177,7 +177,7 @@ export default function SpeechTestingPage() {
                 <button
                   key={example.name}
                   onClick={() => handleExampleSelect(example)}
-                  className="px-3 py-1 text-xs border rounded-full hover:bg-accent transition-colors"
+                  className="hover:bg-accent rounded-full border px-3 py-1 text-xs transition-colors"
                   title={example.description}
                 >
                   {example.name}
@@ -204,16 +204,16 @@ export default function SpeechTestingPage() {
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 border rounded-lg hover:bg-accent transition-colors flex items-center gap-2"
+                  className="hover:bg-accent flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
                 >
                   <Volume2 className="h-4 w-4" />
                   Choose Audio File
                 </button>
                 {selectedFile && (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg">
+                  <div className="bg-muted/50 flex items-center gap-2 rounded-lg px-3 py-2">
                     <Volume2 className="h-4 w-4" />
                     <span className="text-sm">{selectedFile.name}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs">
                       ({formatFileSize(selectedFile.size)})
                     </span>
                   </div>
@@ -228,7 +228,7 @@ export default function SpeechTestingPage() {
                 value={audioUrl}
                 onChange={(e) => setAudioUrl(e.target.value)}
                 placeholder="https://example.com/audio.mp3"
-                className="w-full p-3 border rounded-lg"
+                className="w-full rounded-lg border p-3"
               />
             </div>
           )}
@@ -237,10 +237,7 @@ export default function SpeechTestingPage() {
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Language</label>
-            <Select
-              value={language}
-              onValueChange={setLanguage}
-            >
+            <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger>
                 <SelectValue placeholder="Select language..." />
               </SelectTrigger>
@@ -255,7 +252,9 @@ export default function SpeechTestingPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Temperature ({temperature})</label>
+            <label className="text-sm font-medium">
+              Temperature ({temperature})
+            </label>
             <input
               type="range"
               min="0"
@@ -265,7 +264,7 @@ export default function SpeechTestingPage() {
               onChange={(e) => setTemperature(parseFloat(e.target.value))}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Higher values increase randomness in transcription
             </p>
           </div>
@@ -280,7 +279,7 @@ export default function SpeechTestingPage() {
           (inputType === "file" && !selectedFile) ||
           (inputType === "url" && !audioUrl.trim())
         }
-        className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-6 py-3 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading ? (
           <>
@@ -297,8 +296,8 @@ export default function SpeechTestingPage() {
 
       {/* Error Display */}
       {error && (
-        <div className="border border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+        <div className="rounded-lg border border-red-500 bg-red-50 p-4 dark:bg-red-950/20">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -306,30 +305,36 @@ export default function SpeechTestingPage() {
       {result && (
         <div className="space-y-4">
           {result.success && result.transcription ? (
-            <div className="border rounded-lg p-4 space-y-4">
+            <div className="space-y-4 rounded-lg border p-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Transcription Result</h3>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-4 text-sm">
                   <span>Time: {result.executionTime}ms</span>
                   <button
                     onClick={() => copyToClipboard(result.transcription!)}
-                    className="flex items-center gap-1 px-2 py-1 rounded hover:bg-accent"
+                    className="hover:bg-accent flex items-center gap-1 rounded px-2 py-1"
                   >
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    {copied ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
                     Copy Text
                   </button>
                 </div>
               </div>
-              
-              <div className="p-4 bg-muted/30 rounded-lg">
-                <h4 className="font-medium text-sm mb-2">Transcribed Text:</h4>
-                <p className="text-sm leading-relaxed">{result.transcription}</p>
+
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="mb-2 text-sm font-medium">Transcribed Text:</h4>
+                <p className="text-sm leading-relaxed">
+                  {result.transcription}
+                </p>
               </div>
             </div>
           ) : (
             result.error && (
-              <div className="border border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-                <p className="text-red-600 dark:text-red-400 text-sm font-medium">
+              <div className="rounded-lg border border-red-500 bg-red-50 p-4 dark:bg-red-950/20">
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">
                   ❌ Transcription failed: {result.error}
                 </p>
               </div>

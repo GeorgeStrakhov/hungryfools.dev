@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 let openaiClient: OpenAI | null = null;
 
@@ -6,10 +6,10 @@ function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     if (!process.env.CLOUDFLARE_API_KEY || !process.env.CLOUDFLARE_ACCOUNT_ID) {
       throw new Error(
-        'Missing required environment variables: CLOUDFLARE_API_KEY and CLOUDFLARE_ACCOUNT_ID'
+        "Missing required environment variables: CLOUDFLARE_API_KEY and CLOUDFLARE_ACCOUNT_ID",
       );
     }
-    
+
     openaiClient = new OpenAI({
       apiKey: process.env.CLOUDFLARE_API_KEY,
       baseURL: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/v1`,
@@ -53,18 +53,18 @@ export interface RerankResponse {
  * @returns Promise with embedding vectors
  */
 export async function generateEmbeddings(
-  options: EmbeddingOptions
+  options: EmbeddingOptions,
 ): Promise<EmbeddingResponse> {
-  const { input, model = '@cf/baai/bge-m3' } = options;
+  const { input, model = "@cf/baai/bge-m3" } = options;
 
   const inputs = Array.isArray(input) ? input : [input];
-  
+
   if (inputs.length === 0) {
-    throw new Error('Input cannot be empty');
+    throw new Error("Input cannot be empty");
   }
 
-  if (inputs.some(text => !text || text.trim().length === 0)) {
-    throw new Error('Input contains empty strings');
+  if (inputs.some((text) => !text || text.trim().length === 0)) {
+    throw new Error("Input contains empty strings");
   }
 
   try {
@@ -74,18 +74,21 @@ export async function generateEmbeddings(
       input: inputs,
     });
 
-    const embeddings = response.data.map(item => item.embedding);
-    
+    const embeddings = response.data.map((item) => item.embedding);
+
     return {
       embeddings,
-      shape: [embeddings.length, embeddings[0]?.length || 0] as [number, number],
+      shape: [embeddings.length, embeddings[0]?.length || 0] as [
+        number,
+        number,
+      ],
       model,
     };
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`Failed to generate embeddings: ${error.message}`);
     }
-    throw new Error('Failed to generate embeddings: Unknown error');
+    throw new Error("Failed to generate embeddings: Unknown error");
   }
 }
 
@@ -97,7 +100,7 @@ export async function generateEmbeddings(
  */
 export function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) {
-    throw new Error('Vectors must have the same length');
+    throw new Error("Vectors must have the same length");
   }
 
   let dotProduct = 0;
@@ -134,7 +137,7 @@ export async function findMostSimilar(
     topK?: number;
     threshold?: number;
     model?: string;
-  }
+  },
 ): Promise<Array<{ text: string; score: number; index: number }>> {
   const { topK, threshold = 0, model } = options || {};
 
@@ -143,7 +146,7 @@ export async function findMostSimilar(
   }
 
   const allTexts = [query, ...candidates];
-  
+
   const response = await generateEmbeddings({
     input: allTexts,
     model,
@@ -158,7 +161,7 @@ export async function findMostSimilar(
     index,
   }));
 
-  const filtered = similarities.filter(item => item.score >= threshold);
+  const filtered = similarities.filter((item) => item.score >= threshold);
   const sorted = filtered.sort((a, b) => b.score - a.score);
 
   if (topK && topK > 0) {
@@ -181,15 +184,15 @@ export async function batchGenerateEmbeddings(
     batchSize?: number;
     model?: string;
     onProgress?: (processed: number, total: number) => void;
-  }
+  },
 ): Promise<EmbeddingResponse> {
   const { batchSize = 100, model, onProgress } = options || {};
-  
+
   if (texts.length === 0) {
     return {
       embeddings: [],
       shape: [0, 0],
-      model: model || '@cf/baai/bge-m3',
+      model: model || "@cf/baai/bge-m3",
     };
   }
 
@@ -198,14 +201,14 @@ export async function batchGenerateEmbeddings(
 
   for (let i = 0; i < texts.length; i += batchSize) {
     const batch = texts.slice(i, Math.min(i + batchSize, texts.length));
-    
+
     const response = await generateEmbeddings({
       input: batch,
       model,
     });
 
     allEmbeddings.push(...response.embeddings);
-    
+
     if (dimensionSize === 0 && response.embeddings.length > 0) {
       dimensionSize = response.embeddings[0].length;
     }
@@ -218,7 +221,7 @@ export async function batchGenerateEmbeddings(
   return {
     embeddings: allEmbeddings,
     shape: [allEmbeddings.length, dimensionSize] as [number, number],
-    model: model || '@cf/baai/bge-m3',
+    model: model || "@cf/baai/bge-m3",
   };
 }
 
@@ -228,17 +231,17 @@ export async function batchGenerateEmbeddings(
  * @returns Promise with reranked documents sorted by relevance
  */
 export async function rerankDocuments(
-  options: RerankOptions
+  options: RerankOptions,
 ): Promise<RerankResponse> {
-  const { 
-    query, 
-    documents, 
-    model = '@cf/baai/bge-reranker-base',
-    topK 
+  const {
+    query,
+    documents,
+    model = "@cf/baai/bge-reranker-base",
+    topK,
   } = options;
 
   if (!query || query.trim().length === 0) {
-    throw new Error('Query cannot be empty');
+    throw new Error("Query cannot be empty");
   }
 
   if (documents.length === 0) {
@@ -251,24 +254,24 @@ export async function rerankDocuments(
   try {
     if (!process.env.CLOUDFLARE_API_KEY || !process.env.CLOUDFLARE_ACCOUNT_ID) {
       throw new Error(
-        'Missing required environment variables: CLOUDFLARE_API_KEY and CLOUDFLARE_ACCOUNT_ID'
+        "Missing required environment variables: CLOUDFLARE_API_KEY and CLOUDFLARE_ACCOUNT_ID",
       );
     }
-    
+
     const response = await fetch(
       `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/run/${model}`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${process.env.CLOUDFLARE_API_KEY}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.CLOUDFLARE_API_KEY}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           query,
-          contexts: documents.map(text => ({ text })),
+          contexts: documents.map((text) => ({ text })),
           ...(topK && { top_k: topK }),
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -277,25 +280,29 @@ export async function rerankDocuments(
     }
 
     const data = await response.json();
-    
+
     if (!data.result || !data.result.response) {
-      throw new Error('Invalid response format from reranker');
+      throw new Error("Invalid response format from reranker");
     }
 
     const responseData = data.result.response;
-    
+
     if (!Array.isArray(responseData)) {
-      throw new Error(`Invalid response format from reranker - expected array, got ${typeof responseData}`);
+      throw new Error(
+        `Invalid response format from reranker - expected array, got ${typeof responseData}`,
+      );
     }
 
-    const results: RerankResult[] = responseData.map((item: any) => ({
-      index: item.id,
-      score: item.score,
-      text: documents[item.id],
-    }));
+    const results: RerankResult[] = responseData.map(
+      (item: { id: number; score: number }) => ({
+        index: item.id,
+        score: item.score,
+        text: documents[item.id],
+      }),
+    );
 
     const sortedResults = results.sort((a, b) => b.score - a.score);
-    
+
     if (topK && topK > 0) {
       return {
         results: sortedResults.slice(0, topK),
@@ -311,7 +318,7 @@ export async function rerankDocuments(
     if (error instanceof Error) {
       throw new Error(`Failed to rerank documents: ${error.message}`);
     }
-    throw new Error('Failed to rerank documents: Unknown error');
+    throw new Error("Failed to rerank documents: Unknown error");
   }
 }
 
@@ -331,7 +338,7 @@ export async function hybridSearch(
     initialTopK?: number;
     finalTopK?: number;
     similarityThreshold?: number;
-  }
+  },
 ): Promise<RerankResponse> {
   const {
     embeddingModel,
@@ -344,7 +351,7 @@ export async function hybridSearch(
   if (documents.length === 0) {
     return {
       results: [],
-      model: rerankerModel || '@cf/baai/bge-reranker-base',
+      model: rerankerModel || "@cf/baai/bge-reranker-base",
     };
   }
 
@@ -358,12 +365,12 @@ export async function hybridSearch(
   if (embeddingResults.length === 0) {
     return {
       results: [],
-      model: rerankerModel || '@cf/baai/bge-reranker-base',
+      model: rerankerModel || "@cf/baai/bge-reranker-base",
     };
   }
 
   // Step 2: Rerank the top candidates for better accuracy
-  const candidateTexts = embeddingResults.map(r => r.text);
+  const candidateTexts = embeddingResults.map((r) => r.text);
   const reranked = await rerankDocuments({
     query,
     documents: candidateTexts,
@@ -372,7 +379,7 @@ export async function hybridSearch(
   });
 
   // Map back to original indices
-  const results = reranked.results.map(r => ({
+  const results = reranked.results.map((r) => ({
     ...r,
     index: embeddingResults[r.index].index,
     text: embeddingResults[r.index].text,
@@ -398,10 +405,10 @@ export async function batchRerank(
     model?: string;
     topK?: number;
     onProgress?: (processed: number, total: number) => void;
-  }
+  },
 ): Promise<RerankResponse[]> {
   const { model, topK, onProgress } = options || {};
-  
+
   if (queries.length === 0 || documents.length === 0) {
     return [];
   }

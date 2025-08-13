@@ -21,5 +21,3 @@ export default async function PostAuthRouter() {
     redirect("/onboarding/purpose");
   }
 }
-
-

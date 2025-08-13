@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/api/admin-auth";
-import { 
-  generateEmbeddings, 
-  findMostSimilar, 
-  rerankDocuments 
+import {
+  generateEmbeddings,
+  findMostSimilar,
+  rerankDocuments,
 } from "@/lib/services/embeddings/embeddings";
 
 export async function POST(request: NextRequest) {
@@ -22,12 +22,12 @@ export async function POST(request: NextRequest) {
         if (!input) {
           return NextResponse.json(
             { error: "Input text is required" },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
         const result = await generateEmbeddings({ input });
-        
+
         return NextResponse.json({
           embedding: result.embeddings[0],
           shape: result.shape,
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         if (!query || !documents || !Array.isArray(documents)) {
           return NextResponse.json(
             { error: "Query and documents array are required" },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         if (!query || !documents || !Array.isArray(documents)) {
           return NextResponse.json(
             { error: "Query and documents array are required" },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
@@ -71,14 +71,16 @@ export async function POST(request: NextRequest) {
       default:
         return NextResponse.json(
           { error: "Invalid test type" },
-          { status: 400 }
+          { status: 400 },
         );
     }
   } catch (error) {
     console.error("Embeddings test error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
     );
   }
 }

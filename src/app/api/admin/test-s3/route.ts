@@ -15,10 +15,7 @@ export async function POST(request: NextRequest) {
     const metadataString = formData.get("metadata") as string;
 
     if (!file) {
-      return NextResponse.json(
-        { error: "file is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "file is required" }, { status: 400 });
     }
 
     const startTime = Date.now();
@@ -36,7 +33,7 @@ export async function POST(request: NextRequest) {
         } catch {
           return NextResponse.json(
             { error: "Invalid metadata JSON" },
-            { status: 400 }
+            { status: 400 },
           );
         }
       }
@@ -58,18 +55,26 @@ export async function POST(request: NextRequest) {
       });
     } catch (serviceError) {
       const executionTime = Date.now() - startTime;
-      
-      return NextResponse.json({
-        success: false,
-        error: serviceError instanceof Error ? serviceError.message : "Upload failed",
-        executionTime,
-      }, { status: 500 });
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            serviceError instanceof Error
+              ? serviceError.message
+              : "Upload failed",
+          executionTime,
+        },
+        { status: 500 },
+      );
     }
   } catch (error) {
     console.error("S3 test error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
     );
   }
 }

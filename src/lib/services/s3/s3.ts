@@ -1,10 +1,10 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid';
-import slugify from 'slugify';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { v4 as uuidv4 } from "uuid";
+import slugify from "slugify";
 
 const s3Client = new S3Client({
   endpoint: process.env.S3_ENDPOINT_URL,
-  region: process.env.S3_REGION || 'weur',
+  region: process.env.S3_REGION || "weur",
   credentials: {
     accessKeyId: process.env.S3_ACCESS_ID_KEY!,
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
@@ -30,22 +30,22 @@ export interface UploadResult {
  */
 function createUniqueFilename(filename: string): string {
   // Split filename and extension
-  const lastDotIndex = filename.lastIndexOf('.');
+  const lastDotIndex = filename.lastIndexOf(".");
   const nameWithoutExtension =
     lastDotIndex !== -1 ? filename.substring(0, lastDotIndex) : filename;
-  const extension = lastDotIndex !== -1 ? filename.substring(lastDotIndex) : '';
+  const extension = lastDotIndex !== -1 ? filename.substring(lastDotIndex) : "";
 
   // Slugify the name part with robust handling
   const slugifiedName = slugify(nameWithoutExtension, {
     lower: true, // Convert to lowercase
     strict: true, // Strip special characters except replacement
     remove: /[*+~.()'"!:@]/g, // Remove these characters
-    replacement: '-', // Replace spaces and other chars with -
+    replacement: "-", // Replace spaces and other chars with -
     trim: true, // Trim leading/trailing replacement chars
   });
 
   // Ensure we have a valid name (fallback if slugify results in empty string)
-  const safeName = slugifiedName || 'file';
+  const safeName = slugifiedName || "file";
 
   // Limit length and add UUID
   const truncatedName = safeName.substring(0, 50);
@@ -64,9 +64,9 @@ function createUniqueFilename(filename: string): string {
 export async function uploadFile(
   file: Buffer | Blob | Uint8Array,
   filename: string,
-  options: UploadOptions = {}
+  options: UploadOptions = {},
 ): Promise<UploadResult> {
-  const { folder = '', contentType, metadata } = options;
+  const { folder = "", contentType, metadata } = options;
 
   const uniqueFilename = createUniqueFilename(filename);
   const key = folder ? `${folder}/${uniqueFilename}` : uniqueFilename;
@@ -105,9 +105,9 @@ export async function uploadFile(
       size: fileSize,
     };
   } catch (error) {
-    console.error('S3 upload error:', error);
+    console.error("S3 upload error:", error);
     throw new Error(
-      `Failed to upload file: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -120,10 +120,10 @@ export async function uploadFile(
  */
 export async function uploadFiles(
   files: Array<{ file: Buffer | Blob | Uint8Array; filename: string }>,
-  options: UploadOptions = {}
+  options: UploadOptions = {},
 ): Promise<UploadResult[]> {
   const uploadPromises = files.map(({ file, filename }) =>
-    uploadFile(file, filename, options)
+    uploadFile(file, filename, options),
   );
 
   return Promise.all(uploadPromises);
@@ -139,10 +139,10 @@ export async function uploadFiles(
 export async function uploadBase64File(
   base64Data: string,
   filename: string,
-  options: UploadOptions = {}
+  options: UploadOptions = {},
 ): Promise<UploadResult> {
-  const base64WithoutPrefix = base64Data.replace(/^data:.*?;base64,/, '');
-  const buffer = Buffer.from(base64WithoutPrefix, 'base64');
+  const base64WithoutPrefix = base64Data.replace(/^data:.*?;base64,/, "");
+  const buffer = Buffer.from(base64WithoutPrefix, "base64");
 
   return uploadFile(buffer, filename, options);
 }
@@ -157,7 +157,7 @@ export async function uploadBase64File(
 export async function uploadFromUrl(
   url: string,
   filename?: string,
-  options: UploadOptions = {}
+  options: UploadOptions = {},
 ): Promise<UploadResult> {
   try {
     const response = await fetch(url);
@@ -166,11 +166,11 @@ export async function uploadFromUrl(
     }
 
     const blob = await response.blob();
-    const contentType = response.headers.get('content-type') || undefined;
+    const contentType = response.headers.get("content-type") || undefined;
 
     if (!filename) {
       const urlPath = new URL(url).pathname;
-      filename = urlPath.split('/').pop() || 'file';
+      filename = urlPath.split("/").pop() || "file";
     }
 
     return uploadFile(blob, filename, {
@@ -178,9 +178,9 @@ export async function uploadFromUrl(
       contentType: options.contentType || contentType,
     });
   } catch (error) {
-    console.error('URL upload error:', error);
+    console.error("URL upload error:", error);
     throw new Error(
-      `Failed to upload from URL: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Failed to upload from URL: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -189,48 +189,48 @@ export async function uploadFromUrl(
  * Helper function to determine content type from filename
  */
 function getContentType(filename: string): string {
-  const ext = filename.toLowerCase().split('.').pop();
+  const ext = filename.toLowerCase().split(".").pop();
 
   const contentTypes: Record<string, string> = {
     // Images
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    gif: 'image/gif',
-    webp: 'image/webp',
-    svg: 'image/svg+xml',
-    ico: 'image/x-icon',
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
+    svg: "image/svg+xml",
+    ico: "image/x-icon",
 
     // Documents
-    pdf: 'application/pdf',
-    doc: 'application/msword',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    xls: 'application/vnd.ms-excel',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ppt: 'application/vnd.ms-powerpoint',
-    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xls: "application/vnd.ms-excel",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ppt: "application/vnd.ms-powerpoint",
+    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 
     // Text
-    txt: 'text/plain',
-    csv: 'text/csv',
-    json: 'application/json',
-    xml: 'application/xml',
+    txt: "text/plain",
+    csv: "text/csv",
+    json: "application/json",
+    xml: "application/xml",
 
     // Media
-    mp4: 'video/mp4',
-    avi: 'video/x-msvideo',
-    mov: 'video/quicktime',
-    mp3: 'audio/mpeg',
-    wav: 'audio/wav',
+    mp4: "video/mp4",
+    avi: "video/x-msvideo",
+    mov: "video/quicktime",
+    mp3: "audio/mpeg",
+    wav: "audio/wav",
 
     // Archives
-    zip: 'application/zip',
-    rar: 'application/x-rar-compressed',
-    tar: 'application/x-tar',
-    gz: 'application/gzip',
+    zip: "application/zip",
+    rar: "application/x-rar-compressed",
+    tar: "application/x-tar",
+    gz: "application/gzip",
   };
 
-  return contentTypes[ext || ''] || 'application/octet-stream';
+  return contentTypes[ext || ""] || "application/octet-stream";
 }
 
 /**
@@ -248,8 +248,8 @@ export function getPublicUrl(key: string): string {
  * @returns The S3 object key
  */
 export function getKeyFromUrl(publicUrl: string): string {
-  const endpoint = process.env.S3_PUBLIC_ENDPOINT || '';
-  return publicUrl.replace(`${endpoint}/`, '');
+  const endpoint = process.env.S3_PUBLIC_ENDPOINT || "";
+  return publicUrl.replace(`${endpoint}/`, "");
 }
 
 /**
@@ -263,7 +263,7 @@ export function getTransformedImageUrl(originalUrl: string): string {
     const cdnEndpoint = process.env.S3_PUBLIC_ENDPOINT;
     if (!cdnEndpoint || !originalUrl.startsWith(cdnEndpoint)) {
       console.log(
-        `[IMAGE_TRANSFORM] Skipping transform - not a CDN URL: ${originalUrl}`
+        `[IMAGE_TRANSFORM] Skipping transform - not a CDN URL: ${originalUrl}`,
       );
       return originalUrl;
     }
@@ -274,7 +274,7 @@ export function getTransformedImageUrl(originalUrl: string): string {
     const pathname = url.pathname; // e.g., "/user-photos/photo-uuid.jpg"
 
     // Build transform parameters (hardcoded for now)
-    const transformParams = 'width=800,quality=75,fit=scale-down,format=jpeg';
+    const transformParams = "width=800,quality=75,fit=scale-down,format=jpeg";
     const transformPath = `/cdn-cgi/image/${transformParams}`;
 
     // Combine: origin + transform + original path
@@ -288,7 +288,7 @@ export function getTransformedImageUrl(originalUrl: string): string {
   } catch (error) {
     console.error(
       `[IMAGE_TRANSFORM] Error transforming URL: ${originalUrl}`,
-      error
+      error,
     );
     // Return original URL as fallback
     return originalUrl;

@@ -4,16 +4,16 @@ import * as React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { 
-  LayoutDashboard, 
-  Users, 
+import {
+  LayoutDashboard,
+  Users,
   FlaskConical,
   Brain,
   Mail,
   Image,
   Upload,
   Mic,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
 
 import {
@@ -63,7 +63,7 @@ const adminNavItems: AdminNavSection[] = [
     ],
   },
   {
-    title: "Management", 
+    title: "Management",
     items: [
       {
         title: "Users",
@@ -101,7 +101,7 @@ const adminNavItems: AdminNavSection[] = [
           },
           {
             title: "Images",
-            url: "/admin/testing/replicate", 
+            url: "/admin/testing/replicate",
             icon: Image,
           },
           {
@@ -120,7 +120,9 @@ const adminNavItems: AdminNavSection[] = [
   },
 ];
 
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AdminSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
   return (
@@ -130,19 +132,24 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           <span className="text-lg font-semibold">HungryFools Admin</span>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent>
         {adminNavItems.map((section) => (
           <SidebarGroup key={section.title}>
-            <SidebarGroupLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <SidebarGroupLabel className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
               {section.title}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {section.items.map((item) => {
-                  const isActive = pathname === item.url || (item.subItems && item.subItems.some(subItem => pathname === subItem.url));
+                  const isActive =
+                    pathname === item.url ||
+                    (item.subItems &&
+                      item.subItems.some(
+                        (subItem) => pathname === subItem.url,
+                      ));
                   const Icon = item.icon;
-                  
+
                   // If item has subItems, render as collapsible
                   if (item.subItems) {
                     return (
@@ -153,23 +160,32 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                       >
                         <SidebarMenuItem>
                           <CollapsibleTrigger asChild>
-                            <SidebarMenuButton className="flex items-center gap-2 w-full">
+                            <SidebarMenuButton className="flex w-full items-center gap-2">
                               <Icon className="h-4 w-4" />
                               {item.title}
                               <ChevronRight className="ml-auto h-3 w-3 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
-                            <SidebarMenu className="ml-4 mt-1">
+                            <SidebarMenu className="mt-1 ml-4">
                               {item.subItems.map((subItem) => {
                                 const isSubActive = pathname === subItem.url;
                                 const SubIcon = subItem.icon;
-                                
+
                                 return (
                                   <SidebarMenuItem key={subItem.title}>
-                                    <SidebarMenuButton asChild isActive={isSubActive} size="sm">
-                                      <Link href={subItem.url} className="flex items-center gap-2">
-                                        {SubIcon && <SubIcon className="h-3 w-3" />}
+                                    <SidebarMenuButton
+                                      asChild
+                                      isActive={isSubActive}
+                                      size="sm"
+                                    >
+                                      <Link
+                                        href={subItem.url}
+                                        className="flex items-center gap-2"
+                                      >
+                                        {SubIcon && (
+                                          <SubIcon className="h-3 w-3" />
+                                        )}
                                         {subItem.title}
                                       </Link>
                                     </SidebarMenuButton>
@@ -182,12 +198,15 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                       </Collapsible>
                     );
                   }
-                  
+
                   // Regular menu item
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive}>
-                        <Link href={item.url} className="flex items-center gap-2">
+                        <Link
+                          href={item.url}
+                          className="flex items-center gap-2"
+                        >
                           <Icon className="h-4 w-4" />
                           {item.title}
                         </Link>
@@ -200,7 +219,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           </SidebarGroup>
         ))}
       </SidebarContent>
-      
+
       <SidebarFooter className="border-t px-3 py-3">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -213,7 +232,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      
+
       <SidebarRail />
     </Sidebar>
   );

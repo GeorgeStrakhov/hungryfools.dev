@@ -1,5 +1,5 @@
-import Replicate from 'replicate';
-import { uploadFile } from '../s3';
+import Replicate from "replicate";
+import { uploadFile } from "../s3";
 
 // Initialize Replicate client
 const replicate = new Replicate({
@@ -19,32 +19,32 @@ export interface TranscribeOptions {
  */
 export async function transcribeAudio(
   audioSource: string | Buffer | Uint8Array,
-  options: TranscribeOptions = {}
+  options: TranscribeOptions = {},
 ): Promise<string> {
-  const { language = 'en' } = options;
+  const { language = "en" } = options;
 
   let audioUrl: string;
 
   // If audioSource is a URL, use it directly
-  if (typeof audioSource === 'string') {
+  if (typeof audioSource === "string") {
     // Validate URL
     try {
       new URL(audioSource);
       audioUrl = audioSource;
     } catch {
-      throw new Error('Invalid URL provided for audio source');
+      throw new Error("Invalid URL provided for audio source");
     }
   } else {
     // Upload audio data to S3 first
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `audio-transcribe-${timestamp}.mp3`;
 
     try {
       const uploadResult = await uploadFile(audioSource, filename, {
-        folder: 'audio-transcription',
-        contentType: 'audio/mpeg',
+        folder: "audio-transcription",
+        contentType: "audio/mpeg",
         metadata: {
-          purpose: 'speech-transcription',
+          purpose: "speech-transcription",
           timestamp: new Date().toISOString(),
         },
       });
@@ -52,32 +52,32 @@ export async function transcribeAudio(
       audioUrl = uploadResult.publicUrl;
     } catch (error) {
       throw new Error(
-        `Failed to upload audio file: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to upload audio file: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }
 
   try {
     // Map language codes for the new model (it expects different format)
-    const mappedLanguage = language === 'en' ? 'None' : language; // 'None' for auto-detection
+    const mappedLanguage = language === "en" ? "None" : language; // 'None' for auto-detection
 
     const input = {
-      task: 'transcribe',
+      task: "transcribe",
       audio: audioUrl,
       language: mappedLanguage,
-      timestamp: 'chunk',
+      timestamp: "chunk",
       batch_size: 64,
       diarise_audio: false,
     };
 
     // Use the incredibly-fast-whisper model that supports .oga files
     const output = await replicate.run(
-      'vaibhavs10/incredibly-fast-whisper:3ab86df6c8f54c11309d4d1f930ac292bad43ace52d10c80d87eb258b3c9f79c',
-      { input }
+      "vaibhavs10/incredibly-fast-whisper:3ab86df6c8f54c11309d4d1f930ac292bad43ace52d10c80d87eb258b3c9f79c",
+      { input },
     );
 
     // The new model returns an object with 'text' and 'chunks' fields
-    if (output && typeof output === 'object' && 'text' in output) {
+    if (output && typeof output === "object" && "text" in output) {
       const transcription = String(output.text).trim();
       return transcription;
     } else {
@@ -86,7 +86,7 @@ export async function transcribeAudio(
     }
   } catch (error) {
     throw new Error(
-      `Transcription failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Transcription failed: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -99,7 +99,7 @@ export async function transcribeAudio(
  */
 export async function transcribeFromUrl(
   audioUrl: string,
-  options?: TranscribeOptions
+  options?: TranscribeOptions,
 ): Promise<string> {
   return transcribeAudio(audioUrl, options);
 }
@@ -112,7 +112,7 @@ export async function transcribeFromUrl(
  */
 export async function transcribeFromBuffer(
   audioBuffer: Buffer,
-  options?: TranscribeOptions
+  options?: TranscribeOptions,
 ): Promise<string> {
   return transcribeAudio(audioBuffer, options);
 }
@@ -122,18 +122,18 @@ export async function transcribeFromBuffer(
  * Common language codes supported by Whisper
  */
 export const SupportedLanguages = {
-  ENGLISH: 'en',
-  SPANISH: 'es',
-  FRENCH: 'fr',
-  GERMAN: 'de',
-  ITALIAN: 'it',
-  PORTUGUESE: 'pt',
-  RUSSIAN: 'ru',
-  JAPANESE: 'ja',
-  CHINESE: 'zh',
-  KOREAN: 'ko',
-  ARABIC: 'ar',
-  HINDI: 'hi',
+  ENGLISH: "en",
+  SPANISH: "es",
+  FRENCH: "fr",
+  GERMAN: "de",
+  ITALIAN: "it",
+  PORTUGUESE: "pt",
+  RUSSIAN: "ru",
+  JAPANESE: "ja",
+  CHINESE: "zh",
+  KOREAN: "ko",
+  ARABIC: "ar",
+  HINDI: "hi",
 } as const;
 
 export type SupportedLanguage =

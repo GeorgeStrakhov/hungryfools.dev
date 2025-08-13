@@ -2,7 +2,6 @@
 
 _a directory of proud vibecoders who get shit done_
 
-
 This is a simple lil' website where AI-first developers can list themselves, find each other for collaborations and get hired.
 
 - Developers who are not afraid of being called vibecoders can login with github and list their profile, their preferred tech/stack and other skills, their fav. projects and what they are interested in and maybe location - and whether they are open for hire, open for collabs, or hiring etc.
@@ -12,7 +11,6 @@ This is a simple lil' website where AI-first developers can list themselves, fin
 - for a small fee companies can list themselves as vibecoder-friendly and say they are hiring.
 
 - for good search - we build embeddings of the profiles and have a hybrid search (both keywords and vector similarity + text to sql)
-
 
 ## Tech Stack
 

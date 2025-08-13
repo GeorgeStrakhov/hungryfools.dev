@@ -8,4 +8,4 @@ export {
   getTransformedImageUrl,
   type UploadOptions,
   type UploadResult,
-} from './s3';
+} from "./s3";

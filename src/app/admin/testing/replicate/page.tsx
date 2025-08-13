@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Image as ImageIcon, Copy, Check, Download } from "lucide-react";
+import Image from "next/image";
+import {
+  Loader2,
+  Image as ImageIcon,
+  Copy,
+  Check,
+  Download,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -22,23 +29,28 @@ interface ImageTestResult {
 const promptExamples = [
   {
     name: "Abstract Art",
-    prompt: "A vibrant abstract painting with flowing colors and dynamic brushstrokes, digital art",
+    prompt:
+      "A vibrant abstract painting with flowing colors and dynamic brushstrokes, digital art",
   },
   {
-    name: "Landscape", 
-    prompt: "A serene mountain landscape at sunset with a crystal clear lake reflection, photorealistic",
+    name: "Landscape",
+    prompt:
+      "A serene mountain landscape at sunset with a crystal clear lake reflection, photorealistic",
   },
   {
     name: "Portrait",
-    prompt: "Professional headshot of a confident software developer, studio lighting, modern background",
+    prompt:
+      "Professional headshot of a confident software developer, studio lighting, modern background",
   },
   {
     name: "Logo Design",
-    prompt: "Modern minimalist logo for a tech startup, clean geometric shapes, blue and white color scheme",
+    prompt:
+      "Modern minimalist logo for a tech startup, clean geometric shapes, blue and white color scheme",
   },
   {
     name: "Product Photo",
-    prompt: "A sleek smartphone on a clean white background, product photography, professional lighting",
+    prompt:
+      "A sleek smartphone on a clean white background, product photography, professional lighting",
   },
 ];
 
@@ -68,7 +80,7 @@ export default function ReplicateTestingPage() {
   const [result, setResult] = useState<ImageTestResult | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const handleExampleSelect = (example: typeof promptExamples[0]) => {
+  const handleExampleSelect = (example: (typeof promptExamples)[0]) => {
     setPrompt(example.prompt);
   };
 
@@ -115,7 +127,7 @@ export default function ReplicateTestingPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-3xl font-bold">
           <ImageIcon className="h-8 w-8" />
           Image Generation Testing
         </h1>
@@ -132,7 +144,7 @@ export default function ReplicateTestingPage() {
             <button
               key={example.name}
               onClick={() => handleExampleSelect(example)}
-              className="px-3 py-1 text-xs border rounded-full hover:bg-accent transition-colors"
+              className="hover:bg-accent rounded-full border px-3 py-1 text-xs transition-colors"
             >
               {example.name}
             </button>
@@ -149,7 +161,7 @@ export default function ReplicateTestingPage() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Describe the image you want to generate..."
-              className="w-full p-3 border rounded-lg resize-none h-32 text-sm"
+              className="h-32 w-full resize-none rounded-lg border p-3 text-sm"
             />
           </div>
 
@@ -160,7 +172,7 @@ export default function ReplicateTestingPage() {
               value={folder}
               onChange={(e) => setFolder(e.target.value)}
               placeholder="test-images"
-              className="w-full p-3 border rounded-lg"
+              className="w-full rounded-lg border p-3"
             />
           </div>
         </div>
@@ -168,10 +180,7 @@ export default function ReplicateTestingPage() {
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">Aspect Ratio</label>
-            <Select
-              value={aspectRatio}
-              onValueChange={setAspectRatio}
-            >
+            <Select value={aspectRatio} onValueChange={setAspectRatio}>
               <SelectTrigger>
                 <SelectValue placeholder="Select aspect ratio..." />
               </SelectTrigger>
@@ -187,10 +196,7 @@ export default function ReplicateTestingPage() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Safety Filter Level</label>
-            <Select
-              value={safetyLevel}
-              onValueChange={setSafetyLevel}
-            >
+            <Select value={safetyLevel} onValueChange={setSafetyLevel}>
               <SelectTrigger>
                 <SelectValue placeholder="Select safety level..." />
               </SelectTrigger>
@@ -210,7 +216,7 @@ export default function ReplicateTestingPage() {
       <button
         onClick={handleTest}
         disabled={isLoading || !prompt.trim()}
-        className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-6 py-3 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading ? (
           <>
@@ -227,8 +233,8 @@ export default function ReplicateTestingPage() {
 
       {/* Error Display */}
       {error && (
-        <div className="border border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+        <div className="rounded-lg border border-red-500 bg-red-50 p-4 dark:bg-red-950/20">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -236,36 +242,47 @@ export default function ReplicateTestingPage() {
       {result && (
         <div className="space-y-4">
           {result.success && result.imageUrl ? (
-            <div className="border rounded-lg p-4 space-y-4">
+            <div className="space-y-4 rounded-lg border p-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Generated Image</h3>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>Size: {result.size ? Math.round(result.size / 1024) : '?'} KB</span>
+                <div className="text-muted-foreground flex items-center gap-4 text-sm">
+                  <span>
+                    Size: {result.size ? Math.round(result.size / 1024) : "?"}{" "}
+                    KB
+                  </span>
                   <span>Time: {result.executionTime}ms</span>
                   <button
                     onClick={() => copyToClipboard(result.imageUrl!)}
-                    className="flex items-center gap-1 px-2 py-1 rounded hover:bg-accent"
+                    className="hover:bg-accent flex items-center gap-1 rounded px-2 py-1"
                   >
-                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    {copied ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
                     Copy URL
                   </button>
                 </div>
               </div>
-              
-              <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
-                <img
+
+              <div className="bg-muted/20 space-y-3 rounded-lg border p-4">
+                <Image
                   src={result.imageUrl}
                   alt="Generated image"
-                  className="max-w-full h-auto rounded-lg border"
+                  width={500}
+                  height={500}
+                  className="h-auto max-w-full rounded-lg border"
                   style={{ maxHeight: "500px" }}
                 />
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Key: {result.key}</span>
+                  <span className="text-muted-foreground">
+                    Key: {result.key}
+                  </span>
                   <a
                     href={result.imageUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 px-2 py-1 rounded hover:bg-accent"
+                    className="hover:bg-accent flex items-center gap-1 rounded px-2 py-1"
                   >
                     <Download className="h-3 w-3" />
                     Download
@@ -275,8 +292,8 @@ export default function ReplicateTestingPage() {
             </div>
           ) : (
             result.error && (
-              <div className="border border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-                <p className="text-red-600 dark:text-red-400 text-sm font-medium">
+              <div className="rounded-lg border border-red-500 bg-red-50 p-4 dark:bg-red-950/20">
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">
                   ❌ Image generation failed: {result.error}
                 </p>
               </div>

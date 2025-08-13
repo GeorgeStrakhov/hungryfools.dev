@@ -1,2 +1,1 @@
-- privacy and cookie blah blah
-- embeddings model? how should we store embeddings for vector search?
+- how to best do hybrid search? BM25 + our vector + rerank?

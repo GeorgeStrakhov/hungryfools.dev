@@ -51,7 +51,7 @@
   --hf-accent-dim: #00cc6a;
   --hf-surface: #0a0a0a;
   --hf-muted: #666666;
-  --hf-yellow: #FFC700;
+  --hf-yellow: #ffc700;
 
   /* Light theme tokens (kept for completeness) */
   --background: oklch(1 0 0);
@@ -131,7 +131,8 @@
   }
 
   @keyframes pulse-glow {
-    0%, 100% {
+    0%,
+    100% {
       filter: brightness(1) drop-shadow(0 0 8px #00ff88);
     }
     50% {
@@ -140,36 +141,37 @@
   }
 
   @keyframes neon-glitch {
-    0%, 100% {
-      text-shadow: 
+    0%,
+    100% {
+      text-shadow:
         0 0 10px #00ff88,
         0 0 20px #00ff88,
         0 0 30px #00ff88;
       filter: brightness(1);
     }
     2% {
-      text-shadow: 
+      text-shadow:
         2px 0 10px #ff0088,
         -2px 0 10px #00ffff,
         0 0 20px #00ff88;
       filter: brightness(0.8);
     }
     4% {
-      text-shadow: 
+      text-shadow:
         -1px 0 10px #00ff88,
         1px 0 10px #00ff88,
         0 0 25px #00ff88;
       filter: brightness(1.2);
     }
     6% {
-      text-shadow: 
+      text-shadow:
         0 0 10px #00ff88,
         0 0 20px #00ff88,
         0 0 30px #00ff88;
       filter: brightness(1);
     }
     8% {
-      text-shadow: 
+      text-shadow:
         1px 1px 10px #ff00ff,
         -1px -1px 10px #00ffff,
         0 0 15px #00ff88;
@@ -180,21 +182,21 @@
       filter: brightness(0);
     }
     10% {
-      text-shadow: 
+      text-shadow:
         0 0 10px #00ff88,
         0 0 20px #00ff88,
         0 0 30px #00ff88;
       filter: brightness(1);
     }
     94% {
-      text-shadow: 
+      text-shadow:
         0 0 10px #00ff88,
         0 0 20px #00ff88,
         0 0 30px #00ff88;
       filter: brightness(1);
     }
     96% {
-      text-shadow: 
+      text-shadow:
         3px 0 5px #ff0088,
         -3px 0 5px #00ffff,
         0 0 10px #00ff88;
@@ -205,12 +207,19 @@
       filter: brightness(0);
     }
     98% {
-      text-shadow: 
+      text-shadow:
         0 0 10px #00ff88,
         0 0 20px #00ff88,
         0 0 30px #00ff88;
       filter: brightness(1.3);
     }
+  }
+}
+
+/* Onboarding styles */
+@layer components {
+  .onboarding-step .nav-buttons {
+    @apply pt-8 mt-8 border-t border-border;
   }
 }
 
@@ -226,7 +235,7 @@
     animation: neon-glitch 7s ease-in-out infinite;
   }
   .hf-container {
-    @apply max-w-[800px] mx-auto px-6 md:px-8;
+    @apply mx-auto max-w-[800px] px-6 md:px-8;
   }
   .hf-gradient-text {
     background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
@@ -245,9 +254,13 @@
     background-color: var(--hf-surface);
   }
   .hf-cta {
-    background: linear-gradient(135deg, var(--hf-accent) 0%, var(--hf-accent-dim) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--hf-accent) 0%,
+      var(--hf-accent-dim) 100%
+    );
     color: #000;
-    @apply px-8 py-5 rounded-xl text-base font-semibold shadow-md transition-transform;
+    @apply rounded-xl px-8 py-5 text-base font-semibold shadow-md transition-transform;
   }
   .hf-cta:hover {
     transform: translateY(-2px);

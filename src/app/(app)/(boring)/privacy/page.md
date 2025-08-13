@@ -75,12 +75,12 @@ We may share anonymized, aggregated data that does not identify you.
 
 ## 4. Data Retention
 
-We retain your information for as long as necessary to:
+We retain your information for as long as necessary to provide our services and comply with legal obligations. Specific retention periods include:
 
-- Provide our services
-- Comply with legal obligations
-- Resolve disputes
-- Enforce our agreements
+- **Analytics data**: Raw events retained for 12 months, then anonymized or deleted
+- **System logs**: Retained for 30 days for security and operational purposes
+- **Account data**: Retained until you request deletion or close your account
+- **Profile data**: Retained until you delete your profile or account
 
 When no longer needed, we will delete or anonymize your information.
 
@@ -100,7 +100,7 @@ Depending on your location, you may have rights including:
 - Objecting to certain uses
 - Withdrawing consent
 
-To exercise these rights, contact us using the information below.
+To exercise these rights, please contact us at support@hungryfools.dev with your request. We will respond within 30 days and may need to verify your identity before processing certain requests.
 
 ## 7. Cookies and Tracking
 
@@ -141,11 +141,9 @@ We may update this Privacy Policy periodically. We will notify you of material c
 
 If you have questions about this Privacy Policy or our privacy practices, please contact us at:
 
-Email: privacy@hungryfools.dev
+Email: support@hungryfools.dev
 
 HungryFools.dev Privacy Team  
 EU/EEA
 
 Last updated: August 13, 2025
-
-

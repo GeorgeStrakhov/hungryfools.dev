@@ -2,13 +2,19 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t py-6 text-center text-xs text-muted-foreground">
+    <footer className="text-muted-foreground border-t py-6 text-center text-xs">
       <div className="space-y-2">
         <div className="space-x-4">
-          <Link href="/privacy" className="hover:text-foreground transition-colors">
+          <Link
+            href="/privacy"
+            className="hover:text-foreground transition-colors"
+          >
             Privacy
           </Link>
-          <Link href="/terms" className="hover:text-foreground transition-colors">
+          <Link
+            href="/terms"
+            className="hover:text-foreground transition-colors"
+          >
             Terms
           </Link>
         </div>

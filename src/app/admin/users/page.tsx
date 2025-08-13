@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { AdminToggle } from "./admin-toggle";
 import { MoreVertical } from "lucide-react";
+import Image from "next/image";
 
 export default async function AdminUsersPage() {
   const session = await auth();
@@ -20,7 +21,7 @@ export default async function AdminUsersPage() {
         handle: profiles.handle,
         displayName: profiles.displayName,
         headline: profiles.headline,
-      }
+      },
     })
     .from(users)
     .leftJoin(profiles, eq(users.id, profiles.userId));
@@ -36,14 +37,14 @@ export default async function AdminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="border rounded-lg">
+      <div className="rounded-lg border">
         <table className="w-full">
-          <thead className="border-b bg-muted/50">
+          <thead className="bg-muted/50 border-b">
             <tr>
-              <th className="text-left p-4 font-medium">User</th>
-              <th className="text-left p-4 font-medium">Profile</th>
-              <th className="text-left p-4 font-medium">Role</th>
-              <th className="text-left p-4 font-medium">Actions</th>
+              <th className="p-4 text-left font-medium">User</th>
+              <th className="p-4 text-left font-medium">Profile</th>
+              <th className="p-4 text-left font-medium">Role</th>
+              <th className="p-4 text-left font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -52,15 +53,19 @@ export default async function AdminUsersPage() {
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     {user.image && (
-                      <img 
-                        src={user.image} 
-                        alt={user.name || ""} 
+                      <Image
+                        src={user.image}
+                        alt={user.name || ""}
+                        width={40}
+                        height={40}
                         className="h-10 w-10 rounded-full"
                       />
                     )}
                     <div>
                       <p className="font-medium">{user.name || "Unknown"}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                      <p className="text-muted-foreground text-sm">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                 </td>
@@ -68,7 +73,7 @@ export default async function AdminUsersPage() {
                   {user.profile?.handle ? (
                     <div>
                       <p className="font-medium">@{user.profile.handle}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         {user.profile.headline || "No headline"}
                       </p>
                     </div>
@@ -77,14 +82,14 @@ export default async function AdminUsersPage() {
                   )}
                 </td>
                 <td className="p-4">
-                  <AdminToggle 
-                    userId={user.id} 
+                  <AdminToggle
+                    userId={user.id}
                     isAdmin={user.isAdmin || false}
                     currentUserId={currentUserId}
                   />
                 </td>
                 <td className="p-4">
-                  <button className="p-2 hover:bg-accent rounded-md transition-colors">
+                  <button className="hover:bg-accent rounded-md p-2 transition-colors">
                     <MoreVertical className="h-4 w-4" />
                   </button>
                 </td>

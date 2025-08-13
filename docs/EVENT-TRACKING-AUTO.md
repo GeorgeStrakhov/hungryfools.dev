@@ -35,9 +35,10 @@ This document lists all PostHog events that have been automatically added to you
 
 - **textarea-input-finished**: Fires when a user clicks away from the textarea, indicating they have finished their input. Captures the final length of the text.
 
-
 ## Events still awaiting implementation
+
 - (human: you can fill these in)
+
 ---
 
 Learn more about what to measure with PostHog and why: https://posthog.com/docs/new-to-posthog/getting-hogpilled

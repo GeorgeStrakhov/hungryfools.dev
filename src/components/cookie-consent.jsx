@@ -79,7 +79,7 @@ const CookieConsent = React.forwardRef(
           ref={ref}
           className={cn(
             containerClasses,
-            "bottom-0 left-0 right-0 sm:left-4 sm:bottom-4 w-full sm:max-w-md",
+            "right-0 bottom-0 left-0 w-full sm:bottom-4 sm:left-4 sm:max-w-md",
           )}
           {...props}
         >
@@ -92,13 +92,13 @@ const CookieConsent = React.forwardRef(
               <CardDescription className="text-sm">
                 {description}
               </CardDescription>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 By clicking <span className="font-medium">"Accept"</span>, you
                 agree to our use of cookies.
               </p>
               <a
                 href={learnMoreHref}
-                className="text-xs text-primary underline underline-offset-4 hover:no-underline"
+                className="text-primary text-xs underline underline-offset-4 hover:no-underline"
               >
                 Learn more
               </a>
@@ -126,21 +126,21 @@ const CookieConsent = React.forwardRef(
           ref={ref}
           className={cn(
             containerClasses,
-            "bottom-0 left-0 right-0 sm:left-4 sm:bottom-4 w-full sm:max-w-md",
+            "right-0 bottom-0 left-0 w-full sm:bottom-4 sm:left-4 sm:max-w-md",
           )}
           {...props}
         >
           <Card className="m-3 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 h-0 px-4">
+            <CardHeader className="flex h-0 flex-row items-center justify-between space-y-0 px-4 pb-2">
               <CardTitle className="text-base">We use cookies</CardTitle>
               <Cookie className="h-4 w-4" />
             </CardHeader>
-            <CardContent className="pt-0 pb-2 px-4">
+            <CardContent className="px-4 pt-0 pb-2">
               <CardDescription className="text-sm">
                 {description}
               </CardDescription>
             </CardContent>
-            <CardFooter className="flex gap-2 h-0 py-2 px-4">
+            <CardFooter className="flex h-0 gap-2 px-4 py-2">
               <Button
                 onClick={handleDecline}
                 variant="secondary"
@@ -168,13 +168,13 @@ const CookieConsent = React.forwardRef(
           ref={ref}
           className={cn(
             containerClasses,
-            "left-0 right-0 sm:left-4 bottom-4 w-full sm:max-w-3xl",
+            "right-0 bottom-4 left-0 w-full sm:left-4 sm:max-w-3xl",
           )}
           {...props}
         >
           <Card className="mx-3 p-0 py-3 shadow-lg">
             <CardContent className="flex items-center justify-between gap-5 p-0 px-3.5">
-              <CardDescription className="text-sm flex-1">
+              <CardDescription className="flex-1 text-sm">
                 {description}
               </CardDescription>
               <div className="flex items-center gap-2 sm:gap-3">

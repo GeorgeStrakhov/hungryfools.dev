@@ -30,21 +30,21 @@ pnpm add @aws-sdk/client-s3 uuid @types/uuid
 ### Basic File Upload
 
 ```typescript
-import { uploadFile } from '@/services/s3';
+import { uploadFile } from "@/services/s3";
 
 // Upload a Buffer
-const buffer = Buffer.from('Hello World');
-const result = await uploadFile(buffer, 'hello.txt');
+const buffer = Buffer.from("Hello World");
+const result = await uploadFile(buffer, "hello.txt");
 console.log(result.publicUrl); // https://cdn.yourdomain.org/a1b2c3d4-...-hello.txt
 
 // Upload a Blob (from form data)
 const formData = await request.formData();
-const file = formData.get('file') as File;
+const file = formData.get("file") as File;
 const result = await uploadFile(file, file.name);
 
 // Upload with folder organization
-const result = await uploadFile(imageBuffer, 'profile.jpg', {
-  folder: 'avatars',
+const result = await uploadFile(imageBuffer, "profile.jpg", {
+  folder: "avatars",
 });
 // Result: https://cdn.yourdomain.org/avatars/uuid-profile.jpg
 ```
@@ -52,63 +52,63 @@ const result = await uploadFile(imageBuffer, 'profile.jpg', {
 ### Upload Multiple Files
 
 ```typescript
-import { uploadFiles } from '@/services/s3';
+import { uploadFiles } from "@/services/s3";
 
 const files = [
-  { file: buffer1, filename: 'doc1.pdf' },
-  { file: buffer2, filename: 'doc2.pdf' },
-  { file: buffer3, filename: 'image.jpg' },
+  { file: buffer1, filename: "doc1.pdf" },
+  { file: buffer2, filename: "doc2.pdf" },
+  { file: buffer3, filename: "image.jpg" },
 ];
 
 const results = await uploadFiles(files, {
-  folder: 'documents',
+  folder: "documents",
 });
 ```
 
 ### Upload from Base64
 
 ```typescript
-import { uploadBase64File } from '@/services/s3';
+import { uploadBase64File } from "@/services/s3";
 
 // From a data URL
-const dataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANS...';
-const result = await uploadBase64File(dataUrl, 'image.png', {
-  folder: 'uploads',
+const dataUrl = "data:image/png;base64,iVBORw0KGgoAAAANS...";
+const result = await uploadBase64File(dataUrl, "image.png", {
+  folder: "uploads",
 });
 
 // From raw base64 string
-const base64String = 'iVBORw0KGgoAAAANS...';
-const result = await uploadBase64File(base64String, 'document.pdf');
+const base64String = "iVBORw0KGgoAAAANS...";
+const result = await uploadBase64File(base64String, "document.pdf");
 ```
 
 ### Upload from URL
 
 ```typescript
-import { uploadFromUrl } from '@/services/s3';
+import { uploadFromUrl } from "@/services/s3";
 
 // Download and re-upload an image
 const result = await uploadFromUrl(
-  'https://example.com/image.jpg',
-  'saved-image.jpg', // Optional, extracted from URL if not provided
-  { folder: 'external' }
+  "https://example.com/image.jpg",
+  "saved-image.jpg", // Optional, extracted from URL if not provided
+  { folder: "external" },
 );
 
 // Let the service determine filename from URL
-const result = await uploadFromUrl('https://example.com/document.pdf');
+const result = await uploadFromUrl("https://example.com/document.pdf");
 ```
 
 ### Working with URLs and Keys
 
 ```typescript
-import { getPublicUrl, getKeyFromUrl } from '@/services/s3';
+import { getPublicUrl, getKeyFromUrl } from "@/services/s3";
 
 // Generate public URL from a key
-const publicUrl = getPublicUrl('avatars/uuid-profile.jpg');
+const publicUrl = getPublicUrl("avatars/uuid-profile.jpg");
 // Returns: https://cdn.yourdomain.org/avatars/uuid-profile.jpg
 
 // Extract key from public URL
 const key = getKeyFromUrl(
-  'https://cdn.yourdomain.org/avatars/uuid-profile.jpg'
+  "https://cdn.yourdomain.org/avatars/uuid-profile.jpg",
 );
 // Returns: avatars/uuid-profile.jpg
 ```
@@ -146,20 +146,20 @@ interface UploadResult {
 
 ```typescript
 // app/api/upload/route.ts
-import { uploadFile } from '@/services/s3';
-import { NextRequest, NextResponse } from 'next/server';
+import { uploadFile } from "@/services/s3";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     const result = await uploadFile(file, file.name, {
-      folder: 'uploads',
+      folder: "uploads",
     });
 
     return NextResponse.json({
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
       size: result.size,
     });
   } catch (error) {
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }
 ```
@@ -175,8 +175,8 @@ export async function POST(request: NextRequest) {
 ### Profile Avatar Upload
 
 ```typescript
-import { uploadFile } from '@/services/s3';
-import { db } from '@/lib/db';
+import { uploadFile } from "@/services/s3";
+import { db } from "@/lib/db";
 
 async function updateUserAvatar(userId: string, imageFile: File) {
   // Upload to S3
@@ -201,7 +201,7 @@ async function updateUserAvatar(userId: string, imageFile: File) {
 ### Task Proof Upload
 
 ```typescript
-import { uploadFile } from '@/services/s3';
+import { uploadFile } from "@/services/s3";
 
 async function uploadTaskProof(taskId: string, proofFile: File) {
   const result = await uploadFile(proofFile, proofFile.name, {
@@ -229,20 +229,20 @@ async function uploadTaskProof(taskId: string, proofFile: File) {
 ### Batch Document Processing
 
 ```typescript
-import { uploadFiles, uploadFromUrl } from '@/services/s3';
+import { uploadFiles, uploadFromUrl } from "@/services/s3";
 
 async function processDocuments(
-  documents: Array<{ url: string; name: string }>
+  documents: Array<{ url: string; name: string }>,
 ) {
   // Download and upload external documents
   const uploadPromises = documents.map((doc) =>
     uploadFromUrl(doc.url, doc.name, {
-      folder: 'processed-documents',
+      folder: "processed-documents",
       metadata: {
-        source: 'external',
+        source: "external",
         processedAt: new Date().toISOString(),
       },
-    })
+    }),
   );
 
   const results = await Promise.all(uploadPromises);
@@ -254,7 +254,7 @@ async function processDocuments(
       url: result.publicUrl,
       key: result.key,
       size: result.size,
-    }))
+    })),
   );
 
   return results;
@@ -295,7 +295,7 @@ All functions throw descriptive errors:
 try {
   const result = await uploadFile(file, filename);
 } catch (error) {
-  console.error('Upload failed:', error.message);
+  console.error("Upload failed:", error.message);
   // Handle specific error cases
 }
 ```

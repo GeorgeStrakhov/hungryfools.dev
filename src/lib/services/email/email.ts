@@ -1,4 +1,4 @@
-import * as postmark from 'postmark';
+import * as postmark from "postmark";
 
 // Initialize Postmark client
 const client = new postmark.ServerClient(process.env.POSTMARK_KEY!);
@@ -53,7 +53,7 @@ export function formatEmailAddress(email: string, name?: string): string {
  * @returns EmailAttachment object
  */
 async function fetchAttachmentFromUrl(
-  attachmentUrl: EmailAttachmentFromUrl
+  attachmentUrl: EmailAttachmentFromUrl,
 ): Promise<EmailAttachment> {
   try {
     const response = await fetch(attachmentUrl.url);
@@ -62,13 +62,13 @@ async function fetchAttachmentFromUrl(
     }
 
     const buffer = await response.arrayBuffer();
-    const base64Content = Buffer.from(buffer).toString('base64');
+    const base64Content = Buffer.from(buffer).toString("base64");
 
     // Auto-detect content type if not provided
     const contentType =
       attachmentUrl.contentType ||
-      response.headers.get('content-type') ||
-      'application/octet-stream';
+      response.headers.get("content-type") ||
+      "application/octet-stream";
 
     const attachment: EmailAttachment = {
       Name: attachmentUrl.name,
@@ -110,57 +110,57 @@ export async function sendEmail(options: SendEmailOptions) {
   // Validate required fields
   if (!from || !to || !subject) {
     throw new Error(
-      'Missing required fields: from, to, and subject are required'
+      "Missing required fields: from, to, and subject are required",
     );
   }
 
   if (!htmlBody && !textBody) {
-    throw new Error('Either htmlBody or textBody must be provided');
+    throw new Error("Either htmlBody or textBody must be provided");
   }
 
   // In development, just log the email
   if (
-    process.env.NODE_ENV === 'development' ||
-    process.env.APP_ENV === 'development'
+    process.env.NODE_ENV === "development" ||
+    process.env.APP_ENV === "development"
   ) {
-    console.log('\n===========================================');
-    console.log('📧 EMAIL (Development Mode)');
-    console.log('===========================================');
+    console.log("\n===========================================");
+    console.log("📧 EMAIL (Development Mode)");
+    console.log("===========================================");
     console.log(`From: ${from}`);
-    console.log(`To: ${Array.isArray(to) ? to.join(', ') : to}`);
-    if (cc) console.log(`CC: ${Array.isArray(cc) ? cc.join(', ') : cc}`);
-    if (bcc) console.log(`BCC: ${Array.isArray(bcc) ? bcc.join(', ') : bcc}`);
+    console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);
+    if (cc) console.log(`CC: ${Array.isArray(cc) ? cc.join(", ") : cc}`);
+    if (bcc) console.log(`BCC: ${Array.isArray(bcc) ? bcc.join(", ") : bcc}`);
     console.log(`Subject: ${subject}`);
     if (tag) console.log(`Tag: ${tag}`);
     if (metadata) console.log(`Metadata:`, metadata);
-    console.log('-------------------------------------------');
+    console.log("-------------------------------------------");
     if (textBody) {
-      console.log('TEXT BODY:');
+      console.log("TEXT BODY:");
       console.log(textBody);
     }
     if (htmlBody) {
-      console.log('HTML BODY:');
+      console.log("HTML BODY:");
       console.log(
-        htmlBody.substring(0, 500) + (htmlBody.length > 500 ? '...' : '')
+        htmlBody.substring(0, 500) + (htmlBody.length > 500 ? "..." : ""),
       );
     }
     if (attachments.length > 0) {
-      console.log(`Attachments: ${attachments.map((a) => a.Name).join(', ')}`);
+      console.log(`Attachments: ${attachments.map((a) => a.Name).join(", ")}`);
     }
     if (attachmentUrls.length > 0) {
       console.log(
-        `URL Attachments: ${attachmentUrls.map((a) => a.name).join(', ')}`
+        `URL Attachments: ${attachmentUrls.map((a) => a.name).join(", ")}`,
       );
     }
-    console.log('===========================================\n');
+    console.log("===========================================\n");
 
     // Return mock response
     return {
-      To: Array.isArray(to) ? to.join(',') : to,
+      To: Array.isArray(to) ? to.join(",") : to,
       SubmittedAt: new Date().toISOString(),
       MessageID: `dev-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       ErrorCode: 0,
-      Message: 'Development mode - email logged to console',
+      Message: "Development mode - email logged to console",
     };
   }
 
@@ -169,7 +169,7 @@ export async function sendEmail(options: SendEmailOptions) {
     const urlAttachments: EmailAttachment[] = [];
     if (attachmentUrls.length > 0) {
       const fetchPromises = attachmentUrls.map((url) =>
-        fetchAttachmentFromUrl(url)
+        fetchAttachmentFromUrl(url),
       );
       const fetchedAttachments = await Promise.all(fetchPromises);
       urlAttachments.push(...fetchedAttachments);
@@ -180,7 +180,7 @@ export async function sendEmail(options: SendEmailOptions) {
 
     const emailData: Record<string, unknown> = {
       From: from,
-      To: Array.isArray(to) ? to.join(',') : to,
+      To: Array.isArray(to) ? to.join(",") : to,
       Subject: subject,
     };
 
@@ -194,10 +194,10 @@ export async function sendEmail(options: SendEmailOptions) {
 
     // Add optional fields
     if (cc) {
-      emailData.Cc = Array.isArray(cc) ? cc.join(',') : cc;
+      emailData.Cc = Array.isArray(cc) ? cc.join(",") : cc;
     }
     if (bcc) {
-      emailData.Bcc = Array.isArray(bcc) ? bcc.join(',') : bcc;
+      emailData.Bcc = Array.isArray(bcc) ? bcc.join(",") : bcc;
     }
     if (allAttachments.length > 0) {
       emailData.Attachments = allAttachments;
@@ -210,7 +210,7 @@ export async function sendEmail(options: SendEmailOptions) {
     }
 
     const response = await client.sendEmail(
-      emailData as unknown as postmark.Message
+      emailData as unknown as postmark.Message,
     );
     return response;
   } catch (error) {
@@ -226,28 +226,28 @@ export async function sendEmail(options: SendEmailOptions) {
  */
 export async function sendBulkEmails(emails: SendEmailOptions[]) {
   if (emails.length === 0) {
-    throw new Error('No emails provided');
+    throw new Error("No emails provided");
   }
 
   if (emails.length > 500) {
-    throw new Error('Maximum 500 emails per batch');
+    throw new Error("Maximum 500 emails per batch");
   }
 
   try {
     const emailBatch = emails.map((email) => {
       const emailData: Record<string, unknown> = {
         From: email.from,
-        To: Array.isArray(email.to) ? email.to.join(',') : email.to,
+        To: Array.isArray(email.to) ? email.to.join(",") : email.to,
         Subject: email.subject,
       };
 
       if (email.htmlBody) emailData.HtmlBody = email.htmlBody;
       if (email.textBody) emailData.TextBody = email.textBody;
       if (email.cc)
-        emailData.Cc = Array.isArray(email.cc) ? email.cc.join(',') : email.cc;
+        emailData.Cc = Array.isArray(email.cc) ? email.cc.join(",") : email.cc;
       if (email.bcc)
         emailData.Bcc = Array.isArray(email.bcc)
-          ? email.bcc.join(',')
+          ? email.bcc.join(",")
           : email.bcc;
       if (email.attachments) emailData.Attachments = email.attachments;
       if (email.tag) emailData.Tag = email.tag;
@@ -257,7 +257,7 @@ export async function sendBulkEmails(emails: SendEmailOptions[]) {
     });
 
     const response = await client.sendEmailBatch(
-      emailBatch as unknown as postmark.Message[]
+      emailBatch as unknown as postmark.Message[],
     );
     return response;
   } catch (error) {
@@ -276,28 +276,28 @@ export async function sendBulkEmails(emails: SendEmailOptions[]) {
 export async function sendTemplateEmail(
   templateAlias: string | number,
   templateModel: Record<string, unknown>,
-  options: Omit<SendEmailOptions, 'htmlBody' | 'textBody'>
+  options: Omit<SendEmailOptions, "htmlBody" | "textBody">,
 ) {
   const { from, to, cc, bcc, attachments, tag, metadata } = options;
 
   try {
     const emailData: Record<string, unknown> = {
       From: from,
-      To: Array.isArray(to) ? to.join(',') : to,
+      To: Array.isArray(to) ? to.join(",") : to,
       TemplateAlias:
-        typeof templateAlias === 'string' ? templateAlias : undefined,
-      TemplateId: typeof templateAlias === 'number' ? templateAlias : undefined,
+        typeof templateAlias === "string" ? templateAlias : undefined,
+      TemplateId: typeof templateAlias === "number" ? templateAlias : undefined,
       TemplateModel: templateModel,
     };
 
-    if (cc) emailData.Cc = Array.isArray(cc) ? cc.join(',') : cc;
-    if (bcc) emailData.Bcc = Array.isArray(bcc) ? bcc.join(',') : bcc;
+    if (cc) emailData.Cc = Array.isArray(cc) ? cc.join(",") : cc;
+    if (bcc) emailData.Bcc = Array.isArray(bcc) ? bcc.join(",") : bcc;
     if (attachments) emailData.Attachments = attachments;
     if (tag) emailData.Tag = tag;
     if (metadata) emailData.Metadata = metadata;
 
     const response = await client.sendEmailWithTemplate(
-      emailData as unknown as postmark.TemplatedMessage
+      emailData as unknown as postmark.TemplatedMessage,
     );
     return response;
   } catch (error) {
@@ -318,7 +318,7 @@ export function createAttachment(
   fileName: string,
   fileContent: string,
   contentType: string,
-  isInline = false
+  isInline = false,
 ): EmailAttachment {
   const attachment: EmailAttachment = {
     Name: fileName,
@@ -344,7 +344,7 @@ export const EmailTemplates = {
     title: string,
     message: string,
     actionUrl?: string,
-    actionText?: string
+    actionText?: string,
   ) => ({
     htmlBody: `
       <!DOCTYPE html>
@@ -366,7 +366,7 @@ export const EmailTemplates = {
                 </a>
               </div>
             `
-                : ''
+                : ""
             }
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="color: #666; font-size: 14px;">
@@ -382,7 +382,7 @@ ${title}
 
 ${message}
 
-${actionUrl && actionText ? `${actionText}: ${actionUrl}` : ''}
+${actionUrl && actionText ? `${actionText}: ${actionUrl}` : ""}
 
 Best regards,
 The STIKK Team

@@ -73,51 +73,113 @@ export function ProfileForm({
   };
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="grid gap-4 max-w-2xl">
+    <form ref={formRef} onSubmit={onSubmit} className="grid max-w-2xl gap-4">
       <div className="grid gap-2">
         <label>Handle</label>
-        <Input name="handle" placeholder="your-handle" required defaultValue={defaults?.handle} />
+        <Input
+          name="handle"
+          placeholder="your-handle"
+          required
+          defaultValue={defaults?.handle}
+        />
       </div>
       <div className="grid gap-2">
         <label>Display name</label>
-        <Input name="displayName" placeholder="Your Name" required defaultValue={defaults?.displayName} />
+        <Input
+          name="displayName"
+          placeholder="Your Name"
+          required
+          defaultValue={defaults?.displayName}
+        />
       </div>
       <div className="grid gap-2">
         <label>Headline</label>
-        <Input name="headline" placeholder="Short headline" required defaultValue={defaults?.headline} />
+        <Input
+          name="headline"
+          placeholder="Short headline"
+          required
+          defaultValue={defaults?.headline}
+        />
       </div>
       <div className="grid gap-2">
         <label>Bio</label>
-        <Textarea name="bio" placeholder="Tell us about yourself" defaultValue={defaults?.bio} />
+        <Textarea
+          name="bio"
+          placeholder="Tell us about yourself"
+          defaultValue={defaults?.bio}
+        />
       </div>
       <div className="grid gap-2">
         <label>Skills (comma separated)</label>
-        <Input name="skills" placeholder="nextjs, t3, r1, agentic" defaultValue={defaults?.skills} />
+        <Input
+          name="skills"
+          placeholder="nextjs, t3, r1, agentic"
+          defaultValue={defaults?.skills}
+        />
       </div>
       <div className="grid gap-2">
         <label>Interests (comma separated)</label>
-        <Input name="interests" placeholder="agents, evals, realtime" defaultValue={defaults?.interests} />
+        <Input
+          name="interests"
+          placeholder="agents, evals, realtime"
+          defaultValue={defaults?.interests}
+        />
       </div>
       <div className="grid gap-2">
         <label>Location</label>
-        <Input name="location" placeholder="Remote / City" defaultValue={defaults?.location} />
+        <Input
+          name="location"
+          placeholder="Remote / City"
+          defaultValue={defaults?.location}
+        />
       </div>
       <div className="grid gap-2">
         <label>Links</label>
-        <Input name="github" placeholder="https://github.com/you" defaultValue={defaults?.github} />
-        <Input name="x" placeholder="https://x.com/you" defaultValue={defaults?.x} />
-        <Input name="website" placeholder="https://you.dev" defaultValue={defaults?.website} />
-        <Input name="email" placeholder="you@example.com" defaultValue={defaults?.email} />
+        <Input
+          name="github"
+          placeholder="https://github.com/you"
+          defaultValue={defaults?.github}
+        />
+        <Input
+          name="x"
+          placeholder="https://x.com/you"
+          defaultValue={defaults?.x}
+        />
+        <Input
+          name="website"
+          placeholder="https://you.dev"
+          defaultValue={defaults?.website}
+        />
+        <Input
+          name="email"
+          placeholder="you@example.com"
+          defaultValue={defaults?.email}
+        />
       </div>
       <div className="grid grid-cols-3 gap-4">
         <label className="flex items-center gap-2">
-          <input type="checkbox" name="availHire" defaultChecked={defaults?.availHire} /> Open to hire
+          <input
+            type="checkbox"
+            name="availHire"
+            defaultChecked={defaults?.availHire}
+          />{" "}
+          Open to hire
         </label>
         <label className="flex items-center gap-2">
-          <input type="checkbox" name="availCollab" defaultChecked={defaults?.availCollab} /> Open to collab
+          <input
+            type="checkbox"
+            name="availCollab"
+            defaultChecked={defaults?.availCollab}
+          />{" "}
+          Open to collab
         </label>
         <label className="flex items-center gap-2">
-          <input type="checkbox" name="availHiring" defaultChecked={defaults?.availHiring} /> I am hiring
+          <input
+            type="checkbox"
+            name="availHiring"
+            defaultChecked={defaults?.availHiring}
+          />{" "}
+          I am hiring
         </label>
       </div>
       <div>
@@ -128,5 +190,3 @@ export function ProfileForm({
     </form>
   );
 }
-
-

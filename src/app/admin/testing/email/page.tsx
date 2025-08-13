@@ -12,7 +12,7 @@ import {
 
 interface EmailTestResult {
   success: boolean;
-  response: any;
+  response: unknown;
   executionTime: number;
 }
 
@@ -27,24 +27,29 @@ const emailTemplates = {
   },
   notification: {
     name: "Notification",
-    from: "notifications@hungryfools.dev", 
+    from: "notifications@hungryfools.dev",
     to: "user@example.com",
     subject: "Account Notification",
-    htmlBody: "<h2>Account Update</h2><p>Your profile has been updated successfully.</p><p><a href='#'>View Profile</a></p>",
-    textBody: "Account Update\n\nYour profile has been updated successfully.\n\nView Profile: https://hungryfools.dev/profile",
+    htmlBody:
+      "<h2>Account Update</h2><p>Your profile has been updated successfully.</p><p><a href='#'>View Profile</a></p>",
+    textBody:
+      "Account Update\n\nYour profile has been updated successfully.\n\nView Profile: https://hungryfools.dev/profile",
   },
   welcome: {
     name: "Welcome Email",
     from: "welcome@hungryfools.dev",
-    to: "newuser@example.com", 
+    to: "newuser@example.com",
     subject: "Welcome to HungryFools!",
-    htmlBody: "<h1>Welcome to HungryFools!</h1><p>We're excited to have you join our community of vibecoders.</p><p><strong>Next steps:</strong></p><ul><li>Complete your profile</li><li>Explore the directory</li><li>Connect with other developers</li></ul>",
-    textBody: "Welcome to HungryFools!\n\nWe're excited to have you join our community of vibecoders.\n\nNext steps:\n- Complete your profile\n- Explore the directory\n- Connect with other developers",
+    htmlBody:
+      "<h1>Welcome to HungryFools!</h1><p>We're excited to have you join our community of vibecoders.</p><p><strong>Next steps:</strong></p><ul><li>Complete your profile</li><li>Explore the directory</li><li>Connect with other developers</li></ul>",
+    textBody:
+      "Welcome to HungryFools!\n\nWe're excited to have you join our community of vibecoders.\n\nNext steps:\n- Complete your profile\n- Explore the directory\n- Connect with other developers",
   },
 };
 
 export default function EmailTestingPage() {
-  const [selectedTemplate, setSelectedTemplate] = useState<keyof typeof emailTemplates>("basic");
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<keyof typeof emailTemplates>("basic");
   const [from, setFrom] = useState(emailTemplates.basic.from);
   const [to, setTo] = useState(emailTemplates.basic.to);
   const [subject, setSubject] = useState(emailTemplates.basic.subject);
@@ -53,7 +58,9 @@ export default function EmailTestingPage() {
   const [cc, setCc] = useState("");
   const [bcc, setBcc] = useState("");
   const [tag, setTag] = useState("");
-  const [metadata, setMetadata] = useState<Array<{key: string; value: string}>>([]);
+  const [metadata, setMetadata] = useState<
+    Array<{ key: string; value: string }>
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<EmailTestResult | null>(null);
@@ -77,7 +84,11 @@ export default function EmailTestingPage() {
     setMetadata(metadata.filter((_, i) => i !== index));
   };
 
-  const updateMetadata = (index: number, field: "key" | "value", value: string) => {
+  const updateMetadata = (
+    index: number,
+    field: "key" | "value",
+    value: string,
+  ) => {
     const updated = [...metadata];
     updated[index][field] = value;
     setMetadata(updated);
@@ -92,7 +103,7 @@ export default function EmailTestingPage() {
     setResult(null);
 
     try {
-      const emailData: any = {
+      const emailData: Record<string, unknown> = {
         from,
         to,
         subject,
@@ -104,10 +115,12 @@ export default function EmailTestingPage() {
       };
 
       // Add metadata if any
-      const validMetadata = metadata.filter(m => m.key.trim() && m.value.trim());
+      const validMetadata = metadata.filter(
+        (m) => m.key.trim() && m.value.trim(),
+      );
       if (validMetadata.length > 0) {
         emailData.metadata = Object.fromEntries(
-          validMetadata.map(m => [m.key.trim(), m.value.trim()])
+          validMetadata.map((m) => [m.key.trim(), m.value.trim()]),
         );
       }
 
@@ -141,12 +154,13 @@ export default function EmailTestingPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-3xl font-bold">
           <Mail className="h-8 w-8" />
           Email Testing
         </h1>
         <p className="text-muted-foreground mt-2">
-          Test email sending functionality (development mode - logged to console)
+          Test email sending functionality (development mode - logged to
+          console)
         </p>
       </div>
 
@@ -155,7 +169,9 @@ export default function EmailTestingPage() {
         <label className="text-sm font-medium">Email Template</label>
         <Select
           value={selectedTemplate}
-          onValueChange={(value) => handleTemplateChange(value as keyof typeof emailTemplates)}
+          onValueChange={(value) =>
+            handleTemplateChange(value as keyof typeof emailTemplates)
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder="Select an email template..." />
@@ -180,7 +196,7 @@ export default function EmailTestingPage() {
               value={from}
               onChange={(e) => setFrom(e.target.value)}
               placeholder="sender@domain.com"
-              className="w-full p-3 border rounded-lg"
+              className="w-full rounded-lg border p-3"
             />
           </div>
 
@@ -191,7 +207,7 @@ export default function EmailTestingPage() {
               value={to}
               onChange={(e) => setTo(e.target.value)}
               placeholder="recipient@domain.com"
-              className="w-full p-3 border rounded-lg"
+              className="w-full rounded-lg border p-3"
             />
           </div>
 
@@ -202,7 +218,7 @@ export default function EmailTestingPage() {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Email subject"
-              className="w-full p-3 border rounded-lg"
+              className="w-full rounded-lg border p-3"
             />
           </div>
 
@@ -213,7 +229,7 @@ export default function EmailTestingPage() {
               value={cc}
               onChange={(e) => setCc(e.target.value)}
               placeholder="cc@domain.com"
-              className="w-full p-3 border rounded-lg"
+              className="w-full rounded-lg border p-3"
             />
           </div>
 
@@ -224,7 +240,7 @@ export default function EmailTestingPage() {
               value={bcc}
               onChange={(e) => setBcc(e.target.value)}
               placeholder="bcc@domain.com"
-              className="w-full p-3 border rounded-lg"
+              className="w-full rounded-lg border p-3"
             />
           </div>
 
@@ -235,7 +251,7 @@ export default function EmailTestingPage() {
               value={tag}
               onChange={(e) => setTag(e.target.value)}
               placeholder="email-tag"
-              className="w-full p-3 border rounded-lg"
+              className="w-full rounded-lg border p-3"
             />
           </div>
         </div>
@@ -247,7 +263,7 @@ export default function EmailTestingPage() {
               value={htmlBody}
               onChange={(e) => setHtmlBody(e.target.value)}
               placeholder="<h1>Email content...</h1>"
-              className="w-full p-3 border rounded-lg resize-none h-32 font-mono text-sm"
+              className="h-32 w-full resize-none rounded-lg border p-3 font-mono text-sm"
             />
           </div>
 
@@ -257,7 +273,7 @@ export default function EmailTestingPage() {
               value={textBody}
               onChange={(e) => setTextBody(e.target.value)}
               placeholder="Plain text email content..."
-              className="w-full p-3 border rounded-lg resize-none h-32 font-mono text-sm"
+              className="h-32 w-full resize-none rounded-lg border p-3 font-mono text-sm"
             />
           </div>
 
@@ -267,7 +283,7 @@ export default function EmailTestingPage() {
               <label className="text-sm font-medium">Metadata (optional)</label>
               <button
                 onClick={addMetadata}
-                className="text-xs flex items-center gap-1 px-2 py-1 rounded hover:bg-accent"
+                className="hover:bg-accent flex items-center gap-1 rounded px-2 py-1 text-xs"
               >
                 <Plus className="h-3 w-3" />
                 Add
@@ -280,18 +296,20 @@ export default function EmailTestingPage() {
                   value={item.key}
                   onChange={(e) => updateMetadata(index, "key", e.target.value)}
                   placeholder="key"
-                  className="flex-1 p-2 border rounded text-sm"
+                  className="flex-1 rounded border p-2 text-sm"
                 />
                 <input
                   type="text"
                   value={item.value}
-                  onChange={(e) => updateMetadata(index, "value", e.target.value)}
+                  onChange={(e) =>
+                    updateMetadata(index, "value", e.target.value)
+                  }
                   placeholder="value"
-                  className="flex-1 p-2 border rounded text-sm"
+                  className="flex-1 rounded border p-2 text-sm"
                 />
                 <button
                   onClick={() => removeMetadata(index)}
-                  className="p-2 hover:bg-accent rounded"
+                  className="hover:bg-accent rounded p-2"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -304,8 +322,14 @@ export default function EmailTestingPage() {
       {/* Test Button */}
       <button
         onClick={handleTest}
-        disabled={isLoading || !from.trim() || !to.trim() || !subject.trim() || (!htmlBody.trim() && !textBody.trim())}
-        className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        disabled={
+          isLoading ||
+          !from.trim() ||
+          !to.trim() ||
+          !subject.trim() ||
+          (!htmlBody.trim() && !textBody.trim())
+        }
+        className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-6 py-3 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLoading ? (
           <>
@@ -322,62 +346,81 @@ export default function EmailTestingPage() {
 
       {/* Error Display */}
       {error && (
-        <div className="border border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+        <div className="rounded-lg border border-red-500 bg-red-50 p-4 dark:bg-red-950/20">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
       {/* Result Display */}
       {result && (
         <div className="space-y-4">
-          <div className="border rounded-lg p-4 space-y-4">
+          <div className="space-y-4 rounded-lg border p-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">Email Result</h3>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex items-center gap-4 text-sm">
                 <span>Time: {result.executionTime}ms</span>
                 <button
-                  onClick={() => copyToClipboard(JSON.stringify(result.response, null, 2))}
-                  className="flex items-center gap-1 px-2 py-1 rounded hover:bg-accent"
+                  onClick={() =>
+                    copyToClipboard(JSON.stringify(result.response, null, 2))
+                  }
+                  className="hover:bg-accent flex items-center gap-1 rounded px-2 py-1"
                 >
-                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                  {copied ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
                   Copy Response
                 </button>
               </div>
             </div>
-            
+
             {result.success ? (
-              <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                <p className="text-green-600 dark:text-green-400 text-sm font-medium mb-2">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/20">
+                <p className="mb-2 text-sm font-medium text-green-600 dark:text-green-400">
                   ✅ Email processed successfully (development mode)
                 </p>
-                <div className="text-xs font-mono text-green-600 dark:text-green-400">
-                  <p>Message ID: {result.response.MessageID}</p>
-                  <p>To: {result.response.To}</p>
-                  <p>Submitted: {result.response.SubmittedAt}</p>
+                <div className="font-mono text-xs text-green-600 dark:text-green-400">
+                  <p>
+                    Message ID:{" "}
+                    {((result.response as Record<string, unknown>)
+                      ?.MessageID as string) || "N/A"}
+                  </p>
+                  <p>
+                    To:{" "}
+                    {((result.response as Record<string, unknown>)
+                      ?.To as string) || "N/A"}
+                  </p>
+                  <p>
+                    Submitted:{" "}
+                    {((result.response as Record<string, unknown>)
+                      ?.SubmittedAt as string) || "N/A"}
+                  </p>
                 </div>
               </div>
             ) : (
-              <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
-                <p className="text-red-600 dark:text-red-400 text-sm font-medium">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/20">
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">
                   ❌ Email failed to send
                 </p>
               </div>
             )}
 
-            <div className="p-4 bg-muted/30 rounded-lg">
-              <h4 className="font-medium text-sm mb-2">Full Response:</h4>
-              <pre className="text-xs font-mono overflow-x-auto">
+            <div className="bg-muted/30 rounded-lg p-4">
+              <h4 className="mb-2 text-sm font-medium">Full Response:</h4>
+              <pre className="overflow-x-auto font-mono text-xs">
                 {JSON.stringify(result.response, null, 2)}
               </pre>
             </div>
           </div>
 
-          <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950/20">
-            <h4 className="font-medium text-sm mb-2 text-blue-600 dark:text-blue-400">
+          <div className="rounded-lg border bg-blue-50 p-4 dark:bg-blue-950/20">
+            <h4 className="mb-2 text-sm font-medium text-blue-600 dark:text-blue-400">
               💡 Development Mode
             </h4>
             <p className="text-xs text-blue-600 dark:text-blue-400">
-              Check your terminal/console where Next.js is running to see the full email content that would be sent.
+              Check your terminal/console where Next.js is running to see the
+              full email content that would be sent.
             </p>
           </div>
         </div>

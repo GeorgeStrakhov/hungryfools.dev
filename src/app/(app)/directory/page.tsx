@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { profiles } from "@/db/schema/profile";
 import { ilike } from "drizzle-orm";
 
-type SearchParams = { searchParams: { q?: string } };
+type SearchParams = { searchParams: Promise<{ q?: string }> };
 
 export default async function DirectoryPage({ searchParams }: SearchParams) {
   const params = await searchParams;
@@ -20,12 +20,16 @@ export default async function DirectoryPage({ searchParams }: SearchParams) {
           name="q"
           defaultValue={q}
           placeholder="Search developers (e.g., agents, realtime, Next.js)"
-          className="w-full h-12 px-4 rounded-md bg-input border-input"
+          className="bg-input border-input h-12 w-full rounded-md px-4"
         />
       </form>
       <div className="grid gap-4">
         {results.map((p) => (
-          <a key={p.userId} href={`/u/${p.handle}`} className="block border rounded-md p-4 hover:bg-accent">
+          <a
+            key={p.userId}
+            href={`/u/${p.handle}`}
+            className="hover:bg-accent block rounded-md border p-4"
+          >
             <div className="font-semibold">{p.displayName}</div>
             <div className="text-muted-foreground">@{p.handle}</div>
             <div className="mt-2">{p.headline}</div>
@@ -35,5 +39,3 @@ export default async function DirectoryPage({ searchParams }: SearchParams) {
     </div>
   );
 }
-
-

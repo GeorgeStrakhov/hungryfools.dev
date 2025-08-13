@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/api/admin-auth";
-import { sendEmail } from "@/lib/services/email/email";
+import { sendEmail, SendEmailOptions } from "@/lib/services/email/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,25 +10,26 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { from, to, subject, htmlBody, textBody, cc, bcc, tag, metadata } = body;
+    const { from, to, subject, htmlBody, textBody, cc, bcc, tag, metadata } =
+      body;
 
     if (!from || !to || !subject) {
       return NextResponse.json(
         { error: "from, to, and subject are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!htmlBody && !textBody) {
       return NextResponse.json(
         { error: "Either htmlBody or textBody must be provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const startTime = Date.now();
 
-    const emailOptions: any = {
+    const emailOptions: SendEmailOptions = {
       from,
       to,
       subject,
@@ -52,11 +53,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Email test error:", error);
     const executionTime = Date.now();
-    
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : "Internal server error",
-      executionTime,
-    }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Internal server error",
+        executionTime,
+      },
+      { status: 500 },
+    );
   }
 }

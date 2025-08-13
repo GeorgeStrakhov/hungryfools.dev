@@ -18,10 +18,10 @@ CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id
 Generate embeddings for a single text:
 
 ```typescript
-import { generateEmbeddings } from '@/lib/services/embeddings/embeddings';
+import { generateEmbeddings } from "@/lib/services/embeddings/embeddings";
 
 const result = await generateEmbeddings({
-  input: 'I love building AI applications',
+  input: "I love building AI applications",
 });
 
 console.log(result);
@@ -40,9 +40,9 @@ Generate embeddings for multiple texts in one call:
 ```typescript
 const result = await generateEmbeddings({
   input: [
-    'First document about AI',
-    'Second document about machine learning',
-    'Third document about deep learning',
+    "First document about AI",
+    "Second document about machine learning",
+    "Third document about deep learning",
   ],
 });
 
@@ -55,20 +55,20 @@ console.log(result.embeddings.length); // 3
 Find the most similar texts from a list of candidates:
 
 ```typescript
-import { findMostSimilar } from '@/lib/services/embeddings/embeddings';
+import { findMostSimilar } from "@/lib/services/embeddings/embeddings";
 
-const query = 'How to cook pasta?';
+const query = "How to cook pasta?";
 const candidates = [
-  'Recipe for spaghetti carbonara',
-  'Guide to machine learning',
-  'Italian cooking basics',
-  'How to fix a car engine',
-  'Pasta making techniques',
+  "Recipe for spaghetti carbonara",
+  "Guide to machine learning",
+  "Italian cooking basics",
+  "How to fix a car engine",
+  "Pasta making techniques",
 ];
 
 const results = await findMostSimilar(query, candidates, {
-  topK: 3,           // Return top 3 results
-  threshold: 0.5,    // Minimum similarity score
+  topK: 3, // Return top 3 results
+  threshold: 0.5, // Minimum similarity score
 });
 
 console.log(results);
@@ -85,16 +85,16 @@ console.log(results);
 Calculate similarity between two embedding vectors:
 
 ```typescript
-import { generateEmbeddings, cosineSimilarity } from '@/lib/services/embeddings/embeddings';
+import {
+  generateEmbeddings,
+  cosineSimilarity,
+} from "@/lib/services/embeddings/embeddings";
 
 const result = await generateEmbeddings({
-  input: ['Text A', 'Text B'],
+  input: ["Text A", "Text B"],
 });
 
-const similarity = cosineSimilarity(
-  result.embeddings[0],
-  result.embeddings[1]
-);
+const similarity = cosineSimilarity(result.embeddings[0], result.embeddings[1]);
 
 console.log(`Similarity: ${similarity}`); // Value between -1 and 1
 ```
@@ -104,16 +104,18 @@ console.log(`Similarity: ${similarity}`); // Value between -1 and 1
 Process large datasets efficiently with batch processing:
 
 ```typescript
-import { batchGenerateEmbeddings } from '@/lib/services/embeddings/embeddings';
+import { batchGenerateEmbeddings } from "@/lib/services/embeddings/embeddings";
 
 const texts = [
   // ... hundreds or thousands of texts
 ];
 
 const result = await batchGenerateEmbeddings(texts, {
-  batchSize: 100,  // Process 100 texts at a time
+  batchSize: 100, // Process 100 texts at a time
   onProgress: (processed, total) => {
-    console.log(`Progress: ${processed}/${total} (${Math.round(processed/total * 100)}%)`);
+    console.log(
+      `Progress: ${processed}/${total} (${Math.round((processed / total) * 100)}%)`,
+    );
   },
 });
 
@@ -127,21 +129,21 @@ console.log(`Generated ${result.embeddings.length} embeddings`);
 Rerank documents based on relevance to a query using the BGE-Reranker model:
 
 ```typescript
-import { rerankDocuments } from '@/lib/services/embeddings/embeddings';
+import { rerankDocuments } from "@/lib/services/embeddings/embeddings";
 
-const query = 'How to optimize database performance?';
+const query = "How to optimize database performance?";
 const documents = [
-  'Database indexing strategies for better performance',
-  'How to make the perfect coffee',
-  'SQL query optimization techniques',
-  'Understanding database query execution plans',
-  'Best practices for web design',
+  "Database indexing strategies for better performance",
+  "How to make the perfect coffee",
+  "SQL query optimization techniques",
+  "Understanding database query execution plans",
+  "Best practices for web design",
 ];
 
 const result = await rerankDocuments({
   query,
   documents,
-  topK: 3,  // Return top 3 most relevant documents
+  topK: 3, // Return top 3 most relevant documents
 });
 
 console.log(result.results);
@@ -158,17 +160,17 @@ console.log(result.results);
 Combine embeddings for initial retrieval with reranking for better accuracy:
 
 ```typescript
-import { hybridSearch } from '@/lib/services/embeddings/embeddings';
+import { hybridSearch } from "@/lib/services/embeddings/embeddings";
 
-const query = 'machine learning for beginners';
+const query = "machine learning for beginners";
 const documents = [
   // ... hundreds of documents
 ];
 
 // Two-stage search: embeddings first, then reranking
 const results = await hybridSearch(query, documents, {
-  initialTopK: 20,        // Get top 20 from embeddings
-  finalTopK: 5,           // Rerank and return top 5
+  initialTopK: 20, // Get top 20 from embeddings
+  finalTopK: 5, // Rerank and return top 5
   similarityThreshold: 0.3, // Min similarity for initial retrieval
 });
 
@@ -181,12 +183,12 @@ console.log(results.results);
 Rerank multiple queries against the same document set:
 
 ```typescript
-import { batchRerank } from '@/lib/services/embeddings/embeddings';
+import { batchRerank } from "@/lib/services/embeddings/embeddings";
 
 const queries = [
-  'How to learn Python?',
-  'Best practices for REST APIs',
-  'Database design patterns',
+  "How to learn Python?",
+  "Best practices for REST APIs",
+  "Database design patterns",
 ];
 
 const documents = [
@@ -225,18 +227,18 @@ Generate embeddings for text input.
 
 #### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `input` | `string \| string[]` | Yes | - | Text or array of texts to embed |
-| `model` | `string` | No | `'@cf/baai/bge-m3'` | Model to use for embeddings |
+| Parameter | Type                 | Required | Default             | Description                     |
+| --------- | -------------------- | -------- | ------------------- | ------------------------------- |
+| `input`   | `string \| string[]` | Yes      | -                   | Text or array of texts to embed |
+| `model`   | `string`             | No       | `'@cf/baai/bge-m3'` | Model to use for embeddings     |
 
 #### Returns
 
 ```typescript
 interface EmbeddingResponse {
-  embeddings: number[][];  // Array of embedding vectors
-  shape: [number, number];  // [num_texts, embedding_dimension]
-  model: string;           // Model used
+  embeddings: number[][]; // Array of embedding vectors
+  shape: [number, number]; // [num_texts, embedding_dimension]
+  model: string; // Model used
 }
 ```
 
@@ -246,17 +248,18 @@ Find the most similar texts from a list of candidates.
 
 #### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | `string` | Yes | - | Query text to compare against |
-| `candidates` | `string[]` | Yes | - | List of candidate texts |
-| `options.topK` | `number` | No | - | Return only top K results |
-| `options.threshold` | `number` | No | `0` | Minimum similarity score |
-| `options.model` | `string` | No | `'@cf/baai/bge-m3'` | Model to use |
+| Parameter           | Type       | Required | Default             | Description                   |
+| ------------------- | ---------- | -------- | ------------------- | ----------------------------- |
+| `query`             | `string`   | Yes      | -                   | Query text to compare against |
+| `candidates`        | `string[]` | Yes      | -                   | List of candidate texts       |
+| `options.topK`      | `number`   | No       | -                   | Return only top K results     |
+| `options.threshold` | `number`   | No       | `0`                 | Minimum similarity score      |
+| `options.model`     | `string`   | No       | `'@cf/baai/bge-m3'` | Model to use                  |
 
 #### Returns
 
 Array of objects with:
+
 - `text`: The candidate text
 - `score`: Similarity score (0 to 1)
 - `index`: Original index in candidates array
@@ -267,14 +270,15 @@ Calculate cosine similarity between two vectors.
 
 #### Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `a` | `number[]` | Yes | First embedding vector |
-| `b` | `number[]` | Yes | Second embedding vector |
+| Parameter | Type       | Required | Description             |
+| --------- | ---------- | -------- | ----------------------- |
+| `a`       | `number[]` | Yes      | First embedding vector  |
+| `b`       | `number[]` | Yes      | Second embedding vector |
 
 #### Returns
 
 Number between -1 and 1, where:
+
 - 1 = identical vectors
 - 0 = orthogonal vectors
 - -1 = opposite vectors
@@ -285,12 +289,12 @@ Generate embeddings for large datasets in batches.
 
 #### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `texts` | `string[]` | Yes | - | Array of texts to process |
-| `options.batchSize` | `number` | No | `100` | Texts per batch |
-| `options.model` | `string` | No | `'@cf/baai/bge-m3'` | Model to use |
-| `options.onProgress` | `function` | No | - | Progress callback |
+| Parameter            | Type       | Required | Default             | Description               |
+| -------------------- | ---------- | -------- | ------------------- | ------------------------- |
+| `texts`              | `string[]` | Yes      | -                   | Array of texts to process |
+| `options.batchSize`  | `number`   | No       | `100`               | Texts per batch           |
+| `options.model`      | `string`   | No       | `'@cf/baai/bge-m3'` | Model to use              |
+| `options.onProgress` | `function` | No       | -                   | Progress callback         |
 
 ### rerankDocuments(options)
 
@@ -298,25 +302,25 @@ Rerank documents based on relevance to a query.
 
 #### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | `string` | Yes | - | Query to rank documents against |
-| `documents` | `string[]` | Yes | - | Documents to rerank |
-| `model` | `string` | No | `'@cf/baai/bge-reranker-base'` | Reranker model |
-| `topK` | `number` | No | - | Return only top K documents |
+| Parameter   | Type       | Required | Default                        | Description                     |
+| ----------- | ---------- | -------- | ------------------------------ | ------------------------------- |
+| `query`     | `string`   | Yes      | -                              | Query to rank documents against |
+| `documents` | `string[]` | Yes      | -                              | Documents to rerank             |
+| `model`     | `string`   | No       | `'@cf/baai/bge-reranker-base'` | Reranker model                  |
+| `topK`      | `number`   | No       | -                              | Return only top K documents     |
 
 #### Returns
 
 ```typescript
 interface RerankResponse {
-  results: RerankResult[];  // Sorted by relevance score
-  model: string;            // Model used
+  results: RerankResult[]; // Sorted by relevance score
+  model: string; // Model used
 }
 
 interface RerankResult {
-  index: number;  // Original document index
-  score: number;  // Relevance score
-  text: string;   // Document text
+  index: number; // Original document index
+  score: number; // Relevance score
+  text: string; // Document text
 }
 ```
 
@@ -326,15 +330,15 @@ Perform two-stage search: embeddings for retrieval, reranking for precision.
 
 #### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | `string` | Yes | - | Search query |
-| `documents` | `string[]` | Yes | - | Documents to search |
-| `options.embeddingModel` | `string` | No | `'@cf/baai/bge-m3'` | Embedding model |
-| `options.rerankerModel` | `string` | No | `'@cf/baai/bge-reranker-base'` | Reranker model |
-| `options.initialTopK` | `number` | No | `20` | Candidates from embeddings |
-| `options.finalTopK` | `number` | No | `10` | Final results after reranking |
-| `options.similarityThreshold` | `number` | No | `0.3` | Min similarity for retrieval |
+| Parameter                     | Type       | Required | Default                        | Description                   |
+| ----------------------------- | ---------- | -------- | ------------------------------ | ----------------------------- |
+| `query`                       | `string`   | Yes      | -                              | Search query                  |
+| `documents`                   | `string[]` | Yes      | -                              | Documents to search           |
+| `options.embeddingModel`      | `string`   | No       | `'@cf/baai/bge-m3'`            | Embedding model               |
+| `options.rerankerModel`       | `string`   | No       | `'@cf/baai/bge-reranker-base'` | Reranker model                |
+| `options.initialTopK`         | `number`   | No       | `20`                           | Candidates from embeddings    |
+| `options.finalTopK`           | `number`   | No       | `10`                           | Final results after reranking |
+| `options.similarityThreshold` | `number`   | No       | `0.3`                          | Min similarity for retrieval  |
 
 ### batchRerank(queries, documents, options?)
 
@@ -342,13 +346,13 @@ Rerank multiple queries against the same document corpus.
 
 #### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `queries` | `string[]` | Yes | - | Array of queries |
-| `documents` | `string[]` | Yes | - | Documents to rank |
-| `options.model` | `string` | No | `'@cf/baai/bge-reranker-base'` | Reranker model |
-| `options.topK` | `number` | No | - | Top K per query |
-| `options.onProgress` | `function` | No | - | Progress callback |
+| Parameter            | Type       | Required | Default                        | Description       |
+| -------------------- | ---------- | -------- | ------------------------------ | ----------------- |
+| `queries`            | `string[]` | Yes      | -                              | Array of queries  |
+| `documents`          | `string[]` | Yes      | -                              | Documents to rank |
+| `options.model`      | `string`   | No       | `'@cf/baai/bge-reranker-base'` | Reranker model    |
+| `options.topK`       | `number`   | No       | -                              | Top K per query   |
+| `options.onProgress` | `function` | No       | -                              | Progress callback |
 
 ## Model Information
 
@@ -390,7 +394,7 @@ The service provides clear error messages:
 ```typescript
 try {
   const result = await generateEmbeddings({
-    input: '',  // Empty input
+    input: "", // Empty input
   });
 } catch (error) {
   console.error(error.message);
@@ -418,6 +422,7 @@ The service includes a built-in testing interface for admins at `/admin/testing`
 - **Real-time Results**: See actual API responses and debug any issues
 
 Access the testing interface by:
+
 1. Log in as an admin user
 2. Navigate to `/admin/testing`
 3. Use the tabs to test different features

@@ -17,8 +17,8 @@ GROQ_API_KEY=your_api_key_here
 Sends prompts to an LLM and returns structured, validated responses using Zod schemas.
 
 ```typescript
-import { answerStructured } from '@/lib/services/llm/llm';
-import { z } from 'zod';
+import { answerStructured } from "@/lib/services/llm/llm";
+import { z } from "zod";
 
 // Define your response schema
 const UserProfileSchema = z.object({
@@ -34,7 +34,7 @@ const result = await answerStructured({
   userPrompt: "Hi, I'm John, a software engineer from San Francisco",
   responseSchema: UserProfileSchema,
   // Optional parameters with defaults:
-  model: 'moonshotai/kimi-k2-instruct', // default
+  model: "moonshotai/kimi-k2-instruct", // default
   temperature: 0.6, // default
   maxTokens: 4096, // default
   maxRetries: 3, // default
@@ -58,15 +58,15 @@ console.log(result);
 
 #### Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `systemPrompt` | `string` | Yes | - | Instructions for the LLM on how to format the response |
-| `userPrompt` | `string` | Yes | - | The user's input to process |
-| `responseSchema` | `ZodType` | Yes | - | Zod schema to validate the response |
-| `model` | `string` | No | `'moonshotai/kimi-k2-instruct'` | The LLM model to use |
-| `temperature` | `number` | No | `0.6` | Controls response randomness (0-1) |
-| `maxTokens` | `number` | No | `4096` | Maximum tokens in the response |
-| `maxRetries` | `number` | No | `3` | Number of retry attempts for validation failures |
+| Parameter        | Type      | Required | Default                         | Description                                            |
+| ---------------- | --------- | -------- | ------------------------------- | ------------------------------------------------------ |
+| `systemPrompt`   | `string`  | Yes      | -                               | Instructions for the LLM on how to format the response |
+| `userPrompt`     | `string`  | Yes      | -                               | The user's input to process                            |
+| `responseSchema` | `ZodType` | Yes      | -                               | Zod schema to validate the response                    |
+| `model`          | `string`  | No       | `'moonshotai/kimi-k2-instruct'` | The LLM model to use                                   |
+| `temperature`    | `number`  | No       | `0.6`                           | Controls response randomness (0-1)                     |
+| `maxTokens`      | `number`  | No       | `4096`                          | Maximum tokens in the response                         |
+| `maxRetries`     | `number`  | No       | `3`                             | Number of retry attempts for validation failures       |
 
 #### Returns
 
@@ -75,6 +75,7 @@ Returns a Promise that resolves to the validated data matching the provided Zod 
 #### Errors
 
 Throws an error if:
+
 - The LLM fails to respond
 - The response cannot be parsed as JSON
 - The response fails Zod validation after all retry attempts
@@ -82,6 +83,7 @@ Throws an error if:
 ## Available Models
 
 The default model is `moonshotai/kimi-k2-instruct`, but you can use any model supported by Groq, such as:
+
 - `llama-3.3-70b-versatile`
 - `llama-3.1-8b-instant`
 - `mixtral-8x7b-32768`

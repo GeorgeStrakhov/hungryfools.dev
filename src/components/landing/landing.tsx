@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import posthog from 'posthog-js';
+import Image from "next/image";
+import posthog from "posthog-js";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -9,24 +10,29 @@ import { signIn, useSession } from "next-auth/react";
 
 function Logo() {
   return (
-    <div className="flex items-center justify-center gap-4 md:gap-6 mt-12 mb-0">
-      <img
+    <div className="mt-12 mb-0 flex items-center justify-center gap-4 md:gap-6">
+      <Image
         src="/video/pacduck_only.gif"
         alt="PacDuck animation"
-        className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24"
+        width={96}
+        height={96}
+        className="h-12 w-12 sm:h-16 sm:w-16 md:h-24 md:w-24"
+        unoptimized
       />
-      <div 
-        className="text-hf-accent text-xl sm:text-3xl md:text-5xl animate-neon-glitch"
-        style={{ 
-          fontFamily: 'var(--font-pixelify-sans)'
+      <div
+        className="text-hf-accent animate-neon-glitch text-xl sm:text-3xl md:text-5xl"
+        style={{
+          fontFamily: "var(--font-pixelify-sans)",
         }}
       >
         hungryfools.dev
       </div>
-      <img
+      <Image
         src="/video/pacduck_only_flipped.gif"
         alt="PacDuck animation flipped"
-        className="w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24"
+        width={96}
+        height={96}
+        className="h-12 w-12 sm:h-16 sm:w-16 md:h-24 md:w-24"
       />
     </div>
   );
@@ -34,10 +40,11 @@ function Logo() {
 
 function HeroTagline() {
   return (
-    <h1 className="hf-gradient-text text-2xl sm:text-3xl md:text-5xl font-semibold leading-tight md:leading-[1.2]">
+    <h1 className="hf-gradient-text text-2xl leading-tight font-semibold sm:text-3xl md:text-5xl md:leading-[1.2]">
       First they ignore you.
       <br />
-      Then they call you a <span className="text-hf-yellow italic">vibecoder</span>.
+      Then they call you a{" "}
+      <span className="text-hf-yellow italic">vibecoder</span>.
       <br />
       Then they try to hire you.
       <br />
@@ -48,7 +55,7 @@ function HeroTagline() {
 
 function Subtitle() {
   return (
-    <p className="mt-12 mb-12 text-muted-foreground text-lg md:text-xl">
+    <p className="text-muted-foreground mt-12 mb-12 text-lg md:text-xl">
       The directory of proud vibecoders who ship good stuff at superhuman speed.
     </p>
   );
@@ -60,7 +67,7 @@ function SearchBar() {
       <Input
         type="text"
         placeholder="Find a developer who builds MVPs in days, not months..."
-        className="h-14 bg-input/50 border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-[4px]"
+        className="bg-input/50 border-input text-foreground placeholder:text-muted-foreground h-14 focus-visible:ring-[4px]"
       />
     </div>
   );
@@ -70,10 +77,12 @@ function InlineDivider() {
   const { data: session } = useSession();
   if (session?.user) return null;
   return (
-    <div className="relative w-full max-w-[600px] flex items-center">
+    <div className="relative flex w-full max-w-[600px] items-center">
       <Separator className="w-full" />
       <span className="absolute inset-0 flex items-center justify-center">
-        <span className="bg-background px-3 text-sm text-muted-foreground">or</span>
+        <span className="bg-background text-muted-foreground px-3 text-sm">
+          or
+        </span>
       </span>
     </div>
   );
@@ -87,7 +96,7 @@ function CTA() {
       size="lg"
       className="hf-cta"
       onClick={() => {
-        posthog.capture('github_signin_initiated', { provider: 'github' });
+        posthog.capture("github_signin_initiated", { provider: "github" });
         signIn("github", { callbackUrl: "/post-auth" });
       }}
     >
@@ -98,18 +107,18 @@ function CTA() {
 
 export function Landing() {
   return (
-    <div className="flex items-center justify-center min-h-full">
+    <div className="flex min-h-full items-center justify-center">
       <div className="hf-container text-center">
         <div className="mb-8 md:mb-12">
           <Logo />
         </div>
 
-        <div className="space-y-6 mb-10">
+        <div className="mb-10 space-y-6">
           <HeroTagline />
           <Subtitle />
         </div>
 
-        <div className="flex flex-col items-center gap-6 mb-20">
+        <div className="mb-20 flex flex-col items-center gap-6">
           <SearchBar />
           <InlineDivider />
           <CTA />

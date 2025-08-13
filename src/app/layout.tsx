@@ -21,7 +21,8 @@ const pixelifySans = Pixelify_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "HungryFools.dev — Directory of proud vibecoders who ship at superhuman speed.",
+  title:
+    "HungryFools.dev — Directory of proud vibecoders who ship at superhuman speed.",
   description:
     "The directory of proud vibecoders who ship at superhuman speed.",
 };
@@ -33,7 +34,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${pixelifySans.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${pixelifySans.variable} antialiased`}
+      >
         <SessionProvider>
           <CookieConsent />
           {children}

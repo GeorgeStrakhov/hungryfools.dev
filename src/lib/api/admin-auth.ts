@@ -4,7 +4,7 @@ import { users } from "@/db/schema/auth";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-export type AdminAuthResult = 
+export type AdminAuthResult =
   | {
       isValid: false;
       response: NextResponse;
@@ -25,10 +25,7 @@ export async function requireAdminAuth(): Promise<AdminAuthResult> {
     if (!session?.user?.id) {
       return {
         isValid: false,
-        response: NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        ),
+        response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
       };
     }
 
@@ -44,7 +41,7 @@ export async function requireAdminAuth(): Promise<AdminAuthResult> {
         isValid: false,
         response: NextResponse.json(
           { error: "Admin access required" },
-          { status: 403 }
+          { status: 403 },
         ),
       };
     }
@@ -59,7 +56,7 @@ export async function requireAdminAuth(): Promise<AdminAuthResult> {
       isValid: false,
       response: NextResponse.json(
         { error: "Authentication failed" },
-        { status: 500 }
+        { status: 500 },
       ),
     };
   }
@@ -69,16 +66,16 @@ export async function requireAdminAuth(): Promise<AdminAuthResult> {
  * Wrapper function for admin API route handlers
  * Automatically handles authentication and authorization
  */
-export function withAdminAuth<T extends any[], R>(
-  handler: (userId: string, ...args: T) => Promise<R>
+export function withAdminAuth<T extends unknown[], R>(
+  handler: (userId: string, ...args: T) => Promise<R>,
 ) {
   return async (...args: T): Promise<R | NextResponse> => {
     const authResult = await requireAdminAuth();
-    
+
     if (!authResult.isValid) {
       return authResult.response as R;
     }
-    
+
     return handler(authResult.userId, ...args);
   };
 }

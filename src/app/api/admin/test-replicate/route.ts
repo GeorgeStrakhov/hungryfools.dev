@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     if (!prompt) {
       return NextResponse.json(
         { error: "prompt is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -24,9 +24,9 @@ export async function POST(request: NextRequest) {
     try {
       const result = await generateImage({
         prompt,
-        aspectRatio: aspectRatio || '16:9',
-        safetyFilterLevel: safetyFilterLevel || 'block_only_high',
-        folder: folder || 'test-images',
+        aspectRatio: aspectRatio || "16:9",
+        safetyFilterLevel: safetyFilterLevel || "block_only_high",
+        folder: folder || "test-images",
       });
 
       const executionTime = Date.now() - startTime;
@@ -40,18 +40,26 @@ export async function POST(request: NextRequest) {
       });
     } catch (serviceError) {
       const executionTime = Date.now() - startTime;
-      
-      return NextResponse.json({
-        success: false,
-        error: serviceError instanceof Error ? serviceError.message : "Image generation failed",
-        executionTime,
-      }, { status: 500 });
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            serviceError instanceof Error
+              ? serviceError.message
+              : "Image generation failed",
+          executionTime,
+        },
+        { status: 500 },
+      );
     }
   } catch (error) {
     console.error("Replicate test error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 }
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 },
     );
   }
 }

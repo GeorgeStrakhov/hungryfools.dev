@@ -22,24 +22,35 @@ interface SimilarityResult {
 }
 
 export default function TestingPage() {
-  const [activeTab, setActiveTab] = useState<"embedding" | "similarity" | "rerank">("embedding");
+  const [activeTab, setActiveTab] = useState<
+    "embedding" | "similarity" | "rerank"
+  >("embedding");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   // Embedding test state
   const [embeddingInput, setEmbeddingInput] = useState("");
-  const [embeddingResult, setEmbeddingResult] = useState<EmbeddingResult | null>(null);
+  const [embeddingResult, setEmbeddingResult] =
+    useState<EmbeddingResult | null>(null);
 
   // Similarity test state
   const [similarityQuery, setSimilarityQuery] = useState("");
-  const [similarityDocs, setSimilarityDocs] = useState("Document about machine learning\nGuide to cooking pasta\nIntroduction to web development\nMachine learning with Python\nDatabase optimization guide");
-  const [similarityResults, setSimilarityResults] = useState<SimilarityResult[] | null>(null);
+  const [similarityDocs, setSimilarityDocs] = useState(
+    "Document about machine learning\nGuide to cooking pasta\nIntroduction to web development\nMachine learning with Python\nDatabase optimization guide",
+  );
+  const [similarityResults, setSimilarityResults] = useState<
+    SimilarityResult[] | null
+  >(null);
 
   // Rerank test state
   const [rerankQuery, setRerankQuery] = useState("");
-  const [rerankDocs, setRerankDocs] = useState("How to optimize database queries\nBest coffee shops in town\nDatabase indexing strategies\nSQL performance tuning\nLocal restaurant reviews");
-  const [rerankResults, setRerankResults] = useState<RerankResult[] | null>(null);
+  const [rerankDocs, setRerankDocs] = useState(
+    "How to optimize database queries\nBest coffee shops in town\nDatabase indexing strategies\nSQL performance tuning\nLocal restaurant reviews",
+  );
+  const [rerankResults, setRerankResults] = useState<RerankResult[] | null>(
+    null,
+  );
 
   const handleEmbeddingTest = async () => {
     if (!embeddingInput.trim()) return;
@@ -86,7 +97,7 @@ export default function TestingPage() {
         body: JSON.stringify({
           type: "similarity",
           query: similarityQuery,
-          documents: similarityDocs.split("\n").filter(d => d.trim()),
+          documents: similarityDocs.split("\n").filter((d) => d.trim()),
         }),
       });
 
@@ -118,7 +129,7 @@ export default function TestingPage() {
         body: JSON.stringify({
           type: "rerank",
           query: rerankQuery,
-          documents: rerankDocs.split("\n").filter(d => d.trim()),
+          documents: rerankDocs.split("\n").filter((d) => d.trim()),
         }),
       });
 
@@ -146,7 +157,7 @@ export default function TestingPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-3xl font-bold">
           <FlaskConical className="h-8 w-8" />
           Service Testing
         </h1>
@@ -161,7 +172,7 @@ export default function TestingPage() {
           onClick={() => setActiveTab("embedding")}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "embedding"
-              ? "border-b-2 border-primary text-primary"
+              ? "border-primary text-primary border-b-2"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
@@ -171,7 +182,7 @@ export default function TestingPage() {
           onClick={() => setActiveTab("similarity")}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "similarity"
-              ? "border-b-2 border-primary text-primary"
+              ? "border-primary text-primary border-b-2"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
@@ -181,7 +192,7 @@ export default function TestingPage() {
           onClick={() => setActiveTab("rerank")}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === "rerank"
-              ? "border-b-2 border-primary text-primary"
+              ? "border-primary text-primary border-b-2"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
@@ -191,8 +202,8 @@ export default function TestingPage() {
 
       {/* Error Display */}
       {error && (
-        <div className="border border-red-500 bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+        <div className="rounded-lg border border-red-500 bg-red-50 p-4 dark:bg-red-950/20">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -206,14 +217,14 @@ export default function TestingPage() {
                 value={embeddingInput}
                 onChange={(e) => setEmbeddingInput(e.target.value)}
                 placeholder="Enter text to generate embeddings..."
-                className="w-full p-3 border rounded-lg resize-none h-32 font-mono text-sm"
+                className="h-32 w-full resize-none rounded-lg border p-3 font-mono text-sm"
               />
             </div>
 
             <button
               onClick={handleEmbeddingTest}
               disabled={isLoading || !embeddingInput.trim()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -227,30 +238,49 @@ export default function TestingPage() {
 
             {embeddingResult && (
               <div className="space-y-4">
-                <div className="border rounded-lg p-4 space-y-3">
+                <div className="space-y-3 rounded-lg border p-4">
                   <div>
-                    <span className="text-sm font-medium text-muted-foreground">Model:</span>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      Model:
+                    </span>
                     <p className="font-mono text-sm">{embeddingResult.model}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-muted-foreground">Shape:</span>
-                    <p className="font-mono text-sm">[{embeddingResult.shape.join(", ")}]</p>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      Shape:
+                    </span>
+                    <p className="font-mono text-sm">
+                      [{embeddingResult.shape.join(", ")}]
+                    </p>
                   </div>
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-muted-foreground">
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-muted-foreground text-sm font-medium">
                         Embedding Vector (first 10 dimensions):
                       </span>
                       <button
-                        onClick={() => copyToClipboard(JSON.stringify(embeddingResult.embedding))}
-                        className="text-xs flex items-center gap-1 px-2 py-1 rounded hover:bg-accent"
+                        onClick={() =>
+                          copyToClipboard(
+                            JSON.stringify(embeddingResult.embedding),
+                          )
+                        }
+                        className="hover:bg-accent flex items-center gap-1 rounded px-2 py-1 text-xs"
                       >
-                        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                        {copied ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
                         Copy Full
                       </button>
                     </div>
-                    <div className="p-3 bg-muted/50 rounded font-mono text-xs overflow-x-auto">
-                      [{embeddingResult.embedding.slice(0, 10).map(n => n.toFixed(4)).join(", ")}...]
+                    <div className="bg-muted/50 overflow-x-auto rounded p-3 font-mono text-xs">
+                      [
+                      {embeddingResult.embedding
+                        .slice(0, 10)
+                        .map((n) => n.toFixed(4))
+                        .join(", ")}
+                      ...]
                     </div>
                   </div>
                 </div>
@@ -269,25 +299,29 @@ export default function TestingPage() {
                   value={similarityQuery}
                   onChange={(e) => setSimilarityQuery(e.target.value)}
                   placeholder="Enter search query..."
-                  className="w-full p-3 border rounded-lg font-mono text-sm"
+                  className="w-full rounded-lg border p-3 font-mono text-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Documents (one per line)</label>
+                <label className="text-sm font-medium">
+                  Documents (one per line)
+                </label>
                 <textarea
                   value={similarityDocs}
                   onChange={(e) => setSimilarityDocs(e.target.value)}
                   placeholder="Enter documents to search..."
-                  className="w-full p-3 border rounded-lg resize-none h-32 font-mono text-sm"
+                  className="h-32 w-full resize-none rounded-lg border p-3 font-mono text-sm"
                 />
               </div>
             </div>
 
             <button
               onClick={handleSimilarityTest}
-              disabled={isLoading || !similarityQuery.trim() || !similarityDocs.trim()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              disabled={
+                isLoading || !similarityQuery.trim() || !similarityDocs.trim()
+              }
+              className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -300,22 +334,30 @@ export default function TestingPage() {
             </button>
 
             {similarityResults && (
-              <div className="border rounded-lg p-4">
-                <h3 className="font-medium mb-3">Similarity Results</h3>
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-3 font-medium">Similarity Results</h3>
                 <div className="space-y-2">
                   {similarityResults.map((result, idx) => (
-                    <div key={idx} className="flex items-start gap-3 p-3 bg-muted/30 rounded">
-                      <span className="text-sm font-bold text-primary">#{idx + 1}</span>
+                    <div
+                      key={idx}
+                      className="bg-muted/30 flex items-start gap-3 rounded p-3"
+                    >
+                      <span className="text-primary text-sm font-bold">
+                        #{idx + 1}
+                      </span>
                       <div className="flex-1">
                         <p className="text-sm">{result.text}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Score: {result.score.toFixed(4)} | Original Index: {result.index}
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Score: {result.score.toFixed(4)} | Original Index:{" "}
+                          {result.index}
                         </p>
                       </div>
                     </div>
                   ))}
                   {similarityResults.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No similar documents found</p>
+                    <p className="text-muted-foreground text-sm">
+                      No similar documents found
+                    </p>
                   )}
                 </div>
               </div>
@@ -333,17 +375,19 @@ export default function TestingPage() {
                   value={rerankQuery}
                   onChange={(e) => setRerankQuery(e.target.value)}
                   placeholder="Enter search query..."
-                  className="w-full p-3 border rounded-lg font-mono text-sm"
+                  className="w-full rounded-lg border p-3 font-mono text-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Documents (one per line)</label>
+                <label className="text-sm font-medium">
+                  Documents (one per line)
+                </label>
                 <textarea
                   value={rerankDocs}
                   onChange={(e) => setRerankDocs(e.target.value)}
                   placeholder="Enter documents to rerank..."
-                  className="w-full p-3 border rounded-lg resize-none h-32 font-mono text-sm"
+                  className="h-32 w-full resize-none rounded-lg border p-3 font-mono text-sm"
                 />
               </div>
             </div>
@@ -351,7 +395,7 @@ export default function TestingPage() {
             <button
               onClick={handleRerankTest}
               disabled={isLoading || !rerankQuery.trim() || !rerankDocs.trim()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -364,22 +408,30 @@ export default function TestingPage() {
             </button>
 
             {rerankResults && (
-              <div className="border rounded-lg p-4">
-                <h3 className="font-medium mb-3">Reranked Results</h3>
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-3 font-medium">Reranked Results</h3>
                 <div className="space-y-2">
                   {rerankResults.map((result, idx) => (
-                    <div key={idx} className="flex items-start gap-3 p-3 bg-muted/30 rounded">
-                      <span className="text-sm font-bold text-primary">#{idx + 1}</span>
+                    <div
+                      key={idx}
+                      className="bg-muted/30 flex items-start gap-3 rounded p-3"
+                    >
+                      <span className="text-primary text-sm font-bold">
+                        #{idx + 1}
+                      </span>
                       <div className="flex-1">
                         <p className="text-sm">{result.text}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Score: {result.score.toFixed(4)} | Original Index: {result.index}
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Score: {result.score.toFixed(4)} | Original Index:{" "}
+                          {result.index}
                         </p>
                       </div>
                     </div>
                   ))}
                   {rerankResults.length === 0 && (
-                    <p className="text-sm text-muted-foreground">No results found</p>
+                    <p className="text-muted-foreground text-sm">
+                      No results found
+                    </p>
                   )}
                 </div>
               </div>
