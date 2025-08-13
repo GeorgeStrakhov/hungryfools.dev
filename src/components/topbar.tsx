@@ -42,6 +42,9 @@ function UserAvatar() {
           <Link href="/profile/edit">Edit profile</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
+          <Link href="/profile/projects">My projects</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link href="/settings">Settings</Link>
         </DropdownMenuItem>
         {isAdmin && (

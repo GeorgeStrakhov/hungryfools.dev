@@ -27,7 +27,7 @@ interface VibeStepProps {
 export function VibeStep({ onNext, onBack }: VibeStepProps) {
   const [vibes, setVibes] = useState<string[]>([]);
   const [free, setFree] = useState("");
-  const [, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const toggle = (v: string) => {
     const k = v.toLowerCase();
@@ -106,6 +106,17 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
             onChange={(e) => setFree(e.target.value)}
             placeholder="I debug with console.log and ship on Fridays"
           />
+        </div>
+
+        <div className="bg-muted/30 border border-primary/20 rounded-lg p-4 text-sm">
+          <p className="flex items-start gap-2">
+            <span className="text-lg">🦆</span>
+            <span>
+              <strong>Heads up!</strong> PacDuck will clean up and structure your 
+              responses to keep them professional and consistent. Your unique voice 
+              will be preserved while making everything community-friendly.
+            </span>
+          </p>
         </div>
 
         <div className="nav-buttons flex justify-between">

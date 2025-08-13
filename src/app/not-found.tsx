@@ -2,8 +2,6 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Topbar } from "@/components/topbar";
-import { Footer } from "@/components/footer";
 
 function Logo() {
   return (
@@ -37,7 +35,6 @@ function Logo() {
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col">
-      <Topbar />
       <main className="flex flex-1 items-center justify-center">
         <div className="hf-container text-center">
           <div className="mb-8 md:mb-12">
@@ -57,7 +54,6 @@ export default function NotFound() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

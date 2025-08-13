@@ -105,3 +105,46 @@ export async function validateStep(
     throw error;
   }
 }
+
+// Client-side batch validation function
+export async function validateFieldsClient(
+  fields: Array<{ text: string; context: string; maxLength?: number }>,
+  constraints: string[] = ["no-ads", "professional-only"]
+): Promise<void> {
+  // Filter out empty fields
+  const nonEmptyFields = fields.filter(f => f.text.trim() !== "");
+  
+  if (nonEmptyFields.length === 0) {
+    return; // Nothing to validate
+  }
+
+  if (nonEmptyFields.length === 1) {
+    // Use single validation for single field
+    const field = nonEmptyFields[0];
+    return await validateStep(field.text, field.context, field.maxLength);
+  }
+
+  // Use batch validation for multiple fields
+  const response = await fetch("/api/moderate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      fields: nonEmptyFields,
+      constraints,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Moderation failed");
+  }
+
+  const result = await response.json();
+
+  if (!result.allowed) {
+    const error = new Error(result.reason || "Content not allowed");
+    error.name = "ModerationError";
+    throw error;
+  }
+}

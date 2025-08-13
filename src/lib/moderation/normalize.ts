@@ -1,21 +1,6 @@
 import { z } from "zod";
 import { answerStructured } from "@/lib/services/llm/llm";
-
-// Minimal hard-block list (no slurs; allow mild profanity)
-const HARD_BLOCK = [
-  // examples; expand as needed
-  "nigger",
-  "faggot",
-  "kike",
-  "chink",
-  "wetback",
-  "retard",
-];
-
-function containsHardBlock(text: string): boolean {
-  const lower = text.toLowerCase();
-  return HARD_BLOCK.some((w) => lower.includes(w));
-}
+import { containsBlockedContent } from "./shared";
 
 function basicSanitize<T extends Record<string, unknown>>(input: T): T {
   const out: Record<string, unknown> = {};
@@ -53,7 +38,7 @@ export async function normalizeAndModerate<
       Object.values(val).forEach(collect);
   };
   collect(sanitized);
-  if (flatTexts.some(containsHardBlock)) {
+  if (flatTexts.some(containsBlockedContent)) {
     throw new Error("Content contains disallowed slurs or hate speech");
   }
 
