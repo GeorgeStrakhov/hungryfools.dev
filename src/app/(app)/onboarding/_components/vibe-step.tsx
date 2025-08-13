@@ -55,13 +55,14 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
       if (free.trim()) {
         await validateStep(free.trim(), "vibe-description", 140);
       }
-      
+
       posthog.capture("vibe_complete", { vibes, free });
       await saveVibeAction({ vibes, oneLine: free });
       onNext();
-    } catch (error: any) {
-      if (error?.name === "ModerationError") {
-        toast.error(error.message); // Show moderation error
+    } catch (error: unknown) {
+      const err = error as { name?: string; message?: string };
+      if (err?.name === "ModerationError") {
+        toast.error(err.message || "Content did not pass moderation");
       } else {
         toast.error("Could not save. Try again.");
       }

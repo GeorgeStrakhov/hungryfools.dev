@@ -219,7 +219,7 @@
 /* Onboarding styles */
 @layer components {
   .onboarding-step .nav-buttons {
-    @apply pt-8 mt-8 border-t border-border;
+    @apply border-border mt-8 border-t pt-8;
   }
 }
 

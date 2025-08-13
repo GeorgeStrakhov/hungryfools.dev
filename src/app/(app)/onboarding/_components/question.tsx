@@ -65,7 +65,7 @@ export function Question({
       </div>
 
       {(onNext || onBack) && (
-        <div className="flex justify-between">
+        <div className="nav-buttons flex justify-between">
           {onBack ? (
             <Button variant="ghost" onClick={onBack}>
               {backLabel}

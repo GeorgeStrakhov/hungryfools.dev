@@ -45,15 +45,16 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
       try {
         // Moderate custom skill input
         await validateStep(customSkill.trim(), "expertise", 50);
-        
+
         const k = customSkill.trim().toLowerCase();
         if (!expertise.includes(k)) {
           setExpertise((prev) => [...prev, k]);
         }
         setCustomSkill("");
-      } catch (error: any) {
-        if (error?.name === "ModerationError") {
-          toast.error(error.message); // Show moderation error
+      } catch (error: unknown) {
+        const err = error as { name?: string; message?: string };
+        if (err?.name === "ModerationError") {
+          toast.error(err.message || "Content did not pass moderation");
         } else {
           toast.error("Invalid skill name");
         }

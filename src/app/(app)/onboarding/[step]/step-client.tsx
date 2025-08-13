@@ -86,18 +86,16 @@ export function OnboardingStepClient({
         <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800">
           <div
             className="h-2 rounded-full transition-all duration-300"
-            style={{ 
+            style={{
               width: `${progress}%`,
-              backgroundColor: 'var(--hf-yellow)'
+              backgroundColor: "var(--hf-yellow)",
             }}
           />
         </div>
       )}
 
       {/* Step content */}
-      <div className="onboarding-step">
-        {renderStep()}
-      </div>
+      <div className="onboarding-step">{renderStep()}</div>
     </div>
   );
 }

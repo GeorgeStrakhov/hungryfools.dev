@@ -34,12 +34,13 @@ export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
         await validateStep(summary.trim(), "showcase-summary", 300);
       }
       // Note: Link validation could be added separately if needed
-      
+
       await saveShowcaseAction({ title, link, summary });
       onNext();
-    } catch (error: any) {
-      if (error?.name === "ModerationError") {
-        toast.error(error.message); // Show moderation error
+    } catch (error: unknown) {
+      const err = error as { name?: string; message?: string };
+      if (err?.name === "ModerationError") {
+        toast.error(err.message || "Content did not pass moderation");
       } else {
         toast.error("Could not save. Try again.");
       }

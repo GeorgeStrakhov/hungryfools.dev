@@ -61,9 +61,10 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
         await validateStep(customTech.trim(), "tech-stack", 50);
         add(customTech.trim());
         setCustomTech("");
-      } catch (error: any) {
-        if (error?.name === "ModerationError") {
-          toast.error(error.message); // Show moderation error
+      } catch (error: unknown) {
+        const err = error as { name?: string; message?: string };
+        if (err?.name === "ModerationError") {
+          toast.error(err.message || "Content did not pass moderation");
         } else {
           toast.error("Invalid technology name");
         }
@@ -97,12 +98,13 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
       if (power.trim()) {
         await validateStep(power.trim(), "power-tool", 100);
       }
-      
+
       await saveStackAction({ stack, power });
       onNext();
-    } catch (error: any) {
-      if (error?.name === "ModerationError") {
-        toast.error(error.message); // Show moderation error
+    } catch (error: unknown) {
+      const err = error as { name?: string; message?: string };
+      if (err?.name === "ModerationError") {
+        toast.error(err.message || "Content did not pass moderation");
       } else {
         toast.error("Could not save. Try again.");
       }

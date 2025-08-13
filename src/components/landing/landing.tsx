@@ -32,6 +32,7 @@ function Logo() {
         alt="PacDuck animation flipped"
         width={96}
         height={96}
+        unoptimized
         className="h-12 w-12 sm:h-16 sm:w-16 md:h-24 md:w-24"
       />
     </div>

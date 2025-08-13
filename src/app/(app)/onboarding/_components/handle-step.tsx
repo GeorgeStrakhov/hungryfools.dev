@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
-import { createOrUpdateProfileAction, checkHandleAvailabilityAction } from "@/app/(app)/profile/edit/profile.actions";
+import {
+  createOrUpdateProfileAction,
+  checkHandleAvailabilityAction,
+} from "@/app/(app)/profile/edit/profile.actions";
 import { toast } from "sonner";
 import slugify from "slugify";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
@@ -25,7 +28,7 @@ export function HandleStep({
   const [rawInput, setRawInput] = useState(initialHandle || "");
   const [handle, setHandle] = useState(initialHandle || "");
   const [, setSaving] = useState(false);
-  const [debounceId, setDebounceId] = useState<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [availability, setAvailability] = useState<{
     available: boolean;
     isOwnHandle: boolean;
@@ -67,27 +70,31 @@ export function HandleStep({
   // Check handle availability with debouncing
   useEffect(() => {
     if (!slugifiedPreview || slugifiedPreview.length < 3) {
-      setAvailability({ available: false, isOwnHandle: false, checking: false });
+      setAvailability({
+        available: false,
+        isOwnHandle: false,
+        checking: false,
+      });
       return;
     }
 
-    setAvailability(prev => ({ ...prev, checking: true }));
+    setAvailability((prev) => ({ ...prev, checking: true }));
 
     const timeoutId = setTimeout(async () => {
       try {
         const result = await checkHandleAvailabilityAction(slugifiedPreview);
         setAvailability({
-          available: result.available,
-          isOwnHandle: result.isOwnHandle,
+          available: Boolean(result.available),
+          isOwnHandle: Boolean(result.isOwnHandle),
           checking: false,
-          error: result.error
+          error: result.error,
         });
-      } catch (error) {
+      } catch {
         setAvailability({
           available: false,
           isOwnHandle: false,
           checking: false,
-          error: "Could not check availability"
+          error: "Could not check availability",
         });
       }
     }, 800);
@@ -99,7 +106,7 @@ export function HandleStep({
   useEffect(() => {
     if (!handle) return;
     if (!session?.user?.id) return;
-    if (debounceId) clearTimeout(debounceId);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
     const id = setTimeout(async () => {
       setSaving(true);
@@ -112,7 +119,7 @@ export function HandleStep({
       }
     }, 1000);
 
-    setDebounceId(id);
+    debounceRef.current = id;
     return () => clearTimeout(id);
   }, [handle, session?.user?.id]);
 
@@ -135,14 +142,15 @@ export function HandleStep({
     try {
       // Moderate the handle
       await validateStep(slugifiedPreview, "handle", 50);
-      
+
       await createOrUpdateProfileAction({ handle: slugifiedPreview.trim() });
       onNext();
-    } catch (error: any) {
-      if (error?.message === "HANDLE_TAKEN") {
+    } catch (error: unknown) {
+      const err = error as { name?: string; message?: string };
+      if (err?.message === "HANDLE_TAKEN") {
         toast.error("This handle is already taken. Please choose another.");
-      } else if (error?.name === "ModerationError") {
-        toast.error(error.message); // Show moderation error
+      } else if (err?.name === "ModerationError") {
+        toast.error(err.message || "Content did not pass moderation");
       } else {
         toast.error("Could not save handle. Try again.");
       }
@@ -169,12 +177,12 @@ export function HandleStep({
               value={rawInput}
               onChange={(e) => setRawInput(e.target.value)}
               placeholder="Your Handle"
-              className="text-lg pr-10"
+              className="pr-10 text-lg"
             />
             {slugifiedPreview.length >= 3 && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <div className="absolute top-1/2 right-3 -translate-y-1/2">
                 {availability.checking ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
                 ) : availability.available ? (
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 ) : (
@@ -183,10 +191,10 @@ export function HandleStep({
               </div>
             )}
           </div>
-          
+
           {rawInput && slugifiedPreview !== rawInput && (
-            <div className="mt-2 rounded-lg bg-muted p-3">
-              <p className="text-sm font-medium text-muted-foreground mb-1">
+            <div className="bg-muted mt-2 rounded-lg p-3">
+              <p className="text-muted-foreground mb-1 text-sm font-medium">
                 Handle will be:
               </p>
               <p className="font-mono text-sm font-semibold">
@@ -194,7 +202,7 @@ export function HandleStep({
               </p>
             </div>
           )}
-          
+
           {slugifiedPreview.length > 0 && (
             <div className="mt-4">
               {slugifiedPreview.length < 3 ? (
@@ -203,16 +211,16 @@ export function HandleStep({
                 </p>
               ) : !availability.checking ? (
                 availability.error ? (
-                  <p className="text-sm text-red-600">
-                    {availability.error}
-                  </p>
+                  <p className="text-sm text-red-600">{availability.error}</p>
                 ) : availability.available ? (
-                  <p className="text-sm text-green-600 flex items-center gap-1">
+                  <p className="flex items-center gap-1 text-sm text-green-600">
                     <CheckCircle className="h-3 w-3" />
-                    {availability.isOwnHandle ? "This is your current handle" : "Handle is available"}
+                    {availability.isOwnHandle
+                      ? "This is your current handle"
+                      : "Handle is available"}
                   </p>
                 ) : (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
+                  <p className="flex items-center gap-1 text-sm text-red-600">
                     <XCircle className="h-3 w-3" />
                     Handle is already taken
                   </p>
@@ -220,21 +228,28 @@ export function HandleStep({
               ) : null}
             </div>
           )}
-          
-          {slugifiedPreview.length >= 3 && availability.available && !availability.checking && (
-            <p className="text-muted-foreground mt-4 text-sm">
-              Your profile will be at hungryfools.dev/u/{slugifiedPreview}
-            </p>
-          )}
+
+          {slugifiedPreview.length >= 3 &&
+            availability.available &&
+            !availability.checking && (
+              <p className="text-muted-foreground mt-4 text-sm">
+                Your profile will be at hungryfools.dev/u/{slugifiedPreview}
+              </p>
+            )}
         </div>
 
         <div className="nav-buttons flex justify-between">
           <Button variant="ghost" onClick={onBack}>
             Back
           </Button>
-          <Button 
-            onClick={handleNext} 
-            disabled={!slugifiedPreview.trim() || slugifiedPreview.length < 3 || !availability.available || availability.checking}
+          <Button
+            onClick={handleNext}
+            disabled={
+              !slugifiedPreview.trim() ||
+              slugifiedPreview.length < 3 ||
+              !availability.available ||
+              availability.checking
+            }
           >
             Next
           </Button>

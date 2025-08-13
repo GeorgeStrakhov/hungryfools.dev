@@ -50,7 +50,7 @@ export default function NotFound() {
             </h1>
           </div>
 
-          <div className="flex items-center justify-center mt-18">
+          <div className="mt-18 flex items-center justify-center">
             <Button asChild size="lg" className="hf-cta">
               <Link href="/">Go back home</Link>
             </Button>

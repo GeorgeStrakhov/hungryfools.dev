@@ -25,16 +25,16 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
       setIsDetecting(true);
       try {
         // Use ipapi.co for IP-based location detection
-        const response = await fetch('https://ipapi.co/json/');
+        const response = await fetch("https://ipapi.co/json/");
         const data = await response.json();
-        
+
         if (data.city && data.region) {
           const detected = `${data.city}, ${data.region}`;
           setDetectedLocation(detected);
           setLocation(detected);
         }
       } catch (error) {
-        console.error('Failed to detect location:', error);
+        console.error("Failed to detect location:", error);
       } finally {
         setIsDetecting(false);
       }
@@ -52,12 +52,13 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
     try {
       // Moderate location input
       await validateStep(location.trim(), "location", 100);
-      
+
       await createOrUpdateProfileAction({ location: location.trim() });
       onNext();
-    } catch (error: any) {
-      if (error?.name === "ModerationError") {
-        toast.error(error.message); // Show moderation error
+    } catch (error: unknown) {
+      const err = error as { name?: string; message?: string };
+      if (err?.name === "ModerationError") {
+        toast.error(err.message || "Content did not pass moderation");
       } else {
         toast.error("Could not save location. Try again.");
       }
@@ -87,18 +88,20 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
               id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder={isDetecting ? "Detecting location..." : "San Francisco, CA"}
-              className="text-lg pr-10"
+              placeholder={
+                isDetecting ? "Detecting location..." : "San Francisco, CA"
+              }
+              className="pr-10 text-lg"
               disabled={isDetecting}
             />
             {isDetecting && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
               </div>
             )}
           </div>
           {detectedLocation && (
-            <p className="text-sm text-green-600 flex items-center gap-1 mt-2">
+            <p className="mt-2 flex items-center gap-1 text-sm text-green-600">
               <MapPin className="h-3 w-3" />
               Auto-detected from your IP address
             </p>

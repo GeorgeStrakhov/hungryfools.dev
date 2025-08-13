@@ -1,7 +1,5 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
-import remarkGfm from "remark-gfm";
-import rehypeSlug from "rehype-slug";
 
 const nextConfig: NextConfig = {
   // Allow MDX files to be routed/imported
@@ -30,8 +28,14 @@ const nextConfig: NextConfig = {
 const withMDX = createMDX({
   extension: /\.(md|mdx)$/,
   options: {
-    remarkPlugins: [remarkGfm],
-    rehypePlugins: [rehypeSlug],
+    // @ts-expect-error - String plugin names required for Turbopack compatibility
+    remarkPlugins: [["remark-gfm", { strict: true, throwOnError: true }]],
+    rehypePlugins: [
+      // @ts-expect-error - String plugin names required for Turbopack compatibility
+      ["rehype-slug", { strict: true, throwOnError: true }],
+      // @ts-expect-error - String plugin names required for Turbopack compatibility
+      ["rehype-autolink-headings", { strict: true, throwOnError: true }],
+    ],
   },
 });
 

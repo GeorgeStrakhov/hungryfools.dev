@@ -19,12 +19,17 @@ const moderationResponse = z.object({
 
 // Hard-block list for immediate rejection
 const HARD_BLOCKED_TERMS = [
-  "nigger", "faggot", "kike", "chink", "wetback", "retard"
+  "nigger",
+  "faggot",
+  "kike",
+  "chink",
+  "wetback",
+  "retard",
 ];
 
 function containsHardBlock(text: string): boolean {
   const lower = text.toLowerCase();
-  return HARD_BLOCKED_TERMS.some(term => lower.includes(term));
+  return HARD_BLOCKED_TERMS.some((term) => lower.includes(term));
 }
 
 export async function POST(request: NextRequest) {
@@ -35,15 +40,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { text, context, maxLength, constraints = [] } = moderationRequest.parse(body);
+    const {
+      text,
+      context,
+      maxLength,
+      constraints = [],
+    } = moderationRequest.parse(body);
 
     // Quick hard-block check
     if (containsHardBlock(text)) {
       return NextResponse.json({
         allowed: false,
         confidence: 1.0,
-        reason: "PacDuck says: QUACK! That language is way too spicy for our pond! 🦆💔",
-        suggestedEdit: undefined
+        reason:
+          "PacDuck says: QUACK! That language is way too spicy for our pond! 🦆💔",
+        suggestedEdit: undefined,
       });
     }
 
@@ -53,7 +64,7 @@ export async function POST(request: NextRequest) {
         allowed: false,
         confidence: 1.0,
         reason: `PacDuck says: *flaps wings frantically* Too many characters! ${text.length} is too much, keep it under ${maxLength} please! 🦆`,
-        suggestedEdit: text.slice(0, maxLength).trim()
+        suggestedEdit: text.slice(0, maxLength).trim(),
       });
     }
 
@@ -62,30 +73,39 @@ export async function POST(request: NextRequest) {
       const basicIssues = [];
       if (text.includes("http://") || text.includes("https://")) {
         if (constraints.includes("no-urls")) {
-          basicIssues.push("PacDuck says: No links in this pond! Save them for your showcase! 🦆🔗");
+          basicIssues.push(
+            "PacDuck says: No links in this pond! Save them for your showcase! 🦆🔗",
+          );
         }
       }
-      
+
       return NextResponse.json({
         allowed: basicIssues.length === 0,
         confidence: 0.7,
         reason: basicIssues.length > 0 ? basicIssues[0] : undefined,
-        suggestedEdit: undefined
+        suggestedEdit: undefined,
       });
     }
 
     // LLM-based moderation
     const constraintPrompts = {
       "no-urls": "URLs/links are not allowed",
-      "no-profanity": "Profanity is not allowed", 
+      "no-profanity": "Profanity is not allowed",
       "professional-only": "Content must be professional and work-appropriate",
       "no-ads": "Promotional content and advertisements are not allowed",
-      "no-personal-info": "Personal information like phone numbers, addresses should not be shared"
-    };
+      "no-personal-info":
+        "Personal information like phone numbers, addresses should not be shared",
+    } as const;
 
+    type ConstraintKey = keyof typeof constraintPrompts;
+    type ConstraintValue = (typeof constraintPrompts)[ConstraintKey];
     const activeConstraints = constraints
-      .map(c => constraintPrompts[c])
-      .filter(Boolean)
+      .map((c) =>
+        (Object.prototype.hasOwnProperty.call(constraintPrompts, c)
+          ? constraintPrompts[c as ConstraintKey]
+          : undefined),
+      )
+      .filter((v): v is ConstraintValue => typeof v === "string")
       .join(", ");
 
     const systemPrompt = `
@@ -122,17 +142,17 @@ Examples of good PacDuck responses:
     });
 
     return NextResponse.json(result);
-
   } catch (error) {
     console.error("Moderation error:", error);
     return NextResponse.json(
-      { 
+      {
         allowed: false,
         confidence: 0.5,
-        reason: "PacDuck says: *confused quacking* Something went wrong! Try again or give me simpler text! 🦆❓",
-        suggestedEdit: undefined
+        reason:
+          "PacDuck says: *confused quacking* Something went wrong! Try again or give me simpler text! 🦆❓",
+        suggestedEdit: undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

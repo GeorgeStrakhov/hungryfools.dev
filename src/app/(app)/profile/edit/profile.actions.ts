@@ -60,19 +60,28 @@ export async function createOrUpdateProfileAction(input: Input) {
   // Moderate free text fields
   const textFields = {
     displayName: input.displayName,
-    headline: input.headline, 
+    headline: input.headline,
     bio: input.bio,
     location: input.location,
   };
 
   // Filter out undefined values for moderation
   const fieldsToModerate = Object.fromEntries(
-    Object.entries(textFields).filter(([_, value]) => value !== undefined && value !== "")
+    Object.entries(textFields).filter(
+      ([, value]) => value !== undefined && value !== "",
+    ),
   );
 
-  let moderatedFields = {};
+  type ModeratedFields = {
+    displayName?: string;
+    headline?: string;
+    bio?: string;
+    location?: string;
+  };
+
+  let moderatedFields: ModeratedFields = {};
   if (Object.keys(fieldsToModerate).length > 0) {
-    moderatedFields = await normalizeAndModerate(
+    moderatedFields = (await normalizeAndModerate(
       fieldsToModerate,
       profileInput,
       profileOutput,
@@ -85,8 +94,8 @@ You are moderating user profile content for a developer community platform.
 - For headlines: keep punchy and professional (max 140 chars)
 - For bio: maintain personality while removing inappropriate content (max 500 chars)
 - For display names: keep professional and recognizable (max 100 chars)
-      `.trim()
-    );
+      `.trim(),
+    )) as ModeratedFields;
   }
 
   // Derive handle when not provided
@@ -191,22 +200,26 @@ export async function getOwnProfileAction() {
 export async function checkHandleAvailabilityAction(handle: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
-  
-  const slugifiedHandle = slugify(handle, { lower: true, strict: true, trim: true });
+
+  const slugifiedHandle = slugify(handle, {
+    lower: true,
+    strict: true,
+    trim: true,
+  });
   if (!slugifiedHandle) return { available: false, error: "Invalid handle" };
-  
+
   const existing = await db
     .select({ userId: profiles.userId })
     .from(profiles)
     .where(eq(profiles.handle, slugifiedHandle))
     .limit(1);
-    
+
   const isOwnHandle = existing[0]?.userId === session.user.id;
   const available = !existing[0] || isOwnHandle;
-  
-  return { 
-    available, 
+
+  return {
+    available,
     handle: slugifiedHandle,
-    isOwnHandle: isOwnHandle || false
+    isOwnHandle: isOwnHandle || false,
   };
 }

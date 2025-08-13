@@ -20,8 +20,9 @@ Welcome to HungryFools.dev. By accessing or using our website, products, or serv
 - Outbound links to user-provided sites (e.g., GitHub, X, personal website)
 - Optional company listings (planned for future releases)
 
-  2.2. All features are subject to availability and may be updated, modified, or discontinued at our sole discretion.  
-  2.3. Service availability may vary and is not guaranteed.
+2.2. All features are subject to availability and may be updated, modified, or discontinued at our sole discretion.  
+
+2.3. Service availability may vary and is not guaranteed.
 
 ## 3. User Responsibilities
 
@@ -35,9 +36,7 @@ Welcome to HungryFools.dev. By accessing or using our website, products, or serv
 
 ## 4. Payment Terms
 
-4.1. There are no paid features at this time. Company listings or other paid features may be introduced later; any such features will include updated terms and pricing.
-
-4.2. If/when paid features are introduced, payments will be processed through third-party providers and will be subject to their terms. Fee structures may change with reasonable notice.
+4.1. Payments are processed through third-party providers and are subject to their terms. Fee structures may change with reasonable notice.
 
 ## 5. Content and Submissions
 
