@@ -134,7 +134,7 @@ Primary users: AI‑first developers; Secondary users: hiring managers/companies
 ### 11) Decisions (closed)
 
 - Vector store: pgvector on Neon (EU).
-- Messaging: email only (no in‑app messaging for now).
+- Messaging: email only (via a form users can contact other users, we will send email with postmark).
 - Company verification/badges: not in initial scope.
 
 ### 12) Compliance & Privacy (GDPR)

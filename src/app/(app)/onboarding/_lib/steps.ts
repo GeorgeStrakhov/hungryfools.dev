@@ -50,7 +50,8 @@ export const STEP_CONFIG: Record<Step, StepConfig> = {
     requiresHandle: true,
   },
   showcase: {
-    title: "Brag a bit: coolest thing you vibe-shipped?",
+    title: "Add your first project?",
+    subtitle: "Show off something cool you've built",
     canSkip: true,
     requiresHandle: true,
   },

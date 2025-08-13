@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { profiles } from "@/db/schema/profile";
+import { profiles, projects } from "@/db/schema/profile";
 import { auth } from "@/auth";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -34,9 +34,10 @@ const showcaseInput = z.object({
   summary: z.string().optional(),
 });
 const showcaseOutput = z.object({
-  title: z.string().optional(),
-  link: z.string().optional(),
-  summaryCompact: z.string().optional(),
+  name: z.string().optional(),
+  url: z.string().optional(),
+  oneliner: z.string().optional(),
+  description: z.string().optional(),
 });
 
 async function upsert(values: Record<string, unknown>) {
@@ -125,14 +126,44 @@ Normalize non-dev expertise tags (lowercase). Avoid personal identifiers.
 }
 
 export async function saveShowcaseAction(payload: unknown) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
   const out = await normalizeAndModerate(
     payload,
     showcaseInput,
     showcaseOutput,
     `
-Compress the summary to a crisp one-liner. Keep titles clean. Ensure links are plausible.
+Clean up project info:
+- name: Keep project titles crisp and professional
+- url: Ensure URLs are valid if provided 
+- oneliner: Create a punchy one-liner tagline
+- description: Expand the summary into a clear description
 `,
   );
-  // For now, store compact summary in bio; later move to dedicated showcase table.
-  await upsert({ bio: out.summaryCompact });
+
+  // Only create project if we have meaningful content
+  if (!out.name && !out.oneliner && !out.description) {
+    return; // Skip project creation for empty showcase
+  }
+
+  // Generate a slug from the project name
+  const projectSlug = out.name 
+    ? slugify(out.name, { lower: true, strict: true, trim: true })
+    : `project-${Date.now()}`;
+
+  const now = new Date();
+
+  await db.insert(projects).values({
+    userId: session.user.id,
+    slug: projectSlug,
+    name: out.name || "My Project",
+    url: out.url || null,
+    oneliner: out.oneliner || null,
+    description: out.description || null,
+    media: [],
+    featured: true, // First project is featured by default
+    createdAt: now,
+    updatedAt: now,
+  });
 }

@@ -55,25 +55,29 @@ export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-2xl font-semibold">
-          Brag a bit: coolest thing you vibe-shipped?
+          Add your first project?
         </h1>
+        <p className="text-muted-foreground mt-2">
+          Show off something cool you've built
+        </p>
       </div>
 
       <div className="space-y-4">
         <Input
-          placeholder="Title"
+          placeholder="Project name"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <Input
-          placeholder="Link (GitHub/Live)"
+          placeholder="Link (GitHub/Live demo)"
           value={link}
           onChange={(e) => setLink(e.target.value)}
         />
         <Textarea
-          placeholder="One-liner summary"
+          placeholder="What did you build? Brief description..."
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
+          rows={3}
         />
 
         <div className="nav-buttons flex justify-between">
