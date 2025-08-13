@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { profiles, projects } from "@/db/schema/profile";
 import { eq, desc } from "drizzle-orm";
+import { getTransformedImageUrl } from "@/lib/services/s3/s3";
 
 type Params = { params: Promise<{ handle: string }> };
 
@@ -50,34 +51,54 @@ export default async function PublicProfilePage({ params }: Params) {
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Projects</h2>
           <div className="grid gap-4">
-            {userProjects.map((project) => (
-              <a
-                key={project.id}
-                href={`/u/${profile.handle}/p/${project.slug}`}
-                className="block border rounded-lg p-4 hover:bg-accent transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{project.name}</h3>
-                    {project.oneliner && (
-                      <p className="text-muted-foreground text-sm mt-1">
-                        {project.oneliner}
-                      </p>
+            {userProjects.map((project) => {
+              const firstImage = project.media?.find((m: any) => m.type === "image");
+              
+              return (
+                <a
+                  key={project.id}
+                  href={`/u/${profile.handle}/p/${project.slug}`}
+                  className="block border rounded-lg p-4 hover:bg-accent transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Project Image */}
+                    {firstImage && (
+                      <div className="flex-shrink-0">
+                        <img
+                          src={getTransformedImageUrl(firstImage.url)}
+                          alt={project.name}
+                          className="w-16 h-16 object-cover rounded"
+                          loading="lazy"
+                        />
+                      </div>
                     )}
+                    
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold">{project.name}</h3>
+                          {project.oneliner && (
+                            <p className="text-muted-foreground text-sm mt-1">
+                              {project.oneliner}
+                            </p>
+                          )}
+                        </div>
+                        {project.featured && (
+                          <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded ml-2">
+                            Featured
+                          </span>
+                        )}
+                      </div>
+                      {project.url && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {project.url}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  {project.featured && (
-                    <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                      Featured
-                    </span>
-                  )}
-                </div>
-                {project.url && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {project.url}
-                  </p>
-                )}
-              </a>
-            ))}
+                </a>
+              );
+            })}
           </div>
         </div>
       )}

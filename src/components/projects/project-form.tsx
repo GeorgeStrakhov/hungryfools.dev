@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DeleteProjectButton } from "./delete-project-button";
+import { getTransformedImageUrl } from "@/lib/services/s3/s3";
 import type { ProjectMedia } from "@/db/schema/profile";
 
 interface ProjectFormData {
@@ -70,32 +71,47 @@ export function ProjectForm({
   const handleFileUpload = async (files: FileList) => {
     if (!files.length) return;
 
+    if (!formData.slug) {
+      toast.error("Please set a project slug before uploading files");
+      return;
+    }
+
     setMediaUploading(true);
     try {
-      // TODO: Implement S3 upload
-      // For now, just show a placeholder
-      toast.info("Media upload coming soon!");
+      const uploadFormData = new FormData();
+      Array.from(files).forEach((file) => {
+        uploadFormData.append('files', file);
+      });
+      uploadFormData.append('projectSlug', formData.slug);
       
-      // const formData = new FormData();
-      // Array.from(files).forEach((file) => {
-      //   formData.append('files', file);
-      // });
+      const response = await fetch('/api/projects/upload-media', {
+        method: 'POST',
+        body: uploadFormData,
+      });
       
-      // const response = await fetch('/api/projects/upload-media', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
+      const result = await response.json();
       
-      // const result = await response.json();
-      // if (result.success) {
-      //   setFormData(prev => ({
-      //     ...prev,
-      //     media: [...prev.media, ...result.media]
-      //   }));
-      //   toast.success(`Uploaded ${files.length} file(s)`);
-      // }
+      if (result.success) {
+        setFormData(prev => ({
+          ...prev,
+          media: [...prev.media, ...result.media]
+        }));
+        
+        const uploadedCount = result.media.length;
+        toast.success(`Uploaded ${uploadedCount} file(s) successfully!`);
+        
+        // Show warnings for any failed files
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach((error: string) => {
+            toast.warning(error);
+          });
+        }
+      } else {
+        throw new Error(result.error || "Upload failed");
+      }
     } catch (error) {
-      toast.error("Failed to upload media");
+      console.error("Upload error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to upload media");
     } finally {
       setMediaUploading(false);
     }
@@ -258,7 +274,14 @@ export function ProjectForm({
                   <span className="text-sm text-gray-600">
                     {mediaUploading ? "Uploading..." : "Click to upload images or videos"}
                   </span>
-                  <p className="text-xs text-gray-500">PNG, JPG, GIF, MP4 up to 10MB each</p>
+                  <p className="text-xs text-gray-500">
+                    Images: PNG, JPG, GIF, WEBP • Videos: MP4, WEBM, MOV • Max 10MB each
+                  </p>
+                  {!formData.slug && (
+                    <p className="text-xs text-orange-600 mt-1">
+                      ⚠️ Set project name first to generate slug
+                    </p>
+                  )}
                 </div>
               </div>
             </label>
@@ -272,16 +295,25 @@ export function ProjectForm({
                   <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                     {item.type === "image" ? (
                       <img
-                        src={item.url}
+                        src={getTransformedImageUrl(item.url)}
                         alt={item.filename}
                         className="w-full h-full object-cover"
+                        loading="lazy"
                       />
                     ) : (
-                      <video
-                        src={item.url}
-                        className="w-full h-full object-cover"
-                        muted
-                      />
+                      <div className="relative w-full h-full">
+                        <video
+                          src={item.url}
+                          className="w-full h-full object-cover"
+                          muted
+                          preload="metadata"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        </div>
+                      </div>
                     )}
                   </div>
                   <button
