@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Pixelify_Sans } from "next/font/google";
 import "./globals.css";
-import { Topbar } from "@/components/topbar";
-import { Footer } from "@/components/footer";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -36,13 +34,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${geistSans.variable} ${geistMono.variable} ${pixelifySans.variable} antialiased`}>
         <SessionProvider>
-          <div className="min-h-screen flex flex-col">
-            <Topbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          {children}
           <Toaster />
         </SessionProvider>
       </body>

@@ -1,11 +1,19 @@
 import { requireAdmin } from "./admin-check";
-import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Shield,
-  FlaskConical
-} from "lucide-react";
+import { AdminSidebar } from "@/components/admin-sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export default async function AdminLayout({
   children,
@@ -15,39 +23,26 @@ export default async function AdminLayout({
   await requireAdmin();
 
   return (
-    <div className="hf-container py-8">
-      <div className="flex items-center gap-2 mb-6">
-        <Shield className="h-5 w-5 text-primary" />
-        <span className="text-lg font-semibold">Admin Panel</span>
-      </div>
-      
-      <div className="flex gap-4 mb-8">
-        <Link 
-          href="/admin"
-          className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent transition-colors"
-        >
-          <LayoutDashboard className="h-4 w-4" />
-          Dashboard
-        </Link>
-        
-        <Link 
-          href="/admin/users"
-          className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent transition-colors"
-        >
-          <Users className="h-4 w-4" />
-          Users
-        </Link>
-        
-        <Link 
-          href="/admin/testing"
-          className="flex items-center gap-2 px-4 py-2 rounded-md hover:bg-accent transition-colors"
-        >
-          <FlaskConical className="h-4 w-4" />
-          Testing
-        </Link>
-      </div>
-      
-      {children}
-    </div>
+    <SidebarProvider>
+      <AdminSidebar />
+      <SidebarInset className="min-h-screen">
+        <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/admin">
+                  Admin
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-6">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
