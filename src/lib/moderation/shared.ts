@@ -51,7 +51,7 @@ export function formatConstraints(constraints: string[]): string {
         : undefined,
     )
     .filter((v) => v !== undefined) as string[];
-  
+
   return mapped.join(", ");
 }
 

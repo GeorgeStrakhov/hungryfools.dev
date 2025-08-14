@@ -8,8 +8,14 @@ import {
   type ProfileLinks,
 } from "@/db/schema/profile";
 import { eq } from "drizzle-orm";
-import slugify from "slugify";
 import { normalizeAndModerate } from "@/lib/moderation/normalize";
+import {
+  generateDefaultHandle,
+  normalizeHandle,
+  csvToArray,
+  PROFILE_FIELD_LIMITS,
+  PROFILE_MODERATION_PROMPT,
+} from "@/lib/profile-utils";
 import { z } from "zod";
 
 type Input = {
@@ -29,15 +35,6 @@ type Input = {
   availHiring?: boolean;
 };
 
-function toArray(csv?: string): string[] | undefined {
-  if (!csv) return undefined;
-  return csv
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean)
-    .slice(0, 30);
-}
-
 // Moderation schemas
 const profileInput = z.object({
   displayName: z.string().optional(),
@@ -47,10 +44,10 @@ const profileInput = z.object({
 });
 
 const profileOutput = z.object({
-  displayName: z.string().max(100).optional(),
-  headline: z.string().max(140).optional(),
-  bio: z.string().max(500).optional(),
-  location: z.string().max(100).optional(),
+  displayName: z.string().max(PROFILE_FIELD_LIMITS.displayName.max).optional(),
+  headline: z.string().max(PROFILE_FIELD_LIMITS.headline.max).optional(),
+  bio: z.string().max(PROFILE_FIELD_LIMITS.bio.max).optional(),
+  location: z.string().max(PROFILE_FIELD_LIMITS.location.max).optional(),
 });
 
 export async function createOrUpdateProfileAction(input: Input) {
@@ -85,16 +82,7 @@ export async function createOrUpdateProfileAction(input: Input) {
       fieldsToModerate,
       profileInput,
       profileOutput,
-      `
-You are moderating user profile content for a developer community platform.
-- Keep content professional and appropriate for public display
-- Remove spam, promotional content, inappropriate content
-- Preserve the user's authentic voice while ensuring safety
-- For location: normalize to "City, State/Country" format when possible
-- For headlines: keep punchy and professional (max 140 chars)
-- For bio: maintain personality while removing inappropriate content (max 500 chars)
-- For display names: keep professional and recognizable (max 100 chars)
-      `.trim(),
+      PROFILE_MODERATION_PROMPT,
     )) as ModeratedFields;
   }
 
@@ -102,30 +90,9 @@ You are moderating user profile content for a developer community platform.
   const userProvidedHandle = Boolean(
     input.handle && String(input.handle).trim(),
   );
-  let derivedHandle = (input.handle || "").toString().trim();
+  let derivedHandle = input.handle ? normalizeHandle(input.handle) : "";
   if (!derivedHandle) {
-    const displayName = session.user.name || "";
-    const emailLocal = session.user.email?.split("@")[0] || "";
-    if (
-      displayName &&
-      slugify(displayName, { lower: true, strict: true, trim: true })
-    )
-      derivedHandle = slugify(displayName, {
-        lower: true,
-        strict: true,
-        trim: true,
-      });
-    else if (emailLocal)
-      derivedHandle = slugify(emailLocal, {
-        lower: true,
-        strict: true,
-        trim: true,
-      });
-    else derivedHandle = `user-${session.user.id.slice(0, 8)}`;
-  }
-  // Ensure handle not empty after slugify
-  if (!derivedHandle) {
-    derivedHandle = `user-${session.user.id.slice(0, 8)}`;
+    derivedHandle = generateDefaultHandle(session.user);
   }
 
   // Ensure uniqueness: if handle is taken by another user, append suffix
@@ -166,8 +133,8 @@ You are moderating user profile content for a developer community platform.
     displayName: moderatedFields.displayName || input.displayName,
     headline: moderatedFields.headline || input.headline,
     bio: moderatedFields.bio || input.bio || null,
-    skills: toArray(input.skills),
-    interests: toArray(input.interests),
+    skills: csvToArray(input.skills, PROFILE_FIELD_LIMITS.skills.max),
+    interests: csvToArray(input.interests, PROFILE_FIELD_LIMITS.interests.max),
     location: moderatedFields.location || input.location || null,
     links,
     availability,
@@ -201,11 +168,7 @@ export async function checkHandleAvailabilityAction(handle: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const slugifiedHandle = slugify(handle, {
-    lower: true,
-    strict: true,
-    trim: true,
-  });
+  const slugifiedHandle = normalizeHandle(handle);
   if (!slugifiedHandle) return { available: false, error: "Invalid handle" };
 
   const existing = await db

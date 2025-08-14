@@ -1,6 +1,6 @@
 # HungryFools.dev
 
-_a directory of proud vibecoders who get shit done_
+_a directory of hungry and foolish vibecoders who get shit done_
 
 This is a simple lil' website where AI-first developers can list themselves, find each other for collaborations and get hired.
 

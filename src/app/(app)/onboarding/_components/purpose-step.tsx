@@ -6,17 +6,18 @@ import { useRouter } from "next/navigation";
 import { Sparkles, Users, BriefcaseBusiness, UserPlus2 } from "lucide-react";
 import { Question } from "./question";
 import { createOrUpdateProfileAction } from "@/app/(app)/profile/edit/profile.actions";
+import { STEP_CONFIG } from "../_lib/steps";
 import posthog from "posthog-js";
 
 const OPTIONS = [
   {
     key: "list",
-    label: "List myself as an expert vibecoder",
+    label: "List myself as an expert vibecoder / AI-first developer",
     icon: <Sparkles className="size-5" />,
   },
   {
-    key: "find",
-    label: "Find vibecoders to work with",
+    key: "find", 
+    label: "Find vibecoders / AI-first developers to work with",
     icon: <Users className="size-5" />,
   },
   {
@@ -26,7 +27,7 @@ const OPTIONS = [
   },
   {
     key: "hiring",
-    label: "I am hiring",
+    label: "I'm hiring AI-first developers",
     icon: <UserPlus2 className="size-5" />,
   },
 ];
@@ -45,7 +46,7 @@ export function PurposeStep({ onNext }: PurposeStepProps) {
     if (value.includes("find") && value.length === 1) {
       await createOrUpdateProfileAction({
         displayName: "",
-        headline: "I ship MVPs before your coffee gets cold",
+        headline: "I build AI agents and ship MVPs with vibecoding",
         availCollab: true,
       });
       // Skip directly to directory
@@ -72,8 +73,12 @@ export function PurposeStep({ onNext }: PurposeStepProps) {
           width={120}
           height={120}
         />
-        <h1 className="text-2xl font-semibold">PacDuck says welcome!</h1>
-        <p className="text-muted-foreground">What are you here for, dear?</p>
+        <h1 className="text-2xl font-semibold">{STEP_CONFIG.purpose.title}</h1>
+        {STEP_CONFIG.purpose.subtitle && (
+          <p className="text-muted-foreground">
+            {STEP_CONFIG.purpose.subtitle}
+          </p>
+        )}
       </div>
       <Question
         title="Select one or more"

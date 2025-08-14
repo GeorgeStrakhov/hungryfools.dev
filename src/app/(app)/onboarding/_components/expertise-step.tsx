@@ -6,20 +6,29 @@ import { Input } from "@/components/ui/input";
 import { saveExpertiseAction } from "@/app/(app)/onboarding/actions";
 import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { STEP_CONFIG } from "../_lib/steps";
 
 const OTHER = [
   "Musician",
-  "Producer",
-  "Teacher",
+  "Artist", 
   "Writer",
-  "Speaker",
-  "Designer",
   "Photographer",
   "Videographer",
-  "Artist",
-  "Chef",
-  "Athlete",
+  "Designer",
+  "Chef/Foodie",
+  "Book Lover",
   "Gamer",
+  "Athlete",
+  "Traveler",
+  "Language Learner",
+  "Podcaster", 
+  "Content Creator",
+  "Teacher",
+  "Speaker",
+  "Community Builder",
+  "Consultant",
+  "Entrepreneur",
+  "Parent",
 ];
 
 interface ExpertiseStepProps {
@@ -100,8 +109,14 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">Any other expertise?</h1>
-        <p className="text-muted-foreground mt-2">Skills beyond coding</p>
+        <h1 className="text-2xl font-semibold">
+          {STEP_CONFIG.expertise.title}
+        </h1>
+        {STEP_CONFIG.expertise.subtitle && (
+          <p className="text-muted-foreground mt-2">
+            {STEP_CONFIG.expertise.subtitle}
+          </p>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -151,7 +166,7 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
               value={customSkill}
               onChange={(e) => setCustomSkill(e.target.value)}
               onKeyPress={handleCustomKeyPress}
-              placeholder="e.g., Podcasting, Consulting, Dancing..."
+              placeholder="e.g., Wine Enthusiast, Rock Climbing, Film Buff..."
             />
             <Button
               type="button"

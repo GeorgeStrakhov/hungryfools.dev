@@ -9,9 +9,14 @@ import {
   checkHandleAvailabilityAction,
 } from "@/app/(app)/profile/edit/profile.actions";
 import { toast } from "sonner";
-import slugify from "slugify";
+import {
+  generateDefaultHandle,
+  normalizeHandle,
+  PROFILE_FIELD_LIMITS,
+} from "@/lib/profile-utils";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { STEP_CONFIG } from "../_lib/steps";
 
 interface HandleStepProps {
   onNext: () => void;
@@ -37,24 +42,12 @@ export function HandleStep({
   }>({ available: true, isOwnHandle: false, checking: false });
 
   // Generate slugified preview
-  const slugifiedPreview = rawInput
-    ? slugify(rawInput, { lower: true, strict: true, trim: true })
-    : "";
+  const slugifiedPreview = rawInput ? normalizeHandle(rawInput) : "";
 
   useEffect(() => {
     if (!session?.user) return;
     if (!rawInput && !handle) {
-      const candidateFromName = session.user.name
-        ? slugify(session.user.name, { lower: true, strict: true, trim: true })
-        : "";
-      const emailLocal = session.user.email?.split("@")[0] || "";
-      const candidateFromEmail = emailLocal
-        ? slugify(emailLocal, { lower: true, strict: true, trim: true })
-        : "";
-      const fallback = session.user.id
-        ? `user-${session.user.id.slice(0, 8)}`
-        : "";
-      const defaultHandle = candidateFromName || candidateFromEmail || fallback;
+      const defaultHandle = generateDefaultHandle(session.user);
       setRawInput(defaultHandle);
       setHandle(defaultHandle);
     }
@@ -69,7 +62,10 @@ export function HandleStep({
 
   // Check handle availability with debouncing
   useEffect(() => {
-    if (!slugifiedPreview || slugifiedPreview.length < 3) {
+    if (
+      !slugifiedPreview ||
+      slugifiedPreview.length < PROFILE_FIELD_LIMITS.handle.min
+    ) {
       setAvailability({
         available: false,
         isOwnHandle: false,
@@ -129,8 +125,10 @@ export function HandleStep({
       return;
     }
 
-    if (slugifiedPreview.length < 3) {
-      toast.error("Handle must be at least 3 characters long");
+    if (slugifiedPreview.length < PROFILE_FIELD_LIMITS.handle.min) {
+      toast.error(
+        `Handle must be at least ${PROFILE_FIELD_LIMITS.handle.min} characters long`,
+      );
       return;
     }
 
@@ -160,10 +158,12 @@ export function HandleStep({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">Pick your handle</h1>
-        <p className="text-muted-foreground mt-2">
-          This will be your unique identifier
-        </p>
+        <h1 className="text-2xl font-semibold">{STEP_CONFIG.handle.title}</h1>
+        {STEP_CONFIG.handle.subtitle && (
+          <p className="text-muted-foreground mt-2">
+            {STEP_CONFIG.handle.subtitle}
+          </p>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -176,10 +176,10 @@ export function HandleStep({
               id="handle"
               value={rawInput}
               onChange={(e) => setRawInput(e.target.value)}
-              placeholder="Your Handle"
+              placeholder="your-handle"
               className="pr-10 text-lg"
             />
-            {slugifiedPreview.length >= 3 && (
+            {slugifiedPreview.length >= PROFILE_FIELD_LIMITS.handle.min && (
               <div className="absolute top-1/2 right-3 -translate-y-1/2">
                 {availability.checking ? (
                   <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
@@ -205,9 +205,10 @@ export function HandleStep({
 
           {slugifiedPreview.length > 0 && (
             <div className="mt-4">
-              {slugifiedPreview.length < 3 ? (
+              {slugifiedPreview.length < PROFILE_FIELD_LIMITS.handle.min ? (
                 <p className="text-sm text-amber-600">
-                  Handle must be at least 3 characters long
+                  Handle must be at least {PROFILE_FIELD_LIMITS.handle.min}{" "}
+                  characters long
                 </p>
               ) : !availability.checking ? (
                 availability.error ? (
@@ -246,7 +247,7 @@ export function HandleStep({
             onClick={handleNext}
             disabled={
               !slugifiedPreview.trim() ||
-              slugifiedPreview.length < 3 ||
+              slugifiedPreview.length < PROFILE_FIELD_LIMITS.handle.min ||
               !availability.available ||
               availability.checking
             }

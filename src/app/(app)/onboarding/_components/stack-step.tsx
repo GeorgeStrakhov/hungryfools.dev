@@ -6,20 +6,69 @@ import { Input } from "@/components/ui/input";
 import { saveStackAction } from "@/app/(app)/onboarding/actions";
 import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { STEP_CONFIG } from "../_lib/steps";
 
 const CORE = [
   "Next.js",
-  "TypeScript",
+  "TypeScript", 
   "Python",
-  "Go",
-  "Rust",
+  "FastAPI",
   "React",
-  "Node.js",
-  "PostgreSQL",
+  "Vercel",
   "AWS",
-  "Docker",
-  "GraphQL",
+  "Azure",
+  "GCP",
+  "Supabase",
+  "Cloudflare",
+  "Railway",
+  "Netlify",
+  "Render",
+  "Mastra",
+  "SmolAgents",
+  "CrewAI", 
+  "PydanticAI",
+  "LangChain",
+  "LangGraph",
+  "AutoGen",
+  // LLM Providers
+  "OpenAI",
+  "Anthropic",
+  "Groq",
+  "xAI Grok",
+  "Google Gemini",
+  "HuggingFace",
+  "Replicate",
+  "fal.ai",
+  // AI Dev Tools
+  "Cursor",
+  "Windsurf", 
+  "Claude Code",
+  "Gemini CLI",
+  "Codeium",
+  // AI Builders
+  "v0",
+  "Lovable",
+  "Bolt",
+  // Video/Image AI
+  "Runway",
+  "Kling",
+  "Veo-3",
+  "FLUX",
+  "Imagen",
+  // UI/Styling
   "TailwindCSS",
+  "shadcn/ui",
+  "Framer",
+  // Database
+  "PostgreSQL",
+  "pgvector",
+  "Drizzle",
+  "Neon",
+  "Cloudflare R2",
+  "Cloudflare AI",
+  "PostHog",
+  "Postmark",
+  "Stripe",
 ];
 
 interface StackStepProps {
@@ -116,10 +165,12 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">What&apos;s your stack?</h1>
-        <p className="text-muted-foreground mt-2">
-          Technologies you love working with
-        </p>
+        <h1 className="text-2xl font-semibold">{STEP_CONFIG.stack.title}</h1>
+        {STEP_CONFIG.stack.subtitle && (
+          <p className="text-muted-foreground mt-2">
+            {STEP_CONFIG.stack.subtitle}
+          </p>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -169,7 +220,7 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
               value={customTech}
               onChange={(e) => setCustomTech(e.target.value)}
               onKeyPress={handleCustomKeyPress}
-              placeholder="e.g., Vue.js, Laravel, Redis..."
+              placeholder="e.g., LlamaIndex, Ollama, Pinecone..."
             />
             <Button
               type="button"
@@ -193,7 +244,7 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
             id="power-tool"
             value={power}
             onChange={(e) => setPower(e.target.value)}
-            placeholder="The one you reach for when you need to ship fast"
+            placeholder="Claude Sonnet + Cursor when I need to ship MVP fast"
           />
         </div>
 

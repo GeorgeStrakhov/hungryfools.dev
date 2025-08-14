@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { createOrUpdateProfileAction } from "./profile.actions";
+import { PROFILE_FIELD_LIMITS } from "@/lib/profile-utils";
 import posthog from "posthog-js";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -13,15 +14,21 @@ import { useRouter } from "next/navigation";
 const schema = z.object({
   handle: z
     .string()
-    .min(2)
-    .max(32)
+    .min(PROFILE_FIELD_LIMITS.handle.min)
+    .max(PROFILE_FIELD_LIMITS.handle.max)
     .regex(/^[a-z0-9-]+$/, "lowercase letters, numbers, hyphen only"),
-  displayName: z.string().min(1).max(64),
-  headline: z.string().min(1).max(140),
-  bio: z.string().max(1000).optional().default(""),
+  displayName: z
+    .string()
+    .min(PROFILE_FIELD_LIMITS.displayName.min)
+    .max(PROFILE_FIELD_LIMITS.displayName.max),
+  headline: z
+    .string()
+    .min(PROFILE_FIELD_LIMITS.headline.min)
+    .max(PROFILE_FIELD_LIMITS.headline.max),
+  bio: z.string().max(PROFILE_FIELD_LIMITS.bio.max).optional().default(""),
   skills: z.string().max(256).optional(), // comma-separated for v1
   interests: z.string().max(256).optional(), // comma-separated for v1
-  location: z.string().max(64).optional(),
+  location: z.string().max(PROFILE_FIELD_LIMITS.location.max).optional(),
   github: z.string().url().optional().or(z.literal("")),
   x: z.string().url().optional().or(z.literal("")),
   website: z.string().url().optional().or(z.literal("")),

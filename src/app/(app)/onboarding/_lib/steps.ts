@@ -35,7 +35,7 @@ export const STEP_CONFIG: Record<Step, StepConfig> = {
   },
   vibe: {
     title: "What's your vibe?",
-    subtitle: "Pick tags that describe your coding style",
+    subtitle: "Pick tags that describe your AI development style",
     requiresHandle: true,
   },
   stack: {
@@ -44,7 +44,7 @@ export const STEP_CONFIG: Record<Step, StepConfig> = {
     requiresHandle: true,
   },
   expertise: {
-    title: "Any other expertise?",
+    title: "Any other expertise?", 
     subtitle: "Skills beyond coding",
     canSkip: true,
     requiresHandle: true,
@@ -57,7 +57,7 @@ export const STEP_CONFIG: Record<Step, StepConfig> = {
   },
   done: {
     title: "PacDuck says hooray!",
-    subtitle: "You're all set. Go find someone to co‑vibe with.",
+    subtitle: "You're all set. Go find AI developers to vibe with.",
   },
 };
 

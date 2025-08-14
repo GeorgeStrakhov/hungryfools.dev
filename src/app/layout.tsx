@@ -22,9 +22,9 @@ const pixelifySans = Pixelify_Sans({
 
 export const metadata: Metadata = {
   title:
-    "HungryFools.dev — Directory of proud vibecoders who ship at superhuman speed.",
+    "HungryFools.dev — Directory of hungry and foolish vibecoders who ship at superhuman speed.",
   description:
-    "The directory of proud vibecoders who ship at superhuman speed.",
+    "The directory of hungry and foolish vibecoders who ship at superhuman speed.",
 };
 
 export default function RootLayout({

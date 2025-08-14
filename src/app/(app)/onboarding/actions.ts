@@ -1,11 +1,12 @@
 "use server";
 
 import { db } from "@/db";
-import { profiles, projects } from "@/db/schema/profile";
+import { projects, type ProjectMedia } from "@/db/schema/profile";
 import { auth } from "@/auth";
-import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { normalizeAndModerate } from "@/lib/moderation/normalize";
+import { createOrUpdateProfileAction } from "@/app/(app)/profile/edit/profile.actions";
+import { PROFILE_FIELD_LIMITS } from "@/lib/profile-utils";
 import slugify from "slugify";
 
 const vibeInput = z.object({
@@ -13,25 +14,44 @@ const vibeInput = z.object({
   oneLine: z.string().optional(),
 });
 const vibeOutput = z.object({
-  headline: z.string().max(140).optional(),
-  vibeTags: z.array(z.string()).max(10).optional(),
+  headline: z.string().max(PROFILE_FIELD_LIMITS.headline.max).optional(),
+  vibeTags: z
+    .array(z.string())
+    .max(PROFILE_FIELD_LIMITS.vibeTags.max)
+    .optional(),
 });
 
 const stackInput = z.object({
   stack: z.array(z.string()).optional(),
   power: z.string().optional(),
 });
-const stackOutput = z.object({ stack: z.array(z.string()).max(50).optional() });
+const stackOutput = z.object({
+  stack: z.array(z.string()).max(PROFILE_FIELD_LIMITS.skills.max).optional(),
+});
 
 const expertiseInput = z.object({ expertise: z.array(z.string()).optional() });
 const expertiseOutput = z.object({
-  expertiseOther: z.array(z.string()).max(50).optional(),
+  expertiseOther: z
+    .array(z.string())
+    .max(PROFILE_FIELD_LIMITS.interests.max)
+    .optional(),
 });
 
 const showcaseInput = z.object({
   title: z.string().optional(),
   link: z.string().optional(),
   summary: z.string().optional(),
+  media: z
+    .array(
+      z.object({
+        url: z.string(),
+        type: z.enum(["image", "video"]),
+        filename: z.string(),
+        size: z.number(),
+        key: z.string(),
+      }),
+    )
+    .optional(),
 });
 const showcaseOutput = z.object({
   name: z.string().optional(),
@@ -40,53 +60,6 @@ const showcaseOutput = z.object({
   description: z.string().optional(),
 });
 
-async function upsert(values: Record<string, unknown>) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  const [existing] = await db
-    .select({ userId: profiles.userId })
-    .from(profiles)
-    .where(eq(profiles.userId, session.user.id))
-    .limit(1);
-
-  const now = new Date();
-
-  if (existing) {
-    // Safe update of only provided fields
-    await db
-      .update(profiles)
-      .set({ ...values, updatedAt: now })
-      .where(eq(profiles.userId, session.user.id));
-    return;
-  }
-
-  // First insert requires a non-null handle; derive if not provided
-  let handle: string | undefined = values.handle as string | undefined;
-  if (!handle) {
-    const displayName = session.user.name || "";
-    const emailLocal =
-      (session.user as { email?: string }).email?.split("@")[0] || "";
-    if (
-      displayName &&
-      slugify(displayName, { lower: true, strict: true, trim: true })
-    )
-      handle = slugify(displayName, { lower: true, strict: true, trim: true });
-    else if (emailLocal)
-      handle = slugify(emailLocal, { lower: true, strict: true, trim: true });
-    else handle = `user-${session.user.id.slice(0, 8)}`;
-  }
-
-  await db.insert(profiles).values({
-    userId: session.user.id,
-    handle,
-    displayName: session.user.name || handle,
-    ...values,
-    createdAt: now,
-    updatedAt: now,
-  });
-}
-
 export async function saveVibeAction(payload: unknown) {
   const out = await normalizeAndModerate(
     payload,
@@ -94,11 +67,12 @@ export async function saveVibeAction(payload: unknown) {
     vibeOutput,
     `
 You are a helpful assistant that normalizes a developer's vibe into a short headline and tags.
-- Keep headline punchy (<= 100 chars) and non-cringe.
+- Keep headline punchy (<= ${PROFILE_FIELD_LIMITS.headline.max} chars) and non-cringe.
 - Use lowercase kebab-case for tags (e.g., agent-wrangler).
 `,
   );
-  await upsert({ headline: out.headline /* store tags later */ });
+  // TODO: Store vibeTags when we add them to the profile schema
+  await createOrUpdateProfileAction({ headline: out.headline });
 }
 
 export async function saveStackAction(payload: unknown) {
@@ -110,7 +84,9 @@ export async function saveStackAction(payload: unknown) {
 Normalize tech names into canonical short tokens (lowercase), dedupe, sort by relevance.
 `,
   );
-  await upsert({ skills: out.stack });
+  await createOrUpdateProfileAction({
+    skills: out.stack?.join(", "),
+  });
 }
 
 export async function saveExpertiseAction(payload: unknown) {
@@ -122,7 +98,9 @@ export async function saveExpertiseAction(payload: unknown) {
 Normalize non-dev expertise tags (lowercase). Avoid personal identifiers.
 `,
   );
-  await upsert({ interests: out.expertiseOther });
+  await createOrUpdateProfileAction({
+    interests: out.expertiseOther?.join(", "),
+  });
 }
 
 export async function saveShowcaseAction(payload: unknown) {
@@ -154,6 +132,10 @@ Clean up project info:
 
   const now = new Date();
 
+  // Get media from input (already uploaded via API)
+  const inputData = payload as { media?: ProjectMedia[] };
+  const media = inputData?.media || [];
+
   await db.insert(projects).values({
     userId: session.user.id,
     slug: projectSlug,
@@ -161,7 +143,7 @@ Clean up project info:
     url: out.url || null,
     oneliner: out.oneliner || null,
     description: out.description || null,
-    media: [],
+    media,
     featured: true, // First project is featured by default
     createdAt: now,
     updatedAt: now,

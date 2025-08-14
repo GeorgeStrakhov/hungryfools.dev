@@ -6,17 +6,22 @@ import { Input } from "@/components/ui/input";
 import { saveVibeAction } from "@/app/(app)/onboarding/actions";
 import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { STEP_CONFIG } from "../_lib/steps";
 import posthog from "posthog-js";
 
 const VIBE_OPTIONS = [
-  "Ship-first",
-  "Benchmarker",
-  "Agent Wrangler",
-  "Eval Enjoyer",
-  "Infra Minimalist",
-  "Paper-to-Prototype",
-  "R1 Whisperer",
-  "Realtime Wizard",
+  "Ship-first Vibecoder",
+  "AI Agent Orchestrator", 
+  "Prompt Engineer",
+  "Claude Code Wizard",
+  "Cursor Power User",
+  "Windsurf Navigator",
+  "Model Fine-tuner",
+  "RAG Architect",
+  "Agentic Framework Builder",
+  "LLM Whisperer",
+  "Token Optimizer",
+  "Reasoning Chain Designer",
 ];
 
 interface VibeStepProps {
@@ -74,10 +79,12 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">What&apos;s your vibe?</h1>
-        <p className="text-muted-foreground mt-2">
-          Pick tags that describe your coding style
-        </p>
+        <h1 className="text-2xl font-semibold">{STEP_CONFIG.vibe.title}</h1>
+        {STEP_CONFIG.vibe.subtitle && (
+          <p className="text-muted-foreground mt-2">
+            {STEP_CONFIG.vibe.subtitle}
+          </p>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -104,7 +111,7 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
             id="free-vibe"
             value={free}
             onChange={(e) => setFree(e.target.value)}
-            placeholder="I debug with console.log and ship on Fridays"
+            placeholder="I architect AI agents with CrewAI and ship MVPs with Cursor"
           />
         </div>
 

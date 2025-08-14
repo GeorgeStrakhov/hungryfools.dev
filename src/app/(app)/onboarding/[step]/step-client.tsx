@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { type Step } from "../_lib/steps";
+import { type Step, getStepProgress } from "../_lib/steps";
 import { useStepNavigation } from "../_lib/navigation";
 import { PurposeStep } from "../_components/purpose-step";
 import { HandleStep } from "../_components/handle-step";
@@ -30,17 +30,7 @@ export function OnboardingStepClient({
   );
 
   // Progress indicator
-  const stepIndex = [
-    "purpose",
-    "handle",
-    "location",
-    "vibe",
-    "stack",
-    "expertise",
-    "showcase",
-    "done",
-  ].indexOf(step);
-  const progress = Math.round(((stepIndex + 1) / 8) * 100);
+  const progress = getStepProgress(step);
 
   const renderStep = () => {
     switch (step) {

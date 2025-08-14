@@ -9,14 +9,16 @@ This document outlines the development plan for implementing intelligent hybrid 
 ## 📋 Current State Analysis
 
 ### ✅ Completed
+
 - Stage 1: Developer profiles with projects system
 - Basic keyword search over profiles and projects
 - S3 media pipeline and project management
 - Batch moderation system
 
 ### ⏳ Missing Critical Pieces
+
 - Advanced filtering UI (location, skills, availability)
-- Analytics infrastructure 
+- Analytics infrastructure
 - Vector embeddings pipeline
 - Hybrid search algorithm
 - Query intelligence (text-to-SQL + NLP)
@@ -31,17 +33,20 @@ Natural Language Query → Query Intelligence → Multi-Modal Search → Fusion 
 ```
 
 #### Query Intelligence Layer
+
 - **LLM-powered query parsing** using `/src/lib/services/llm/`
 - Extract entities: companies, locations, skills, interests
 - Identify search intent and context
 - Generate structured filters + semantic query
 
 #### Multi-Modal Search Layer
+
 1. **BM25 (Keyword)**: Fast keyword matching using wink-nlp BM25 vectorizer
 2. **Vector Similarity**: Semantic search via BGE-M3 embeddings
 3. **SQL Filters**: Structured data (location, availability, skills)
 
 #### Fusion & Ranking
+
 - Weighted score combination (BM25 + semantic + recency + completeness)
 - **BGE reranking** using existing `rerankDocuments()` function
 - Simple quality boosts (profile completeness, featured content)
@@ -49,7 +54,9 @@ Natural Language Query → Query Intelligence → Multi-Modal Search → Fusion 
 ### 2. Embedding Strategy
 
 #### Profile Embeddings
+
 **Content to embed**: Rich concatenated profile text
+
 ```typescript
 interface ProfileEmbeddingContent {
   core: string; // "John Doe, full-stack developer and AI engineer"
@@ -62,7 +69,9 @@ interface ProfileEmbeddingContent {
 ```
 
 #### Project Embeddings (Phase 2)
+
 **Content to embed**: Project-specific rich text
+
 ```typescript
 interface ProjectEmbeddingContent {
   project: string; // "Mastra.ai - AI workflow automation platform"
@@ -80,36 +89,67 @@ Using existing Drizzle schema in `/src/db/schema/`:
 // Add to /src/db/schema/profile.ts
 import { vector, cosineDistance, sql } from "drizzle-orm/pg-core";
 
-export const profileEmbeddings = pgTable("profile_embeddings", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
-  // BGE-M3 produces 1024-dimensional vectors
-  embedding: vector("embedding", { dimensions: 1024 }).notNull(),
-  contentHash: text("contentHash").notNull(), // For incremental updates
-  contentPreview: text("contentPreview").notNull(), // For debugging
-  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  userIdx: uniqueIndex("profile_embeddings_user_idx").on(table.userId),
-  // HNSW index for fast vector similarity search
-  embeddingIdx: index("profile_embeddings_embedding_idx").using("hnsw", table.embedding.op("vector_cosine_ops")),
-}));
+export const profileEmbeddings = pgTable(
+  "profile_embeddings",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // BGE-M3 produces 1024-dimensional vectors
+    embedding: vector("embedding", { dimensions: 1024 }).notNull(),
+    contentHash: text("contentHash").notNull(), // For incremental updates
+    contentPreview: text("contentPreview").notNull(), // For debugging
+    createdAt: timestamp("createdAt", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updatedAt", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdx: uniqueIndex("profile_embeddings_user_idx").on(table.userId),
+    // HNSW index for fast vector similarity search
+    embeddingIdx: index("profile_embeddings_embedding_idx").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops"),
+    ),
+  }),
+);
 
-export const projectEmbeddings = pgTable("project_embeddings", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  projectId: text("projectId").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  userId: text("userId").notNull(), // For joins
-  embedding: vector("embedding", { dimensions: 1024 }).notNull(),
-  contentHash: text("contentHash").notNull(),
-  contentPreview: text("contentPreview").notNull(),
-  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  projectIdx: uniqueIndex("project_embeddings_project_idx").on(table.projectId),
-}));
+export const projectEmbeddings = pgTable(
+  "project_embeddings",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    projectId: text("projectId")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    userId: text("userId").notNull(), // For joins
+    embedding: vector("embedding", { dimensions: 1024 }).notNull(),
+    contentHash: text("contentHash").notNull(),
+    contentPreview: text("contentPreview").notNull(),
+    createdAt: timestamp("createdAt", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updatedAt", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    projectIdx: uniqueIndex("project_embeddings_project_idx").on(
+      table.projectId,
+    ),
+  }),
+);
 
 export const searchAnalytics = pgTable("search_analytics", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   sessionId: text("sessionId").notNull(),
   userId: text("userId").references(() => users.id),
   query: text("query").notNull(),
@@ -118,17 +158,20 @@ export const searchAnalytics = pgTable("search_analytics", {
   clickedProfiles: jsonb("clickedProfiles").$type<string[]>(), // Array of profile IDs
   searchType: text("searchType").notNull(), // 'keyword', 'hybrid', 'semantic'
   responseTimeMs: integer("responseTimeMs"),
-  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 ```
 
 ## 🔧 Technical Implementation
 
 ### 1. Test Data Generation Script
+
 Create realistic profiles to test search quality:
 
 ```typescript
-// /scripts/generate-test-data.ts  
+// /scripts/generate-test-data.ts
 interface TestDataConfig {
   profiles: 200-500,
   projects: 400-1000,
@@ -147,12 +190,16 @@ async function generateRealisticProfile(): Promise<ProfileData> {
 ```
 
 ### 2. Database Schema & Migration
+
 Add embedding tables to existing Drizzle schema and run migration.
 
 ### 3. Profile Embedding Generation
+
 ```typescript
 // /src/lib/services/embeddings/profile-embeddings.ts
-export async function generateProfileEmbedding(profile: FullProfile): Promise<number[]> {
+export async function generateProfileEmbedding(
+  profile: FullProfile,
+): Promise<number[]> {
   const content = buildProfileContent(profile);
   const response = await generateEmbeddings({ input: content });
   return response.embeddings[0];
@@ -162,15 +209,20 @@ function buildProfileContent(profile: FullProfile): string {
   return [
     `${profile.displayName}, ${profile.headline}`,
     `Location: ${profile.location}`,
-    `Skills: ${profile.skills?.join(', ')}`,
-    `Interests: ${profile.interests?.join(', ')}`,
+    `Skills: ${profile.skills?.join(", ")}`,
+    `Interests: ${profile.interests?.join(", ")}`,
     // Include project summaries
-    profile.projects?.map(p => `Project: ${p.name} - ${p.oneliner}`).join('. ')
-  ].filter(Boolean).join('. ');
+    profile.projects
+      ?.map((p) => `Project: ${p.name} - ${p.oneliner}`)
+      .join(". "),
+  ]
+    .filter(Boolean)
+    .join(". ");
 }
 ```
 
 ### 4. Query Intelligence (LLM Parser)
+
 ```typescript
 // /src/lib/services/search/query-parser.ts
 interface ParsedQuery {
@@ -191,7 +243,8 @@ export async function parseSearchQuery(query: string): Promise<ParsedQuery> {
 ```
 
 ### 5. Vector Similarity Search (Drizzle)
-```typescript
+
+````typescript
 // /src/lib/services/search/vector-search.ts
 import { cosineDistance, sql, desc, gt } from "drizzle-orm";
 
@@ -201,7 +254,7 @@ export async function vectorSimilaritySearch(
   limit: number = 20
 ) {
   const similarity = sql<number>`1 - (${cosineDistance(profileEmbeddings.embedding, queryEmbedding)})`;
-  
+
   const results = await db
     .select({
       userId: profileEmbeddings.userId,
@@ -214,7 +267,7 @@ export async function vectorSimilaritySearch(
     .where(gt(similarity, threshold))
     .orderBy(desc(similarity))
     .limit(limit);
-    
+
   return results;
 }
 
@@ -240,45 +293,54 @@ export async function setupBM25Index(profiles: Profile[]) {
 export function bm25Search(query: string, profileIds: string[], topK: number = 20) {
   const queryDoc = nlp.readDoc(query);
   const queryTokens = queryDoc.tokens().out();
-  
+
   const scores = bm25.vectorOf(queryTokens);
   const results = scores
     .map((score, index) => ({ profileId: profileIds[index], score }))
     .filter(r => r.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, topK);
-    
+
   return results;
 }
-```
+````
 
-### 7. Hybrid Search Implementation  
+### 7. Hybrid Search Implementation
+
 ```typescript
 // /src/lib/services/search/hybrid-search.ts
 export async function hybridSearch(query: string): Promise<SearchResults> {
   const parsed = await parseSearchQuery(query);
-  
+
   // 1. Get base candidate set with SQL filters
   const baseProfiles = await getFilteredProfiles(parsed.entities);
-  
+
   // 2. BM25 keyword search on candidates
-  const bm25Results = bm25Search(parsed.freeform_query, baseProfiles.map(p => p.id));
-  
-  // 3. Vector similarity search  
-  const queryEmbedding = await generateEmbeddings({ input: parsed.freeform_query });
-  const vectorResults = await vectorSimilaritySearch(queryEmbedding.embeddings[0], 0.3);
-  
+  const bm25Results = bm25Search(
+    parsed.freeform_query,
+    baseProfiles.map((p) => p.id),
+  );
+
+  // 3. Vector similarity search
+  const queryEmbedding = await generateEmbeddings({
+    input: parsed.freeform_query,
+  });
+  const vectorResults = await vectorSimilaritySearch(
+    queryEmbedding.embeddings[0],
+    0.3,
+  );
+
   // 4. Score fusion (combine BM25 + vector scores)
   const fusedResults = fuseScores(bm25Results, vectorResults);
-  
+
   // 5. BGE reranking for final ordering
-  const documents = fusedResults.map(r => buildProfileContent(r.profile));
+  const documents = fusedResults.map((r) => buildProfileContent(r.profile));
   const reranked = await rerankDocuments({
     query: query,
     documents: documents,
-    topK: 20
+    topK: 20,
   });
-  
+
   return mapToSearchResults(reranked, fusedResults);
 }
 ```
@@ -288,12 +350,12 @@ export async function hybridSearch(query: string): Promise<SearchResults> {
 ```typescript
 const testQueries = [
   "AI developers in Berlin",
-  "Next.js experts who like music", 
+  "Next.js experts who like music",
   "mastra.ai developers",
   "full-stack engineers",
   "ML engineers with Python experience in Germany",
   "developers working on AI automation tools",
-  "TypeScript developers interested in climbing"
+  "TypeScript developers interested in climbing",
 ];
 ```
 

@@ -7,6 +7,7 @@ import { createOrUpdateProfileAction } from "@/app/(app)/profile/edit/profile.ac
 import { toast } from "sonner";
 import { MapPin, Loader2 } from "lucide-react";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { STEP_CONFIG } from "../_lib/steps";
 
 interface LocationStepProps {
   onNext: () => void;
@@ -72,10 +73,12 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">Where are you based?</h1>
-        <p className="text-muted-foreground mt-2">
-          Help others find local collaborators
-        </p>
+        <h1 className="text-2xl font-semibold">{STEP_CONFIG.location.title}</h1>
+        {STEP_CONFIG.location.subtitle && (
+          <p className="text-muted-foreground mt-2">
+            {STEP_CONFIG.location.subtitle}
+          </p>
+        )}
       </div>
 
       <div className="space-y-4">
