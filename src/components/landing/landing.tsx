@@ -3,10 +3,12 @@
 import * as React from "react";
 import Image from "next/image";
 import posthog from "posthog-js";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { SearchInput } from "@/components/ui/search-input";
 
 function Logo() {
   return (
@@ -65,12 +67,25 @@ function Subtitle() {
 }
 
 function SearchBar() {
+  const router = useRouter();
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      posthog.capture("directory_search", { query });
+      router.push(`/directory?q=${encodeURIComponent(query.trim())}`);
+    } else {
+      router.push("/directory");
+    }
+  };
+
   return (
     <div className="w-full max-w-[600px]">
-      <Input
-        type="text"
-        placeholder="Find a developer who builds MVPs in days, not months..."
+      <SearchInput
+        showIcon={true}
+        controlled={true}
+        onSubmit={handleSearch}
         className="bg-input/50 border-input text-foreground placeholder:text-muted-foreground h-14 focus-visible:ring-[4px]"
+        basePlaceholder="Search developers and projects..."
       />
     </div>
   );
@@ -123,6 +138,12 @@ export function Landing() {
 
         <div className="mb-20 flex flex-col items-center gap-6">
           <SearchBar />
+          <p className="text-muted-foreground text-sm">
+            Press Enter to search or{" "}
+            <Link href="/directory" className="hover:text-foreground underline">
+              browse all developers
+            </Link>
+          </p>
           <InlineDivider />
           <CTA />
         </div>

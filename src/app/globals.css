@@ -130,6 +130,21 @@
     @apply bg-background text-foreground;
   }
 
+  /* Global link styling with signature yellow */
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  a:hover {
+    color: var(--hf-yellow);
+  }
+
+  /* Ensure text links use signature yellow on hover */
+  .text-foreground a:hover,
+  .text-muted-foreground a:hover {
+    color: var(--hf-yellow);
+  }
+
   @keyframes pulse-glow {
     0%,
     100% {

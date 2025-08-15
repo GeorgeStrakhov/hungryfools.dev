@@ -21,7 +21,6 @@ export default async function CompanyDetailPage({ params }: Params) {
     <div className="hf-container py-8">
       <div className="flex items-center gap-4">
         {row.logoUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={row.logoUrl} alt={row.name} className="h-16 w-16 rounded" />
         )}
         <div>

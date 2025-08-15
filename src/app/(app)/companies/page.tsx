@@ -43,7 +43,6 @@ export default async function CompaniesPage() {
             >
               <div className="flex items-center gap-3">
                 {c.logoUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={c.logoUrl}
                     alt={c.name}

@@ -108,7 +108,6 @@ export function HandleStep({
     return () => clearTimeout(timeoutId);
   }, [slugifiedPreview]);
 
-
   const handleNext = async () => {
     if (!slugifiedPreview.trim()) {
       toast.error("Please enter a handle");

@@ -12,6 +12,7 @@ import { Plus, Edit } from "lucide-react";
 import Link from "next/link";
 import { ProjectDropdownMenu } from "@/components/projects/project-dropdown-menu";
 import { IntroductionDialog } from "@/components/profile/introduction-dialog";
+import { SignInToIntroduce } from "@/components/profile/sign-in-to-introduce";
 import { getProfileAvatarUrl } from "@/lib/utils/avatar";
 
 type Params = { params: Promise<{ handle: string }> };
@@ -225,9 +226,7 @@ export default async function PublicProfilePage({ params }: Params) {
                   targetDisplayName={profile.displayName || profile.handle}
                 />
               ) : (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/login">Sign in to get introduced</Link>
-                </Button>
+                <SignInToIntroduce profileHandle={profile.handle} />
               ))}
           </div>
         )}

@@ -119,7 +119,6 @@ export function ProfileForm({
         <div className="space-y-4">
           {/* Current avatar preview */}
           <div className="flex items-center gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={getAvatarUrl(currentProfileImage, userImage)}
               alt="Profile picture"
