@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { saveStackAction } from "@/app/(app)/onboarding/actions";
 import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { useProfileData } from "@/lib/hooks/useProfileData";
+import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { STEP_CONFIG } from "../_lib/steps";
 
 const CORE = [
@@ -73,10 +75,21 @@ interface StackStepProps {
 }
 
 export function StackStep({ onNext, onBack }: StackStepProps) {
+  const { profileData } = useProfileData();
   const [stack, setStack] = useState<string[]>([]);
   const [power, setPower] = useState("");
   const [customTech, setCustomTech] = useState("");
   const [, setSaving] = useState(false);
+
+  // Load existing raw stack data on mount
+  useEffect(() => {
+    if (profileData?.stackSelections) {
+      setStack(profileData.stackSelections);
+    }
+    if (profileData?.stackText) {
+      setPower(profileData.stackText);
+    }
+  }, [profileData]);
 
   const add = (v: string) => {
     const k = v.toLowerCase();
@@ -117,17 +130,23 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
     }
   };
 
-  const handleCustomKeyPress = (e: React.KeyboardEvent) => {
+  const handleCustomKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addCustomTech();
     }
   };
 
-  // Debounced autosave
+  // Debounced autosave - save both raw data and process with LLM
   useEffect(() => {
     const id = setTimeout(async () => {
       try {
+        // Save raw data for state persistence
+        await createOrUpdateProfileAction({
+          stackSelections: stack,
+          stackText: power,
+        });
+        // Also process with LLM for skills
         await saveStackAction({ stack, power });
       } catch (error) {
         console.error("Autosave failed:", error);
@@ -144,7 +163,13 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
         await validateStep(power.trim(), "power-tool", 100);
       }
 
+      // Save both raw data and process with LLM
+      await createOrUpdateProfileAction({
+        stackSelections: stack,
+        stackText: power,
+      });
       await saveStackAction({ stack, power });
+
       onNext();
     } catch (error: unknown) {
       const err = error as { name?: string; message?: string };
@@ -215,7 +240,7 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
               id="custom-tech"
               value={customTech}
               onChange={(e) => setCustomTech(e.target.value)}
-              onKeyPress={handleCustomKeyPress}
+              onKeyDown={handleCustomKeyDown}
               placeholder="e.g., LlamaIndex, Ollama, Pinecone..."
             />
             <Button

@@ -16,6 +16,7 @@ import {
 } from "@/lib/profile-utils";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { useProfileData } from "@/lib/hooks/useProfileData";
 import { STEP_CONFIG } from "../_lib/steps";
 
 interface HandleStepProps {
@@ -30,6 +31,7 @@ export function HandleStep({
   handle: initialHandle,
 }: HandleStepProps) {
   const { data: session } = useSession();
+  const { profileData } = useProfileData();
   const [rawInput, setRawInput] = useState(initialHandle || "");
   const [handle, setHandle] = useState(initialHandle || "");
   const [, setSaving] = useState(false);
@@ -44,14 +46,24 @@ export function HandleStep({
   // Generate slugified preview
   const slugifiedPreview = rawInput ? normalizeHandle(rawInput) : "";
 
+  // Load existing handle or generate default
   useEffect(() => {
     if (!session?.user) return;
+
+    // If we have profile data with an existing handle, use that
+    if (profileData?.handle) {
+      setRawInput(profileData.handle);
+      setHandle(profileData.handle);
+      return;
+    }
+
+    // Otherwise, generate default if no input yet
     if (!rawInput && !handle) {
       const defaultHandle = generateDefaultHandle(session.user);
       setRawInput(defaultHandle);
       setHandle(defaultHandle);
     }
-  }, [session?.user, rawInput, handle]);
+  }, [session?.user, profileData, rawInput, handle]);
 
   // Update handle when user finishes typing
   useEffect(() => {
@@ -98,26 +110,14 @@ export function HandleStep({
     return () => clearTimeout(timeoutId);
   }, [slugifiedPreview]);
 
-  // Debounced auto-save of handle
+  // Clean up debounce ref on unmount
   useEffect(() => {
-    if (!handle) return;
-    if (!session?.user?.id) return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-
-    const id = setTimeout(async () => {
-      setSaving(true);
-      try {
-        await createOrUpdateProfileAction({ handle });
-      } catch (error) {
-        console.error("Failed to save handle:", error);
-      } finally {
-        setSaving(false);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
       }
-    }, 1000);
-
-    debounceRef.current = id;
-    return () => clearTimeout(id);
-  }, [handle, session?.user?.id]);
+    };
+  }, []);
 
   const handleNext = async () => {
     if (!slugifiedPreview.trim()) {

@@ -88,8 +88,8 @@ export function IntroductionDialog({
           </DialogTitle>
           <DialogDescription className="text-left">
             PacDuck will analyze your profiles, find awesome connections, and
-            send you both a fun introduction email! No boring &ldquo;contact this
-            user&rdquo; nonsense - just pure vibes.
+            send you both a fun introduction email! No boring &ldquo;contact
+            this user&rdquo; nonsense - just pure vibes.
           </DialogDescription>
         </DialogHeader>
 

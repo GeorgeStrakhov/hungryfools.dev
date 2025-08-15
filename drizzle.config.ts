@@ -9,7 +9,11 @@ if (existsSync(".env.local")) {
 dotenvConfig();
 
 export default defineConfig({
-  schema: ["./src/db/schema/auth.ts", "./src/db/schema/profile.ts"],
+  schema: [
+    "./src/db/schema/auth.ts",
+    "./src/db/schema/profile.ts",
+    "./src/db/schema/company.ts",
+  ],
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {

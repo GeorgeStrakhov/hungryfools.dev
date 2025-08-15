@@ -23,12 +23,15 @@ interface ShowcaseStepProps {
 }
 
 export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
+  // For now, ProjectForm handles its own state management
+  // TODO: Add project loading when we have a projects API endpoint
+
   const handleSubmit = async (data: ProjectFormData) => {
     // Convert ProjectForm data to showcase action format for AI enhancement
     await saveShowcaseAction({
       title: data.name,
       link: data.url,
-      githubUrl: data.githubUrl, 
+      githubUrl: data.githubUrl,
       oneliner: data.oneliner,
       summary: data.description,
       media: data.media,

@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, Users, BriefcaseBusiness, UserPlus2 } from "lucide-react";
 import { Question } from "./question";
 import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { STEP_CONFIG } from "../_lib/steps";
+import { useProfileData } from "@/lib/hooks/useProfileData";
 import posthog from "posthog-js";
 
 const OPTIONS = [
@@ -39,13 +40,26 @@ interface PurposeStepProps {
 export function PurposeStep({ onNext }: PurposeStepProps) {
   const router = useRouter();
   const [value, setValue] = useState<string[]>([]);
+  const { profileData } = useProfileData();
+
+  // Load existing availability settings on mount
+  useEffect(() => {
+    if (profileData) {
+      const existingPurposes: string[] = [];
+      if (profileData.showcase) existingPurposes.push("list");
+      if (profileData.availability?.collab) existingPurposes.push("find");
+      if (profileData.availability?.hire) existingPurposes.push("get_hired");
+      if (profileData.availability?.hiring) existingPurposes.push("hiring");
+
+      setValue(existingPurposes);
+    }
+  }, [profileData]);
 
   const handleNext = async () => {
     value.forEach((v) => posthog.capture("purpose_select", { choice: v }));
 
     if (value.includes("find") && value.length === 1) {
       await createOrUpdateProfileAction({
-        displayName: "",
         headline: "I build AI agents and ship MVPs with vibecoding",
         availCollab: true,
       });
@@ -54,11 +68,10 @@ export function PurposeStep({ onNext }: PurposeStepProps) {
       return;
     } else {
       await createOrUpdateProfileAction({
-        displayName: "",
-        headline: "",
         availCollab: value.includes("find"),
         availHire: value.includes("get_hired"),
         availHiring: value.includes("hiring"),
+        showcase: value.includes("list"),
       });
       onNext();
     }

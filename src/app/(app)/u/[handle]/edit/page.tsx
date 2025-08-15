@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
+import { users } from "@/db/schema/auth";
 import { profiles } from "@/db/schema/profile";
 import { eq } from "drizzle-orm";
 import { redirect, notFound } from "next/navigation";
@@ -16,16 +17,23 @@ export default async function EditProfilePage({ params }: Params) {
     redirect("/");
   }
 
-  // Get the profile
-  const [profile] = await db
-    .select()
+  // Get the profile with user data
+  const [result] = await db
+    .select({
+      profile: profiles,
+      user: users,
+    })
     .from(profiles)
+    .leftJoin(users, eq(profiles.userId, users.id))
     .where(eq(profiles.handle, resolvedParams.handle.toLowerCase()))
     .limit(1);
 
-  if (!profile) {
+  if (!result?.profile) {
     notFound();
   }
+
+  const profile = result.profile;
+  const user = result.user;
 
   // Check if this is the owner
   if (profile.userId !== session.user.id) {
@@ -75,7 +83,12 @@ export default async function EditProfilePage({ params }: Params) {
             Update your profile information
           </p>
         </div>
-        <ProfileForm defaults={defaults} redirectTo={`/u/${profile.handle}`} />
+        <ProfileForm
+          defaults={defaults}
+          redirectTo={`/u/${profile.handle}`}
+          profileImage={profile.profileImage}
+          userImage={user?.image}
+        />
       </div>
     </div>
   );

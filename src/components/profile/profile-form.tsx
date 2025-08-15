@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createOrUpdateProfileAction } from "./profile.actions";
 import { PROFILE_FIELD_LIMITS } from "@/lib/profile-utils";
+import { ImageUpload } from "@/components/media/image-upload";
+import { getAvatarUrl } from "@/lib/utils/avatar";
 import posthog from "posthog-js";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -42,12 +44,19 @@ const schema = z.object({
 export function ProfileForm({
   defaults,
   redirectTo,
+  profileImage,
+  userImage,
 }: {
   defaults?: Partial<z.infer<typeof schema>>;
   redirectTo?: string;
+  profileImage?: string | null;
+  userImage?: string | null;
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [pending, setPending] = React.useState(false);
+  const [currentProfileImage, setCurrentProfileImage] = React.useState<
+    string | null
+  >(profileImage || null);
   const router = useRouter();
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,7 +79,10 @@ export function ProfileForm({
     }
     setPending(true);
     try {
-      await createOrUpdateProfileAction(parsed.data);
+      await createOrUpdateProfileAction({
+        ...parsed.data,
+        profileImage: currentProfileImage || undefined,
+      });
       posthog.capture("profile_update");
       toast.success("Profile saved");
       router.push(redirectTo || "/directory");
@@ -101,6 +113,52 @@ export function ProfileForm({
           required
           defaultValue={defaults?.displayName}
         />
+      </div>
+      <div className="grid gap-2">
+        <label>Profile Picture</label>
+        <div className="space-y-4">
+          {/* Current avatar preview */}
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={getAvatarUrl(currentProfileImage, userImage)}
+              alt="Profile picture"
+              className="h-16 w-16 rounded-full object-cover"
+            />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Current Picture</p>
+              <p className="text-muted-foreground text-xs">
+                {currentProfileImage
+                  ? "Custom image"
+                  : userImage
+                    ? "GitHub avatar"
+                    : "Default avatar"}
+              </p>
+            </div>
+          </div>
+
+          {/* Upload component */}
+          <ImageUpload
+            value={currentProfileImage}
+            onChange={setCurrentProfileImage}
+            uploadUrl="/api/upload"
+            label="Upload custom picture"
+            className="max-w-md"
+          />
+
+          {/* Reset button */}
+          {currentProfileImage && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentProfileImage(null)}
+              className="w-fit"
+            >
+              Reset to GitHub avatar
+            </Button>
+          )}
+        </div>
       </div>
       <div className="grid gap-2">
         <label>Headline</label>

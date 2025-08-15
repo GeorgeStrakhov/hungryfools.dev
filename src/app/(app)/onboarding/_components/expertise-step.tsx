@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { saveExpertiseAction } from "@/app/(app)/onboarding/actions";
 import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { useProfileData } from "@/lib/hooks/useProfileData";
+import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { STEP_CONFIG } from "../_lib/steps";
 
 const OTHER = [
@@ -38,9 +40,17 @@ interface ExpertiseStepProps {
 }
 
 export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
+  const { profileData } = useProfileData();
   const [expertise, setExpertise] = useState<string[]>([]);
   const [customSkill, setCustomSkill] = useState("");
   const [, setSaving] = useState(false);
+
+  // Load existing raw expertise data on mount
+  useEffect(() => {
+    if (profileData?.expertiseSelections) {
+      setExpertise(profileData.expertiseSelections);
+    }
+  }, [profileData]);
 
   const toggle = (v: string) => {
     const k = v.toLowerCase();
@@ -71,17 +81,22 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
     }
   };
 
-  const handleCustomKeyPress = (e: React.KeyboardEvent) => {
+  const handleCustomKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addCustomSkill();
     }
   };
 
-  // Debounced autosave
+  // Debounced autosave - save both raw data and process with LLM
   useEffect(() => {
     const id = setTimeout(async () => {
       try {
+        // Save raw data for state persistence
+        await createOrUpdateProfileAction({
+          expertiseSelections: expertise,
+        });
+        // Also process with LLM for interests
         await saveExpertiseAction({ expertise });
       } catch (error) {
         console.error("Autosave failed:", error);
@@ -93,7 +108,12 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
   const handleNext = async () => {
     setSaving(true);
     try {
+      // Save both raw data and process with LLM
+      await createOrUpdateProfileAction({
+        expertiseSelections: expertise,
+      });
       await saveExpertiseAction({ expertise });
+
       onNext();
     } catch {
       toast.error("Could not save. Try again.");
@@ -165,7 +185,7 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
               id="custom-skill"
               value={customSkill}
               onChange={(e) => setCustomSkill(e.target.value)}
-              onKeyPress={handleCustomKeyPress}
+              onKeyDown={handleCustomKeyDown}
               placeholder="e.g., Wine Enthusiast, Rock Climbing, Film Buff..."
             />
             <Button

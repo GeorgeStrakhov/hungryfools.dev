@@ -29,11 +29,19 @@ export const profiles = pgTable("profile", {
   displayName: text("displayName"),
   headline: text("headline"),
   bio: text("bio"),
+  profileImage: text("profileImage"), // Custom uploaded profile image (optional)
   skills: jsonb("skills").$type<string[]>(),
   interests: jsonb("interests").$type<string[]>(),
   location: text("location"),
   links: jsonb("links").$type<ProfileLinks>(),
   availability: jsonb("availability").$type<ProfileAvailability>(),
+  showcase: boolean("showcase").notNull().default(false),
+  // Raw onboarding data for state persistence
+  vibeSelections: jsonb("vibeSelections").$type<string[]>(),
+  vibeText: text("vibeText"),
+  stackSelections: jsonb("stackSelections").$type<string[]>(),
+  stackText: text("stackText"),
+  expertiseSelections: jsonb("expertiseSelections").$type<string[]>(),
   createdAt: timestamp("createdAt", { withTimezone: true })
     .defaultNow()
     .notNull(),

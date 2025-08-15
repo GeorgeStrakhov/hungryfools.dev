@@ -7,6 +7,7 @@ import { createOrUpdateProfileAction } from "@/components/profile/profile.action
 import { toast } from "sonner";
 import { MapPin, Loader2 } from "lucide-react";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { useProfileData } from "@/lib/hooks/useProfileData";
 import { STEP_CONFIG } from "../_lib/steps";
 
 interface LocationStepProps {
@@ -16,33 +17,50 @@ interface LocationStepProps {
 }
 
 export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
+  const { profileData } = useProfileData();
   const [location, setLocation] = useState("");
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<string | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Auto-detect location on mount
+  // Load existing location or auto-detect (only once)
   useEffect(() => {
-    const detectLocation = async () => {
-      setIsDetecting(true);
-      try {
-        // Use ipapi.co for IP-based location detection
-        const response = await fetch("https://ipapi.co/json/");
-        const data = await response.json();
+    if (hasInitialized) return;
 
-        if (data.city && data.region) {
-          const detected = `${data.city}, ${data.region}`;
-          setDetectedLocation(detected);
-          setLocation(detected);
+    if (profileData?.location) {
+      // Use existing location from profile
+      setLocation(profileData.location);
+      setHasInitialized(true);
+      return;
+    }
+
+    // Only proceed with auto-detection if profileData has been loaded (not null)
+    // and there's no existing location
+    if (profileData !== null) {
+      // Auto-detect location if no existing data
+      const detectLocation = async () => {
+        setIsDetecting(true);
+        try {
+          // Use ipapi.co for IP-based location detection
+          const response = await fetch("https://ipapi.co/json/");
+          const data = await response.json();
+
+          if (data.city && data.region) {
+            const detected = `${data.city}, ${data.region}`;
+            setDetectedLocation(detected);
+            setLocation(detected);
+          }
+        } catch (error) {
+          console.error("Failed to detect location:", error);
+        } finally {
+          setIsDetecting(false);
         }
-      } catch (error) {
-        console.error("Failed to detect location:", error);
-      } finally {
-        setIsDetecting(false);
-      }
-    };
+      };
 
-    detectLocation();
-  }, []);
+      detectLocation();
+      setHasInitialized(true);
+    }
+  }, [profileData, hasInitialized]);
 
   const handleNext = async () => {
     if (!location.trim()) {

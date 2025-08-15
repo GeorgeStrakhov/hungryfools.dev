@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { saveVibeAction } from "@/app/(app)/onboarding/actions";
 import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
+import { useProfileData } from "@/lib/hooks/useProfileData";
+import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { STEP_CONFIG } from "../_lib/steps";
 import posthog from "posthog-js";
 
@@ -30,9 +32,22 @@ interface VibeStepProps {
 }
 
 export function VibeStep({ onNext, onBack }: VibeStepProps) {
+  const { profileData } = useProfileData();
   const [vibes, setVibes] = useState<string[]>([]);
   const [free, setFree] = useState("");
   const [, setSaving] = useState(false);
+
+  // Load existing raw onboarding data on mount
+  useEffect(() => {
+    if (profileData) {
+      if (profileData.vibeSelections) {
+        setVibes(profileData.vibeSelections);
+      }
+      if (profileData.vibeText) {
+        setFree(profileData.vibeText);
+      }
+    }
+  }, [profileData]);
 
   const toggle = (v: string) => {
     const k = v.toLowerCase();
@@ -41,10 +56,16 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
     );
   };
 
-  // Debounced autosave
+  // Debounced autosave - save both raw data and process with LLM
   useEffect(() => {
     const id = setTimeout(async () => {
       try {
+        // Save raw data for state persistence
+        await createOrUpdateProfileAction({
+          vibeSelections: vibes,
+          vibeText: free,
+        });
+        // Also process with LLM for headline
         await saveVibeAction({ vibes, oneLine: free });
       } catch (error) {
         console.error("Autosave failed:", error);
@@ -62,7 +83,14 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
       }
 
       posthog.capture("vibe_complete", { vibes, free });
+
+      // Save both raw data and process with LLM
+      await createOrUpdateProfileAction({
+        vibeSelections: vibes,
+        vibeText: free,
+      });
       await saveVibeAction({ vibes, oneLine: free });
+
       onNext();
     } catch (error: unknown) {
       const err = error as { name?: string; message?: string };
@@ -105,13 +133,13 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
 
         <div>
           <label htmlFor="free-vibe" className="mb-2 block text-sm font-medium">
-            Or describe your vibe in one line
+            Add more details (optional)
           </label>
           <Input
             id="free-vibe"
             value={free}
             onChange={(e) => setFree(e.target.value)}
-            placeholder="I architect AI agents with CrewAI and ship MVPs with Cursor"
+            placeholder="e.g., I focus on early-stage prototypes and MVPs"
           />
         </div>
 

@@ -70,6 +70,11 @@ const adminNavItems: AdminNavSection[] = [
         url: "/admin/users",
         icon: Users,
       },
+      {
+        title: "Companies",
+        url: "/admin/companies",
+        icon: Users,
+      },
     ],
   },
   {

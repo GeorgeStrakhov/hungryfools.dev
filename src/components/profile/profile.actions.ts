@@ -25,6 +25,7 @@ type Input = {
   displayName?: string;
   headline?: string;
   bio?: string;
+  profileImage?: string; // Custom uploaded profile image
   skills?: string; // comma separated
   interests?: string; // comma separated
   location?: string;
@@ -35,6 +36,13 @@ type Input = {
   availHire?: boolean;
   availCollab?: boolean;
   availHiring?: boolean;
+  showcase?: boolean;
+  // Raw onboarding data
+  vibeSelections?: string[];
+  vibeText?: string;
+  stackSelections?: string[];
+  stackText?: string;
+  expertiseSelections?: string[];
 };
 
 // Moderation schemas
@@ -132,14 +140,23 @@ export async function createOrUpdateProfileAction(input: Input) {
   const values = {
     userId: session.user.id,
     handle: derivedHandle.toLowerCase(),
-    displayName: moderatedFields.displayName || input.displayName,
+    displayName:
+      moderatedFields.displayName || input.displayName || session.user.name,
     headline: moderatedFields.headline || input.headline,
     bio: moderatedFields.bio || input.bio || null,
+    profileImage: input.profileImage,
     skills: csvToArray(input.skills, PROFILE_FIELD_LIMITS.skills.max),
     interests: csvToArray(input.interests, PROFILE_FIELD_LIMITS.interests.max),
     location: moderatedFields.location || input.location || null,
     links,
     availability,
+    showcase: Boolean(input.showcase),
+    // Raw onboarding data
+    vibeSelections: input.vibeSelections,
+    vibeText: input.vibeText,
+    stackSelections: input.stackSelections,
+    stackText: input.stackText,
+    expertiseSelections: input.expertiseSelections,
     updatedAt: new Date(),
   };
 

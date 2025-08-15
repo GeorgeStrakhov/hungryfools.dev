@@ -4,6 +4,14 @@ import createMDX from "@next/mdx";
 const nextConfig: NextConfig = {
   // Allow MDX files to be routed/imported
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

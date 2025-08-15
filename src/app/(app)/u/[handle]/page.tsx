@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
+import { users } from "@/db/schema/auth";
 import { profiles, projects } from "@/db/schema/profile";
 import { eq, desc } from "drizzle-orm";
 import { getTransformedImageUrl } from "@/lib/services/s3/s3";
@@ -11,6 +12,7 @@ import { Plus, Edit } from "lucide-react";
 import Link from "next/link";
 import { ProjectDropdownMenu } from "@/components/projects/project-dropdown-menu";
 import { IntroductionDialog } from "@/components/profile/introduction-dialog";
+import { getProfileAvatarUrl } from "@/lib/utils/avatar";
 
 type Params = { params: Promise<{ handle: string }> };
 
@@ -18,13 +20,17 @@ export default async function PublicProfilePage({ params }: Params) {
   const resolvedParams = await params;
   const session = await auth();
 
-  const [profile] = await db
-    .select()
+  const [result] = await db
+    .select({
+      profile: profiles,
+      user: users,
+    })
     .from(profiles)
+    .leftJoin(users, eq(profiles.userId, users.id))
     .where(eq(profiles.handle, resolvedParams.handle.toLowerCase()))
     .limit(1);
 
-  if (!profile) {
+  if (!result?.profile) {
     return (
       <div className="hf-container py-10">
         <h1 className="text-xl">Profile not found</h1>
@@ -32,8 +38,14 @@ export default async function PublicProfilePage({ params }: Params) {
     );
   }
 
+  const profile = result.profile;
+  const user = result.user;
+
   // Check if this is the owner viewing their own profile
   const isOwner = session?.user?.id === profile.userId;
+
+  // Get avatar URL with fallbacks
+  const avatarUrl = getProfileAvatarUrl(profile, user);
 
   // Get user's projects
   const userProjects = await db
@@ -47,14 +59,26 @@ export default async function PublicProfilePage({ params }: Params) {
       {/* Profile Header Section */}
       <div className="mb-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold sm:text-3xl">
-              {profile.displayName || profile.handle}
-            </h1>
-            <p className="text-muted-foreground mt-1">@{profile.handle}</p>
-            {profile.headline && (
-              <p className="mt-3 text-base sm:text-lg">{profile.headline}</p>
-            )}
+          <div className="flex gap-4">
+            {/* Profile Picture */}
+            <div className="shrink-0">
+              <img
+                src={avatarUrl}
+                alt={profile.displayName || profile.handle}
+                className="h-20 w-20 rounded-full object-cover sm:h-24 sm:w-24"
+              />
+            </div>
+
+            {/* Profile Info */}
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold sm:text-3xl">
+                {profile.displayName || profile.handle}
+              </h1>
+              <p className="text-muted-foreground mt-1">@{profile.handle}</p>
+              {profile.headline && (
+                <p className="mt-3 text-base sm:text-lg">{profile.headline}</p>
+              )}
+            </div>
           </div>
 
           {/* Actions */}
@@ -193,26 +217,18 @@ export default async function PublicProfilePage({ params }: Params) {
                 </svg>
               </a>
             )}
-            {profile.links.email && (
-              <a
-                href={`mailto:${profile.links.email}`}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-              </a>
-            )}
+            {profile.links.email &&
+              !isOwner &&
+              (session?.user ? (
+                <IntroductionDialog
+                  targetHandle={profile.handle}
+                  targetDisplayName={profile.displayName || profile.handle}
+                />
+              ) : (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">Sign in to get introduced</Link>
+                </Button>
+              ))}
           </div>
         )}
       </div>

@@ -14,10 +14,12 @@ import {
 import { Button } from "@/components/ui/button";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
+import { getAvatarUrl } from "@/lib/utils/avatar";
 
 function UserAvatar() {
   const { data: session } = useSession();
   const [userHandle, setUserHandle] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const user = session?.user;
   const initials =
     user?.name
@@ -29,12 +31,17 @@ function UserAvatar() {
 
   useEffect(() => {
     if (user?.id) {
-      // Fetch user handle
-      fetch("/api/user/handle")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.handle) {
-            setUserHandle(data.handle);
+      // Fetch user handle and profile data
+      Promise.all([
+        fetch("/api/user/handle").then((res) => res.json()),
+        fetch("/api/user/profile").then((res) => res.json()),
+      ])
+        .then(([handleData, profileData]) => {
+          if (handleData.handle) {
+            setUserHandle(handleData.handle);
+          }
+          if (profileData.profileImage) {
+            setProfileImage(profileData.profileImage);
           }
         })
         .catch(console.error);
@@ -48,7 +55,7 @@ function UserAvatar() {
       <DropdownMenuTrigger className="outline-none">
         <Avatar className="size-8">
           <AvatarImage
-            src={user.image ?? undefined}
+            src={getAvatarUrl(profileImage, user.image)}
             alt={user.name ?? "User"}
           />
           <AvatarFallback>{initials}</AvatarFallback>

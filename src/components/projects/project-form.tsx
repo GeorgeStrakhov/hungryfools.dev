@@ -103,7 +103,13 @@ export function ProjectForm({
 
     // For onboarding mode, check if we have any content before proceeding
     if (mode === "onboarding") {
-      const hasContent = formData.name.trim() || formData.url.trim() || formData.githubUrl.trim() || formData.oneliner.trim() || formData.description.trim() || formData.media.length > 0;
+      const hasContent =
+        formData.name.trim() ||
+        formData.url.trim() ||
+        formData.githubUrl.trim() ||
+        formData.oneliner.trim() ||
+        formData.description.trim() ||
+        formData.media.length > 0;
       if (!hasContent) {
         toast.error("Please fill in at least one field or skip this step");
         return;
@@ -308,89 +314,97 @@ export function ProjectForm({
       </Card>
 
       {/* Project Preview - only show in onboarding mode */}
-      {mode === "onboarding" && showPreview && (formData.name || formData.description || formData.media.length > 0) && (
-        <Card className="border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <span className="text-lg">👀</span>
-              Preview
-            </CardTitle>
-            <p className="text-muted-foreground text-sm">
-              This is how your project will appear on your profile
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {formData.name && (
-                <div>
-                  <h3 className="font-semibold">{formData.name}</h3>
-                  <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
-                    {formData.featured && (
-                      <span className="bg-primary text-primary-foreground rounded px-2 py-1">
-                        Featured
-                      </span>
-                    )}
-                    {formData.url && (
-                      <a
-                        href={formData.url}
-                        target="_blank"
-                        className="text-blue-600 hover:underline"
-                      >
-                        View Project →
-                      </a>
-                    )}
-                    {formData.githubUrl && (
-                      <a
-                        href={formData.githubUrl}
-                        target="_blank"
-                        className="text-blue-600 hover:underline"
-                      >
-                        GitHub →
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-              {formData.oneliner && (
-                <p className="text-muted-foreground text-sm font-medium">{formData.oneliner}</p>
-              )}
-              {formData.description && (
-                <p className="text-muted-foreground text-sm">{formData.description}</p>
-              )}
-              {formData.media.length > 0 && (
-                <div className="grid grid-cols-2 gap-2">
-                  {formData.media.slice(0, 2).map((item, index) => (
-                    <div
-                      key={index}
-                      className="aspect-square overflow-hidden rounded-md bg-gray-100"
-                    >
-                      {item.type === "image" ? (
-                        <img
-                          src={item.url}
-                          alt={item.filename}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="relative h-full w-full">
-                          <video
-                            src={item.url}
-                            className="h-full w-full object-cover"
-                            muted
-                            preload="metadata"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            <span className="text-xl text-white">▶</span>
-                          </div>
-                        </div>
+      {mode === "onboarding" &&
+        showPreview &&
+        (formData.name ||
+          formData.description ||
+          formData.media.length > 0) && (
+          <Card className="border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <span className="text-lg">👀</span>
+                Preview
+              </CardTitle>
+              <p className="text-muted-foreground text-sm">
+                This is how your project will appear on your profile
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {formData.name && (
+                  <div>
+                    <h3 className="font-semibold">{formData.name}</h3>
+                    <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
+                      {formData.featured && (
+                        <span className="bg-primary text-primary-foreground rounded px-2 py-1">
+                          Featured
+                        </span>
+                      )}
+                      {formData.url && (
+                        <a
+                          href={formData.url}
+                          target="_blank"
+                          className="text-blue-600 hover:underline"
+                        >
+                          View Project →
+                        </a>
+                      )}
+                      {formData.githubUrl && (
+                        <a
+                          href={formData.githubUrl}
+                          target="_blank"
+                          className="text-blue-600 hover:underline"
+                        >
+                          GitHub →
+                        </a>
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                  </div>
+                )}
+                {formData.oneliner && (
+                  <p className="text-muted-foreground text-sm font-medium">
+                    {formData.oneliner}
+                  </p>
+                )}
+                {formData.description && (
+                  <p className="text-muted-foreground text-sm">
+                    {formData.description}
+                  </p>
+                )}
+                {formData.media.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {formData.media.slice(0, 2).map((item, index) => (
+                      <div
+                        key={index}
+                        className="aspect-square overflow-hidden rounded-md bg-gray-100"
+                      >
+                        {item.type === "image" ? (
+                          <img
+                            src={item.url}
+                            alt={item.filename}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="relative h-full w-full">
+                            <video
+                              src={item.url}
+                              className="h-full w-full object-cover"
+                              muted
+                              preload="metadata"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                              <span className="text-xl text-white">▶</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Actions */}
       {mode === "onboarding" ? (
@@ -407,12 +421,13 @@ export function ProjectForm({
               </Button>
             )}
             <Button type="submit" disabled={isLoading}>
-              {isLoading 
-                ? "Creating..." 
-                : formData.name || formData.description || formData.media.length > 0 
-                  ? "Create Project" 
-                  : "Next"
-              }
+              {isLoading
+                ? "Creating..."
+                : formData.name ||
+                    formData.description ||
+                    formData.media.length > 0
+                  ? "Create Project"
+                  : "Next"}
             </Button>
           </div>
         </div>
