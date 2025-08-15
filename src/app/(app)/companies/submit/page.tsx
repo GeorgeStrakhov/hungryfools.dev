@@ -22,7 +22,6 @@ export default function SubmitCompanyPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -75,8 +74,8 @@ export default function SubmitCompanyPage() {
     <div className="hf-container py-8">
       <h1 className="text-2xl font-bold sm:text-3xl">Add My Company</h1>
       <p className="text-muted-foreground mt-2">
-        Submit your company to be listed as vibecoder-friendly. We&apos;ll review and
-        approve it shortly.
+        Submit your company to be listed as vibecoder-friendly. We&apos;ll
+        review and approve it shortly.
       </p>
 
       {success ? (

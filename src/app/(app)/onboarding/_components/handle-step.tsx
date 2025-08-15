@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
@@ -34,8 +34,6 @@ export function HandleStep({
   const { profileData } = useProfileData();
   const [rawInput, setRawInput] = useState(initialHandle || "");
   const [handle, setHandle] = useState(initialHandle || "");
-  const [, setSaving] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [availability, setAvailability] = useState<{
     available: boolean;
     isOwnHandle: boolean;
@@ -110,14 +108,6 @@ export function HandleStep({
     return () => clearTimeout(timeoutId);
   }, [slugifiedPreview]);
 
-  // Clean up debounce ref on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
 
   const handleNext = async () => {
     if (!slugifiedPreview.trim()) {

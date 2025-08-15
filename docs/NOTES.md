@@ -20,6 +20,6 @@
 
 - dynamic from the DB (add in the admin)
 
-- stripe integration to add sponsored links and jobs
+- LATER: stripe integration to add sponsored links and jobs
 
 - separate page for the directory of projects. isOpenSource (github code link add to the schema)
