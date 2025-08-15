@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, Users, BriefcaseBusiness, UserPlus2 } from "lucide-react";
 import { Question } from "./question";
-import { createOrUpdateProfileAction } from "@/app/(app)/profile/edit/profile.actions";
+import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { STEP_CONFIG } from "../_lib/steps";
 import posthog from "posthog-js";
 
@@ -16,7 +16,7 @@ const OPTIONS = [
     icon: <Sparkles className="size-5" />,
   },
   {
-    key: "find", 
+    key: "find",
     label: "Find vibecoders / AI-first developers to work with",
     icon: <Users className="size-5" />,
   },

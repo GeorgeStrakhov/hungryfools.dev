@@ -57,7 +57,9 @@ function HeroTagline() {
 function Subtitle() {
   return (
     <p className="text-muted-foreground mt-12 mb-12 text-xl sm:text-2xl md:text-3xl">
-      The directory of hungry and foolish vibecoders <br className="sm:hidden md:block" />who ship human-level stuff at superhuman speed.
+      The directory of hungry and foolish vibecoders{" "}
+      <br className="sm:hidden md:block" />
+      who ship human-level stuff at superhuman speed.
     </p>
   );
 }

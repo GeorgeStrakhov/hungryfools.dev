@@ -4,22 +4,22 @@
 
 - display link to the user's github
 
-- send something to the user (including llm analysis of both your profiles and possible similarity areas). like make an intro button.
+- why User as displayed name
 
 - edit profile - make it nicer
 
+- checkbox to allow / disallow being introduced
+
 - when to calculate embeddings on the profile and projects? (end of onboarding, any edit)
 
-- nicer directory view
+- nicer directory view. show projects with opensource (githubUrl)
 
 - one more pass at analytics
 
-- onboarding - better options for questions
-
 - companies listing / hiring board / job board
 
-- fixed listing + dynamic from the DB
+- dynamic from the DB (add in the admin)
 
-- stripe!! - subscribe / unsubscribe (unsubscribe removes the page)
+- stripe integration to add sponsored links and jobs
 
 - separate page for the directory of projects. isOpenSource (github code link add to the schema)

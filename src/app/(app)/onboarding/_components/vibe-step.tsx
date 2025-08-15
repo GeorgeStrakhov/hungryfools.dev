@@ -11,7 +11,7 @@ import posthog from "posthog-js";
 
 const VIBE_OPTIONS = [
   "Ship-first Vibecoder",
-  "AI Agent Orchestrator", 
+  "AI Agent Orchestrator",
   "Prompt Engineer",
   "Claude Code Wizard",
   "Cursor Power User",

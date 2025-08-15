@@ -4,13 +4,30 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STEP_CONFIG } from "../_lib/steps";
-import { Plus, FolderOpen } from "lucide-react";
+import { Plus, Users } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface DoneStepProps {
   onFinish: () => void;
 }
 
 export function DoneStep({ onFinish }: DoneStepProps) {
+  const [userHandle, setUserHandle] = useState<string>("");
+
+  useEffect(() => {
+    // Fetch user handle for the add projects link
+    fetch("/api/user/handle")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.handle) {
+          setUserHandle(data.handle);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch user handle:", error);
+      });
+  }, []);
+
   return (
     <div className="space-y-8 text-center">
       <div className="flex flex-col items-center gap-4">
@@ -47,7 +64,7 @@ export function DoneStep({ onFinish }: DoneStepProps) {
               className="h-auto justify-start p-4"
               size="lg"
             >
-              <FolderOpen className="mr-3 h-5 w-5" />
+              <Users className="mr-3 h-5 w-5" />
               <div className="text-left">
                 <div className="font-semibold">Browse Directory</div>
                 <div className="text-sm opacity-90">
@@ -62,10 +79,10 @@ export function DoneStep({ onFinish }: DoneStepProps) {
               className="h-auto justify-start p-4"
               size="lg"
             >
-              <a href="/profile/projects/new">
+              <a href={userHandle ? `/u/${userHandle}/projects/new` : "#"}>
                 <Plus className="mr-3 h-5 w-5" />
                 <div className="text-left">
-                  <div className="font-semibold">Add Another Project</div>
+                  <div className="font-semibold">Add More Projects</div>
                   <div className="text-sm opacity-70">
                     Build your portfolio further
                   </div>

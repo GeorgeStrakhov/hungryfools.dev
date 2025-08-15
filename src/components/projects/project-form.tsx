@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { DeleteProjectButton } from "./delete-project-button";
 import { MediaUpload } from "./media-upload";
@@ -14,6 +15,7 @@ interface ProjectFormData {
   name: string;
   slug: string;
   url: string;
+  githubUrl: string;
   oneliner: string;
   description: string;
   featured: boolean;
@@ -26,6 +28,12 @@ interface ProjectFormProps {
   onDelete?: () => Promise<void>;
   submitLabel?: string;
   isLoading?: boolean;
+  // Onboarding mode props
+  mode?: "standard" | "onboarding";
+  onBack?: () => void;
+  onSkip?: () => void;
+  enhanceWithAI?: boolean;
+  showPreview?: boolean;
 }
 
 export function ProjectForm({
@@ -34,11 +42,17 @@ export function ProjectForm({
   onDelete,
   submitLabel = "Save Project",
   isLoading = false,
+  mode = "standard",
+  onBack,
+  onSkip,
+  enhanceWithAI = false,
+  showPreview = false,
 }: ProjectFormProps) {
   const [formData, setFormData] = useState<ProjectFormData>({
     name: initialData.name || "",
     slug: initialData.slug || "",
     url: initialData.url || "",
+    githubUrl: initialData.githubUrl || "",
     oneliner: initialData.oneliner || "",
     description: initialData.description || "",
     featured: initialData.featured || false,
@@ -74,18 +88,56 @@ export function ProjectForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      toast.error("Project name is required");
-      return;
+    // In onboarding mode, allow empty forms (user can skip)
+    if (mode === "standard") {
+      if (!formData.name.trim()) {
+        toast.error("Project name is required");
+        return;
+      }
+
+      if (!formData.slug.trim()) {
+        toast.error("Project slug is required");
+        return;
+      }
     }
 
-    if (!formData.slug.trim()) {
-      toast.error("Project slug is required");
-      return;
+    // For onboarding mode, check if we have any content before proceeding
+    if (mode === "onboarding") {
+      const hasContent = formData.name.trim() || formData.url.trim() || formData.githubUrl.trim() || formData.oneliner.trim() || formData.description.trim() || formData.media.length > 0;
+      if (!hasContent) {
+        toast.error("Please fill in at least one field or skip this step");
+        return;
+      }
+    }
+
+    // Validate GitHub URL if provided
+    if (formData.githubUrl && formData.githubUrl.trim()) {
+      try {
+        const url = new URL(formData.githubUrl);
+        if (
+          url.hostname !== "github.com" &&
+          url.hostname !== "www.github.com"
+        ) {
+          toast.error("GitHub URL must be a valid GitHub repository URL");
+          return;
+        }
+      } catch {
+        toast.error("Invalid GitHub URL format");
+        return;
+      }
     }
 
     try {
-      await onSubmit(formData);
+      const finalData = formData;
+
+      // Apply AI enhancement if enabled (onboarding mode)
+      if (enhanceWithAI && mode === "onboarding") {
+        // TODO: Integrate with moderation/enhancement service
+        // For now, we'll pass the data as-is but this is where we'd call
+        // the normalization service from the onboarding actions
+      }
+
+      await onSubmit(finalData);
     } catch (error: unknown) {
       // Check if this is a Next.js redirect (which is expected)
       if (
@@ -158,8 +210,32 @@ export function ProjectForm({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, url: e.target.value }))
               }
-              placeholder="https://github.com/username/project or https://myproject.com"
+              placeholder="https://myproject.com or https://demo.myproject.com"
             />
+            <p className="text-muted-foreground mt-1 text-xs">
+              Link to your live project or demo
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="githubUrl"
+              className="mb-2 block text-sm font-medium"
+            >
+              GitHub URL
+            </label>
+            <Input
+              id="githubUrl"
+              type="url"
+              value={formData.githubUrl}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, githubUrl: e.target.value }))
+              }
+              placeholder="https://github.com/username/project"
+            />
+            <p className="text-muted-foreground mt-1 text-xs">
+              Link to your project&apos;s source code on GitHub
+            </p>
           </div>
 
           <div>
@@ -202,14 +278,12 @@ export function ProjectForm({
           </div>
 
           <div className="flex items-center space-x-2">
-            <input
+            <Checkbox
               id="featured"
-              type="checkbox"
               checked={formData.featured}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, featured: e.target.checked }))
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({ ...prev, featured: !!checked }))
               }
-              className="rounded"
             />
             <label htmlFor="featured" className="text-sm font-medium">
               Featured project (show prominently on profile)
@@ -233,24 +307,138 @@ export function ProjectForm({
         </CardContent>
       </Card>
 
-      {/* Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : submitLabel}
-          </Button>
-          <Button type="button" variant="outline" asChild>
-            <a href="/profile/projects">Cancel</a>
-          </Button>
-        </div>
+      {/* Project Preview - only show in onboarding mode */}
+      {mode === "onboarding" && showPreview && (formData.name || formData.description || formData.media.length > 0) && (
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <span className="text-lg">👀</span>
+              Preview
+            </CardTitle>
+            <p className="text-muted-foreground text-sm">
+              This is how your project will appear on your profile
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {formData.name && (
+                <div>
+                  <h3 className="font-semibold">{formData.name}</h3>
+                  <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
+                    {formData.featured && (
+                      <span className="bg-primary text-primary-foreground rounded px-2 py-1">
+                        Featured
+                      </span>
+                    )}
+                    {formData.url && (
+                      <a
+                        href={formData.url}
+                        target="_blank"
+                        className="text-blue-600 hover:underline"
+                      >
+                        View Project →
+                      </a>
+                    )}
+                    {formData.githubUrl && (
+                      <a
+                        href={formData.githubUrl}
+                        target="_blank"
+                        className="text-blue-600 hover:underline"
+                      >
+                        GitHub →
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+              {formData.oneliner && (
+                <p className="text-muted-foreground text-sm font-medium">{formData.oneliner}</p>
+              )}
+              {formData.description && (
+                <p className="text-muted-foreground text-sm">{formData.description}</p>
+              )}
+              {formData.media.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {formData.media.slice(0, 2).map((item, index) => (
+                    <div
+                      key={index}
+                      className="aspect-square overflow-hidden rounded-md bg-gray-100"
+                    >
+                      {item.type === "image" ? (
+                        <img
+                          src={item.url}
+                          alt={item.filename}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="relative h-full w-full">
+                          <video
+                            src={item.url}
+                            className="h-full w-full object-cover"
+                            muted
+                            preload="metadata"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <span className="text-xl text-white">▶</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {onDelete && (
-          <DeleteProjectButton
-            onDelete={onDelete}
-            projectName={formData.name || "this project"}
-          />
-        )}
-      </div>
+      {/* Actions */}
+      {mode === "onboarding" ? (
+        <div className="nav-buttons flex justify-between">
+          {onBack && (
+            <Button variant="ghost" onClick={onBack}>
+              Back
+            </Button>
+          )}
+          <div className="space-x-2">
+            {onSkip && (
+              <Button variant="outline" onClick={onSkip}>
+                Skip for now
+              </Button>
+            )}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading 
+                ? "Creating..." 
+                : formData.name || formData.description || formData.media.length > 0 
+                  ? "Create Project" 
+                  : "Next"
+              }
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between">
+          <div className="flex gap-4">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : submitLabel}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.history.back()}
+            >
+              Cancel
+            </Button>
+          </div>
+
+          {onDelete && (
+            <DeleteProjectButton
+              onDelete={onDelete}
+              projectName={formData.name || "this project"}
+            />
+          )}
+        </div>
+      )}
     </form>
   );
 }

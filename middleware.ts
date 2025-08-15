@@ -7,16 +7,20 @@ export default auth((req) => {
   // Define protected route patterns
   const protectedRoutes = [
     "/onboarding",
-    "/profile/edit", // Only profile editing requires auth, not viewing
     "/settings",
     "/admin",
     "/post-auth", // Auth routing helper
   ];
 
+  // Check for profile edit routes that need auth
+  const isProfileEdit =
+    /^\/u\/[^\/]+\/edit/.test(pathname) ||
+    /^\/u\/[^\/]+\/projects/.test(pathname);
+
   // Check if current path needs protection
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route),
-  );
+  const isProtectedRoute =
+    protectedRoutes.some((route) => pathname.startsWith(route)) ||
+    isProfileEdit;
 
   // Redirect unauthenticated users to landing page
   if (isProtectedRoute && !isAuthenticated) {

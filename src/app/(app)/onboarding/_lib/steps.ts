@@ -44,7 +44,7 @@ export const STEP_CONFIG: Record<Step, StepConfig> = {
     requiresHandle: true,
   },
   expertise: {
-    title: "Any other expertise?", 
+    title: "Any other expertise?",
     subtitle: "Skills beyond coding",
     canSkip: true,
     requiresHandle: true,

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { createOrUpdateProfileAction } from "./profile.actions";
 import { PROFILE_FIELD_LIMITS } from "@/lib/profile-utils";
 import posthog from "posthog-js";
@@ -40,8 +41,10 @@ const schema = z.object({
 
 export function ProfileForm({
   defaults,
+  redirectTo,
 }: {
   defaults?: Partial<z.infer<typeof schema>>;
+  redirectTo?: string;
 }) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [pending, setPending] = React.useState(false);
@@ -70,7 +73,7 @@ export function ProfileForm({
       await createOrUpdateProfileAction(parsed.data);
       posthog.capture("profile_update");
       toast.success("Profile saved");
-      router.push("/directory");
+      router.push(redirectTo || "/directory");
     } catch (err) {
       console.error(err);
       alert("Failed to save");
@@ -164,30 +167,30 @@ export function ProfileForm({
         />
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="availHire"
             name="availHire"
             defaultChecked={defaults?.availHire}
-          />{" "}
-          Open to hire
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          />
+          <label htmlFor="availHire">Open to hire</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="availCollab"
             name="availCollab"
             defaultChecked={defaults?.availCollab}
-          />{" "}
-          Open to collab
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          />
+          <label htmlFor="availCollab">Open to collab</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="availHiring"
             name="availHiring"
             defaultChecked={defaults?.availHiring}
-          />{" "}
-          I am hiring
-        </label>
+          />
+          <label htmlFor="availHiring">I am hiring</label>
+        </div>
       </div>
       <div>
         <Button type="submit" disabled={pending}>

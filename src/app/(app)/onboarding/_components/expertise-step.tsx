@@ -10,7 +10,7 @@ import { STEP_CONFIG } from "../_lib/steps";
 
 const OTHER = [
   "Musician",
-  "Artist", 
+  "Artist",
   "Writer",
   "Photographer",
   "Videographer",
@@ -21,7 +21,7 @@ const OTHER = [
   "Athlete",
   "Traveler",
   "Language Learner",
-  "Podcaster", 
+  "Podcaster",
   "Content Creator",
   "Teacher",
   "Speaker",

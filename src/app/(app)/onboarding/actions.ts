@@ -5,7 +5,7 @@ import { projects, type ProjectMedia } from "@/db/schema/profile";
 import { auth } from "@/auth";
 import { z } from "zod";
 import { normalizeAndModerate } from "@/lib/moderation/normalize";
-import { createOrUpdateProfileAction } from "@/app/(app)/profile/edit/profile.actions";
+import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { PROFILE_FIELD_LIMITS } from "@/lib/profile-utils";
 import slugify from "slugify";
 
@@ -40,6 +40,8 @@ const expertiseOutput = z.object({
 const showcaseInput = z.object({
   title: z.string().optional(),
   link: z.string().optional(),
+  githubUrl: z.string().optional(),
+  oneliner: z.string().optional(),
   summary: z.string().optional(),
   media: z
     .array(
@@ -56,6 +58,7 @@ const showcaseInput = z.object({
 const showcaseOutput = z.object({
   name: z.string().optional(),
   url: z.string().optional(),
+  githubUrl: z.string().optional(),
   oneliner: z.string().optional(),
   description: z.string().optional(),
 });
@@ -114,7 +117,8 @@ export async function saveShowcaseAction(payload: unknown) {
     `
 Clean up project info:
 - name: Keep project titles crisp and professional
-- url: Ensure URLs are valid if provided 
+- url: Ensure URLs are valid if provided (regular project URLs, not GitHub)
+- githubUrl: Ensure GitHub URLs are valid if provided
 - oneliner: Create a punchy one-liner tagline
 - description: Expand the summary into a clear description
 `,
@@ -141,6 +145,7 @@ Clean up project info:
     slug: projectSlug,
     name: out.name || "My Project",
     url: out.url || null,
+    githubUrl: out.githubUrl || null,
     oneliner: out.oneliner || null,
     description: out.description || null,
     media,

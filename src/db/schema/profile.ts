@@ -61,7 +61,8 @@ export const projects = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     slug: text("slug").notNull(),
     name: text("name").notNull(),
-    url: text("url"), // Optional live/repo link
+    url: text("url"), // Optional live/demo link
+    githubUrl: text("githubUrl"), // Optional GitHub repository link
     oneliner: text("oneliner"), // Short tagline
     description: text("description"), // Longer description
     media: jsonb("media").$type<ProjectMedia[]>().default([]),

@@ -1,12 +1,23 @@
+import { auth } from "@/auth";
 import { db } from "@/db";
 import { profiles, projects } from "@/db/schema/profile";
 import { eq, desc } from "drizzle-orm";
 import { getTransformedImageUrl } from "@/lib/services/s3/s3";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Edit } from "lucide-react";
+import Link from "next/link";
+import { ProjectDropdownMenu } from "@/components/projects/project-dropdown-menu";
+import { IntroductionDialog } from "@/components/profile/introduction-dialog";
 
 type Params = { params: Promise<{ handle: string }> };
 
 export default async function PublicProfilePage({ params }: Params) {
   const resolvedParams = await params;
+  const session = await auth();
+
   const [profile] = await db
     .select()
     .from(profiles)
@@ -21,6 +32,9 @@ export default async function PublicProfilePage({ params }: Params) {
     );
   }
 
+  // Check if this is the owner viewing their own profile
+  const isOwner = session?.user?.id === profile.userId;
+
   // Get user's projects
   const userProjects = await db
     .select()
@@ -29,105 +43,302 @@ export default async function PublicProfilePage({ params }: Params) {
     .orderBy(desc(projects.featured), desc(projects.createdAt));
 
   return (
-    <div className="hf-container py-10">
-      <h1 className="mb-2 text-3xl font-semibold">{profile.displayName}</h1>
-      <p className="text-muted-foreground mb-4">@{profile.handle}</p>
-      <p className="mb-6">{profile.headline}</p>
-      {profile.skills?.length ? (
-        <div className="mb-6 flex flex-wrap gap-2">
-          {profile.skills.map((s) => (
-            <span
-              key={s}
-              className="bg-accent text-accent-foreground rounded px-2 py-1 text-sm"
-            >
-              {s}
-            </span>
-          ))}
+    <div className="hf-container py-6 md:py-10">
+      {/* Profile Header Section */}
+      <div className="mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold sm:text-3xl">
+              {profile.displayName || profile.handle}
+            </h1>
+            <p className="text-muted-foreground mt-1">@{profile.handle}</p>
+            {profile.headline && (
+              <p className="mt-3 text-base sm:text-lg">{profile.headline}</p>
+            )}
+          </div>
+
+          {/* Actions */}
+          {(isOwner || session?.user) && (
+            <div className="flex gap-2">
+              {isOwner ? (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/u/${profile.handle}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Link>
+                </Button>
+              ) : (
+                <IntroductionDialog
+                  targetHandle={profile.handle}
+                  targetDisplayName={profile.displayName || profile.handle}
+                />
+              )}
+            </div>
+          )}
         </div>
-      ) : null}
+
+        {/* Bio Section */}
+        {profile.bio && (
+          <div className="mt-6">
+            <p className="text-muted-foreground whitespace-pre-wrap">
+              {profile.bio}
+            </p>
+          </div>
+        )}
+
+        {/* Skills & Interests */}
+        <div className="mt-6 space-y-4">
+          {profile.skills && profile.skills.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-sm font-medium">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map((skill) => (
+                  <Badge key={skill} variant="secondary">
+                    {skill}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {profile.interests && profile.interests.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-sm font-medium">Interests</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.interests.map((interest) => (
+                  <Badge key={interest} variant="outline">
+                    {interest}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Availability Badges */}
+        {profile.availability && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            {profile.availability.hire && (
+              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                Available for hire
+              </Badge>
+            )}
+            {profile.availability.collab && (
+              <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                Open to collaboration
+              </Badge>
+            )}
+            {profile.availability.hiring && (
+              <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                Hiring
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Contact Links */}
+        {profile.links && Object.keys(profile.links).length > 0 && (
+          <div className="mt-6 flex flex-wrap gap-4">
+            {profile.links.github && (
+              <a
+                href={profile.links.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+              </a>
+            )}
+            {profile.links.x && (
+              <a
+                href={profile.links.x}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </a>
+            )}
+            {profile.links.website && (
+              <a
+                href={profile.links.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                  />
+                </svg>
+              </a>
+            )}
+            {profile.links.email && (
+              <a
+                href={`mailto:${profile.links.email}`}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  />
+                </svg>
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Separator className="my-8" />
 
       {/* Projects Section */}
-      {userProjects.length > 0 && (
-        <div className="mb-8">
-          <h2 className="mb-4 text-xl font-semibold">Projects</h2>
-          <div className="grid gap-4">
+      <div>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold sm:text-2xl">Projects</h2>
+          {isOwner && (
+            <Button size="sm" asChild>
+              <Link href={`/u/${profile.handle}/projects/new`}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Project
+              </Link>
+            </Button>
+          )}
+        </div>
+
+        {userProjects.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground mb-4">
+                {isOwner
+                  ? "You haven't added any projects yet."
+                  : "No projects yet."}
+              </p>
+              {isOwner && (
+                <Button asChild>
+                  <Link href={`/u/${profile.handle}/projects/new`}>
+                    Add Your First Project
+                  </Link>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {userProjects.map((project) => {
               const firstImage = project.media?.find((m) => m.type === "image");
 
               return (
-                <a
+                <Card
                   key={project.id}
-                  href={`/u/${profile.handle}/p/${project.slug}`}
-                  className="hover:bg-accent block rounded-lg border p-4 transition-colors"
+                  className="group relative overflow-hidden"
                 >
-                  <div className="flex items-start gap-4">
+                  {/* Owner Actions Dropdown */}
+                  {isOwner && (
+                    <div className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+                      <ProjectDropdownMenu
+                        handle={profile.handle}
+                        slug={project.slug}
+                      />
+                    </div>
+                  )}
+
+                  <Link href={`/u/${profile.handle}/p/${project.slug}`}>
                     {/* Project Image */}
                     {firstImage && (
-                      <div className="flex-shrink-0">
+                      <div className="bg-muted aspect-video overflow-hidden">
                         <img
                           src={getTransformedImageUrl(firstImage.url)}
                           alt={project.name}
-                          className="h-16 w-16 rounded object-cover"
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
                           loading="lazy"
                         />
                       </div>
                     )}
 
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold">{project.name}</h3>
-                          {project.oneliner && (
-                            <p className="text-muted-foreground mt-1 text-sm">
-                              {project.oneliner}
-                            </p>
-                          )}
-                        </div>
+                    <CardContent className="p-4">
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <h3 className="line-clamp-1 font-semibold">
+                          {project.name}
+                        </h3>
                         {project.featured && (
-                          <span className="bg-primary text-primary-foreground ml-2 rounded px-2 py-1 text-xs">
+                          <Badge variant="default" className="shrink-0">
                             Featured
+                          </Badge>
+                        )}
+                      </div>
+
+                      {project.oneliner && (
+                        <p className="text-muted-foreground mb-3 line-clamp-2 text-sm">
+                          {project.oneliner}
+                        </p>
+                      )}
+
+                      <div className="text-muted-foreground flex items-center gap-3 text-xs">
+                        {project.url && (
+                          <span className="flex items-center gap-1">
+                            <svg
+                              className="h-3 w-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                              />
+                            </svg>
+                            Live
+                          </span>
+                        )}
+                        {project.githubUrl && (
+                          <span className="flex items-center gap-1">
+                            <svg
+                              className="h-3 w-3"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                            </svg>
+                            Code
                           </span>
                         )}
                       </div>
-                      {project.url && (
-                        <p className="text-muted-foreground mt-2 text-xs">
-                          {project.url}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </a>
+                    </CardContent>
+                  </Link>
+                </Card>
               );
             })}
           </div>
-        </div>
-      )}
-
-      {/* Contact Links */}
-      <div className="space-y-1">
-        {profile.links?.github && (
-          <a className="underline" href={profile.links.github} target="_blank">
-            GitHub
-          </a>
-        )}
-        {profile.links?.x && (
-          <a className="block underline" href={profile.links.x} target="_blank">
-            X
-          </a>
-        )}
-        {profile.links?.website && (
-          <a
-            className="block underline"
-            href={profile.links.website}
-            target="_blank"
-          >
-            Website
-          </a>
-        )}
-        {profile.links?.email && (
-          <a className="block underline" href={`mailto:${profile.links.email}`}>
-            Email
-          </a>
         )}
       </div>
     </div>

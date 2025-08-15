@@ -13,6 +13,24 @@ const projectSchema = z.object({
   name: z.string().min(1, "Project name is required").max(100),
   slug: z.string().min(1, "Project slug is required").max(50),
   url: z.string().url().optional().or(z.literal("")),
+  githubUrl: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => {
+        if (!val) return true; // Empty is okay
+        try {
+          const url = new URL(val);
+          return (
+            url.hostname === "github.com" || url.hostname === "www.github.com"
+          );
+        } catch {
+          return false;
+        }
+      },
+      { message: "GitHub URL must be a valid GitHub repository URL" },
+    ),
   oneliner: z.string().max(140).optional(),
   description: z.string().max(2000).optional(),
   featured: z.boolean(),
@@ -88,6 +106,7 @@ export async function createProject(data: unknown) {
       slug: validatedData.slug,
       name: validatedData.name,
       url: validatedData.url || null,
+      githubUrl: validatedData.githubUrl || null,
       oneliner: validatedData.oneliner || null,
       description: validatedData.description || null,
       media: validatedData.media,
@@ -96,8 +115,6 @@ export async function createProject(data: unknown) {
       updatedAt: now,
     })
     .returning();
-
-  revalidatePath("/profile/projects");
 
   // Get user's handle for redirect
   const [profile] = await db
@@ -108,9 +125,10 @@ export async function createProject(data: unknown) {
 
   if (profile) {
     revalidatePath(`/u/${profile.handle}`);
+    redirect(`/u/${profile.handle}`);
   }
 
-  redirect("/profile/projects");
+  redirect("/");
 }
 
 export async function updateProject(projectId: string, data: unknown) {
@@ -186,6 +204,7 @@ export async function updateProject(projectId: string, data: unknown) {
       slug: validatedData.slug,
       name: validatedData.name,
       url: validatedData.url || null,
+      githubUrl: validatedData.githubUrl || null,
       oneliner: validatedData.oneliner || null,
       description: validatedData.description || null,
       media: validatedData.media,
@@ -193,8 +212,6 @@ export async function updateProject(projectId: string, data: unknown) {
       updatedAt: new Date(),
     })
     .where(eq(projects.id, projectId));
-
-  revalidatePath("/profile/projects");
 
   // Get user's handle for redirect
   const [profile] = await db
@@ -206,9 +223,10 @@ export async function updateProject(projectId: string, data: unknown) {
   if (profile) {
     revalidatePath(`/u/${profile.handle}`);
     revalidatePath(`/u/${profile.handle}/p/${validatedData.slug}`);
+    redirect(`/u/${profile.handle}`);
   }
 
-  redirect("/profile/projects");
+  redirect("/");
 }
 
 export async function deleteProject(projectId: string) {
@@ -239,9 +257,7 @@ export async function deleteProject(projectId: string) {
 
   await db.delete(projects).where(eq(projects.id, projectId));
 
-  revalidatePath("/profile/projects");
-
-  // Get user's handle for revalidation
+  // Get user's handle for revalidation and redirect
   const [profile] = await db
     .select()
     .from(profiles)
@@ -250,8 +266,9 @@ export async function deleteProject(projectId: string) {
 
   if (profile) {
     revalidatePath(`/u/${profile.handle}`);
+    redirect(`/u/${profile.handle}`);
   }
 
-  // Redirect to projects dashboard after deletion
-  redirect("/profile/projects");
+  // Fallback redirect
+  redirect("/");
 }

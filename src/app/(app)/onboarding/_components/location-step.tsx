@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { createOrUpdateProfileAction } from "@/app/(app)/profile/edit/profile.actions";
+import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { toast } from "sonner";
 import { MapPin, Loader2 } from "lucide-react";
 import { validateStep } from "@/lib/hooks/useModeration";

@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import {
   createOrUpdateProfileAction,
   checkHandleAvailabilityAction,
-} from "@/app/(app)/profile/edit/profile.actions";
+} from "@/components/profile/profile.actions";
 import { toast } from "sonner";
 import {
   generateDefaultHandle,

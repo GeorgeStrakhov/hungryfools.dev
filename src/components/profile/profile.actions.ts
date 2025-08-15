@@ -2,8 +2,10 @@
 
 import { auth } from "@/auth";
 import { db } from "@/db";
+import { users } from "@/db/schema/auth";
 import {
   profiles,
+  projects,
   type ProfileAvailability,
   type ProfileLinks,
 } from "@/db/schema/profile";
@@ -184,5 +186,56 @@ export async function checkHandleAvailabilityAction(handle: string) {
     available,
     handle: slugifiedHandle,
     isOwnHandle: isOwnHandle || false,
+  };
+}
+
+/**
+ * Fetch a comprehensive user profile with projects
+ */
+export async function getFullUserProfile(
+  identifier: { userId: string } | { handle: string },
+) {
+  const condition =
+    "userId" in identifier
+      ? eq(users.id, identifier.userId)
+      : eq(profiles.handle, identifier.handle);
+
+  const [result] = await db
+    .select({
+      user: users,
+      profile: profiles,
+    })
+    .from(users)
+    .leftJoin(profiles, eq(users.id, profiles.userId))
+    .where(condition)
+    .limit(1);
+
+  if (!result || !result.profile) {
+    return null;
+  }
+
+  const userProjects = await db
+    .select()
+    .from(projects)
+    .where(eq(projects.userId, result.user.id));
+
+  // We need email for sending, so let's ensure it's there.
+  if (!result.user.email) {
+    return null;
+  }
+
+  return {
+    id: result.user.id,
+    name: result.user.name,
+    email: result.user.email,
+    image: result.user.image,
+    ...result.profile,
+    projects: userProjects.map((p) => ({
+      name: p.name,
+      url: p.url,
+      githubUrl: p.githubUrl,
+      oneliner: p.oneliner,
+      description: p.description,
+    })),
   };
 }
