@@ -1,6 +1,6 @@
 - how to best do hybrid search? BM25 + our vector + rerank?
 
-- search the projects, not just profile?
+
 
 - display link to the user's github
 
