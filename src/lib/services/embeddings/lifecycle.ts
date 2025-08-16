@@ -1,4 +1,7 @@
-import { generateProfileEmbedding, generateProjectEmbedding } from "./profile-embeddings";
+import {
+  generateProfileEmbedding,
+  generateProjectEmbedding,
+} from "./profile-embeddings";
 
 /**
  * Embedding lifecycle management
@@ -23,16 +26,16 @@ let isProcessing = false;
 function queueEmbeddingUpdate(type: "profile" | "project", id: string) {
   // Check if already in queue
   const exists = embeddingQueue.some(
-    item => item.type === type && item.id === id
+    (item) => item.type === type && item.id === id,
   );
-  
+
   if (!exists) {
     embeddingQueue.push({
       type,
       id,
       timestamp: Date.now(),
     });
-    
+
     // Start processing if not already running
     if (!isProcessing) {
       processQueue();
@@ -47,13 +50,13 @@ async function processQueue() {
   if (isProcessing || embeddingQueue.length === 0) {
     return;
   }
-  
+
   isProcessing = true;
-  
+
   while (embeddingQueue.length > 0) {
     const item = embeddingQueue.shift();
     if (!item) continue;
-    
+
     try {
       if (item.type === "profile") {
         await generateProfileEmbedding(item.id);
@@ -61,14 +64,17 @@ async function processQueue() {
         await generateProjectEmbedding(item.id);
       }
     } catch (error) {
-      console.error(`Failed to process embedding for ${item.type} ${item.id}:`, error);
+      console.error(
+        `Failed to process embedding for ${item.type} ${item.id}:`,
+        error,
+      );
       // Could implement retry logic here
     }
-    
+
     // Small delay between processing to avoid rate limits
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  
+
   isProcessing = false;
 }
 
@@ -82,7 +88,10 @@ export async function onProfileChange(userId: string, isImmediate = false) {
     try {
       await generateProfileEmbedding(userId);
     } catch (error) {
-      console.error(`Failed to generate embedding for profile ${userId}:`, error);
+      console.error(
+        `Failed to generate embedding for profile ${userId}:`,
+        error,
+      );
     }
   } else {
     // Queue for background processing
@@ -99,7 +108,10 @@ export async function onProjectChange(projectId: string, isImmediate = false) {
     try {
       await generateProjectEmbedding(projectId);
     } catch (error) {
-      console.error(`Failed to generate embedding for project ${projectId}:`, error);
+      console.error(
+        `Failed to generate embedding for project ${projectId}:`,
+        error,
+      );
     }
   } else {
     // Queue for background processing
@@ -120,19 +132,21 @@ export async function onProjectDelete(userId: string) {
  * Middleware wrapper for profile operations
  * Use this to wrap your existing profile update/create functions
  */
-export function withProfileEmbedding<T extends (...args: any[]) => Promise<any>>(
+export function withProfileEmbedding<
+  T extends (...args: never[]) => Promise<unknown>,
+>(
   fn: T,
-  getUserId: (args: Parameters<T>, result: Awaited<ReturnType<T>>) => string | undefined
+  getUserId: (args: Parameters<T>, result: unknown) => string | undefined,
 ): T {
   return (async (...args: Parameters<T>) => {
     const result = await fn(...args);
-    
+
     const userId = getUserId(args, result);
     if (userId) {
       // Queue embedding update in background
       onProfileChange(userId, false);
     }
-    
+
     return result;
   }) as T;
 }
@@ -140,25 +154,30 @@ export function withProfileEmbedding<T extends (...args: any[]) => Promise<any>>
 /**
  * Middleware wrapper for project operations
  */
-export function withProjectEmbedding<T extends (...args: any[]) => Promise<any>>(
+export function withProjectEmbedding<
+  T extends (...args: never[]) => Promise<unknown>,
+>(
   fn: T,
-  getIds: (args: Parameters<T>, result: Awaited<ReturnType<T>>) => { projectId?: string; userId?: string }
+  getIds: (
+    args: Parameters<T>,
+    result: unknown,
+  ) => { projectId?: string; userId?: string },
 ): T {
   return (async (...args: Parameters<T>) => {
     const result = await fn(...args);
-    
+
     const { projectId, userId } = getIds(args, result);
-    
+
     if (projectId) {
       // Queue project embedding update
       onProjectChange(projectId, false);
     }
-    
+
     if (userId) {
       // Also update profile embedding since projects affect profile content
       onProfileChange(userId, false);
     }
-    
+
     return result;
   }) as T;
 }
@@ -169,11 +188,13 @@ export function withProjectEmbedding<T extends (...args: any[]) => Promise<any>>
  */
 export function initializeEmbeddingLifecycle() {
   console.log("Embedding lifecycle management initialized");
-  
+
   // Could set up periodic processing here if needed
   setInterval(() => {
     if (embeddingQueue.length > 0 && !isProcessing) {
-      console.log(`Processing ${embeddingQueue.length} pending embedding updates`);
+      console.log(
+        `Processing ${embeddingQueue.length} pending embedding updates`,
+      );
       processQueue();
     }
   }, 30000); // Check every 30 seconds

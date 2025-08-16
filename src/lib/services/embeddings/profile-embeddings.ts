@@ -1,5 +1,11 @@
 import { db } from "@/db";
-import { profiles, projects, profileEmbeddings, projectEmbeddings, embeddingLogs } from "@/db/schema/profile";
+import {
+  profiles,
+  projects,
+  profileEmbeddings,
+  projectEmbeddings,
+  embeddingLogs,
+} from "@/db/schema/profile";
 import { eq } from "drizzle-orm";
 import { generateEmbeddings } from "./embeddings";
 import crypto from "crypto";
@@ -39,59 +45,62 @@ export interface ProjectData {
  * Generate content string for profile embedding
  * This creates a rich text representation of the profile for semantic search
  */
-export function buildProfileEmbeddingContent(profile: ProfileWithProjects): string {
+export function buildProfileEmbeddingContent(
+  profile: ProfileWithProjects,
+): string {
   const parts: string[] = [];
-  
+
   // Core identity
   if (profile.displayName) {
     parts.push(profile.displayName);
   }
-  
+
   if (profile.headline) {
     parts.push(profile.headline);
   }
-  
+
   // Location
   if (profile.location) {
     parts.push(`Based in ${profile.location}`);
   }
-  
+
   // Skills
   if (profile.skills && profile.skills.length > 0) {
     parts.push(`Skills: ${profile.skills.join(", ")}`);
   }
-  
+
   // Interests
   if (profile.interests && profile.interests.length > 0) {
     parts.push(`Interests: ${profile.interests.join(", ")}`);
   }
-  
+
   // Bio
   if (profile.bio) {
     parts.push(profile.bio);
   }
-  
+
   // Availability
   const availabilityParts: string[] = [];
   if (profile.availability?.hire) availabilityParts.push("available for hire");
-  if (profile.availability?.collab) availabilityParts.push("open to collaboration");
+  if (profile.availability?.collab)
+    availabilityParts.push("open to collaboration");
   if (profile.availability?.hiring) availabilityParts.push("hiring");
   if (availabilityParts.length > 0) {
     parts.push(`Currently ${availabilityParts.join(" and ")}`);
   }
-  
+
   // Projects
   if (profile.projects && profile.projects.length > 0) {
     const projectDescriptions = profile.projects
       .slice(0, 3) // Include top 3 projects
-      .map(p => {
+      .map((p) => {
         const projectParts = [p.name];
         if (p.oneliner) projectParts.push(p.oneliner);
         return projectParts.join(": ");
       });
     parts.push(`Projects: ${projectDescriptions.join(". ")}`);
   }
-  
+
   return parts.filter(Boolean).join(". ");
 }
 
@@ -100,21 +109,21 @@ export function buildProfileEmbeddingContent(profile: ProfileWithProjects): stri
  */
 export function buildProjectEmbeddingContent(
   project: ProjectData,
-  ownerProfile?: { displayName: string | null; location: string | null }
+  ownerProfile?: { displayName: string | null; location: string | null },
 ): string {
   const parts: string[] = [];
-  
+
   // Project name and tagline
   parts.push(project.name);
   if (project.oneliner) {
     parts.push(project.oneliner);
   }
-  
+
   // Full description
   if (project.description) {
     parts.push(project.description);
   }
-  
+
   // Add context about the creator if available
   if (ownerProfile) {
     const contextParts: string[] = [];
@@ -128,7 +137,7 @@ export function buildProjectEmbeddingContent(
       parts.push(contextParts.join(" "));
     }
   }
-  
+
   return parts.filter(Boolean).join(". ");
 }
 
@@ -144,7 +153,7 @@ function calculateContentHash(content: string): string {
  */
 export async function generateProfileEmbedding(userId: string): Promise<void> {
   const startTime = Date.now();
-  
+
   try {
     // Fetch profile with projects
     const profileData = await db
@@ -162,13 +171,13 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
       .from(profiles)
       .where(eq(profiles.userId, userId))
       .limit(1);
-    
+
     if (profileData.length === 0) {
       throw new Error(`Profile not found for userId: ${userId}`);
     }
-    
+
     const profile = profileData[0];
-    
+
     // Fetch user's projects
     const userProjects = await db
       .select({
@@ -180,16 +189,16 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
       .where(eq(projects.userId, userId))
       .orderBy(projects.featured, projects.createdAt)
       .limit(3);
-    
+
     const profileWithProjects: ProfileWithProjects = {
       ...profile,
       projects: userProjects,
     };
-    
+
     // Generate content and hash
     const content = buildProfileEmbeddingContent(profileWithProjects);
     const contentHash = calculateContentHash(content);
-    
+
     // Check if embedding exists and if content has changed
     const existingEmbedding = await db
       .select({
@@ -199,21 +208,26 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
       .from(profileEmbeddings)
       .where(eq(profileEmbeddings.userId, userId))
       .limit(1);
-    
+
     // Skip if content hasn't changed
-    if (existingEmbedding.length > 0 && existingEmbedding[0].contentHash === contentHash) {
-      console.log(`Skipping embedding generation for ${userId} - content unchanged`);
+    if (
+      existingEmbedding.length > 0 &&
+      existingEmbedding[0].contentHash === contentHash
+    ) {
+      console.log(
+        `Skipping embedding generation for ${userId} - content unchanged`,
+      );
       return;
     }
-    
+
     // Generate new embedding
     const embeddingResponse = await generateEmbeddings({
       input: content,
       model: "@cf/baai/bge-m3",
     });
-    
+
     const embedding = embeddingResponse.embeddings[0];
-    
+
     // Upsert embedding
     if (existingEmbedding.length > 0) {
       // Update existing
@@ -236,7 +250,7 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
         embeddingModel: "@cf/baai/bge-m3",
       });
     }
-    
+
     // Log success
     const processingTimeMs = Date.now() - startTime;
     await db.insert(embeddingLogs).values({
@@ -246,8 +260,10 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
       contentHash,
       processingTimeMs,
     });
-    
-    console.log(`Generated embedding for profile ${userId} in ${processingTimeMs}ms`);
+
+    console.log(
+      `Generated embedding for profile ${userId} in ${processingTimeMs}ms`,
+    );
   } catch (error) {
     // Log error
     await db.insert(embeddingLogs).values({
@@ -257,7 +273,7 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
       error: error instanceof Error ? error.message : "Unknown error",
       processingTimeMs: Date.now() - startTime,
     });
-    
+
     console.error(`Failed to generate embedding for profile ${userId}:`, error);
     throw error;
   }
@@ -266,9 +282,11 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
 /**
  * Generate or update embedding for a project
  */
-export async function generateProjectEmbedding(projectId: string): Promise<void> {
+export async function generateProjectEmbedding(
+  projectId: string,
+): Promise<void> {
   const startTime = Date.now();
-  
+
   try {
     // Fetch project with owner profile
     const projectData = await db
@@ -286,13 +304,13 @@ export async function generateProjectEmbedding(projectId: string): Promise<void>
       .leftJoin(profiles, eq(projects.userId, profiles.userId))
       .where(eq(projects.id, projectId))
       .limit(1);
-    
+
     if (projectData.length === 0) {
       throw new Error(`Project not found for projectId: ${projectId}`);
     }
-    
+
     const project = projectData[0];
-    
+
     // Generate content and hash
     const content = buildProjectEmbeddingContent(
       {
@@ -306,10 +324,10 @@ export async function generateProjectEmbedding(projectId: string): Promise<void>
       {
         displayName: project.ownerDisplayName,
         location: project.ownerLocation,
-      }
+      },
     );
     const contentHash = calculateContentHash(content);
-    
+
     // Check if embedding exists and if content has changed
     const existingEmbedding = await db
       .select({
@@ -319,21 +337,26 @@ export async function generateProjectEmbedding(projectId: string): Promise<void>
       .from(projectEmbeddings)
       .where(eq(projectEmbeddings.projectId, projectId))
       .limit(1);
-    
+
     // Skip if content hasn't changed
-    if (existingEmbedding.length > 0 && existingEmbedding[0].contentHash === contentHash) {
-      console.log(`Skipping embedding generation for project ${projectId} - content unchanged`);
+    if (
+      existingEmbedding.length > 0 &&
+      existingEmbedding[0].contentHash === contentHash
+    ) {
+      console.log(
+        `Skipping embedding generation for project ${projectId} - content unchanged`,
+      );
       return;
     }
-    
+
     // Generate new embedding
     const embeddingResponse = await generateEmbeddings({
       input: content,
       model: "@cf/baai/bge-m3",
     });
-    
+
     const embedding = embeddingResponse.embeddings[0];
-    
+
     // Upsert embedding
     if (existingEmbedding.length > 0) {
       // Update existing
@@ -357,7 +380,7 @@ export async function generateProjectEmbedding(projectId: string): Promise<void>
         embeddingModel: "@cf/baai/bge-m3",
       });
     }
-    
+
     // Log success
     const processingTimeMs = Date.now() - startTime;
     await db.insert(embeddingLogs).values({
@@ -367,8 +390,10 @@ export async function generateProjectEmbedding(projectId: string): Promise<void>
       contentHash,
       processingTimeMs,
     });
-    
-    console.log(`Generated embedding for project ${projectId} in ${processingTimeMs}ms`);
+
+    console.log(
+      `Generated embedding for project ${projectId} in ${processingTimeMs}ms`,
+    );
   } catch (error) {
     // Log error
     await db.insert(embeddingLogs).values({
@@ -378,8 +403,11 @@ export async function generateProjectEmbedding(projectId: string): Promise<void>
       error: error instanceof Error ? error.message : "Unknown error",
       processingTimeMs: Date.now() - startTime,
     });
-    
-    console.error(`Failed to generate embedding for project ${projectId}:`, error);
+
+    console.error(
+      `Failed to generate embedding for project ${projectId}:`,
+      error,
+    );
     throw error;
   }
 }
@@ -392,25 +420,28 @@ export async function generateAllProfileEmbeddings(): Promise<void> {
   const allProfiles = await db
     .select({ userId: profiles.userId })
     .from(profiles);
-  
+
   console.log(`Generating embeddings for ${allProfiles.length} profiles...`);
-  
+
   let successCount = 0;
   let errorCount = 0;
-  
+
   for (const profile of allProfiles) {
     try {
       await generateProfileEmbedding(profile.userId);
       successCount++;
     } catch (error) {
-      console.error(`Failed to generate embedding for ${profile.userId}:`, error);
+      console.error(
+        `Failed to generate embedding for ${profile.userId}:`,
+        error,
+      );
       errorCount++;
     }
-    
+
     // Add a small delay to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  
+
   console.log(`Completed: ${successCount} successful, ${errorCount} errors`);
 }
 
@@ -418,15 +449,13 @@ export async function generateAllProfileEmbeddings(): Promise<void> {
  * Batch generate embeddings for all projects
  */
 export async function generateAllProjectEmbeddings(): Promise<void> {
-  const allProjects = await db
-    .select({ id: projects.id })
-    .from(projects);
-  
+  const allProjects = await db.select({ id: projects.id }).from(projects);
+
   console.log(`Generating embeddings for ${allProjects.length} projects...`);
-  
+
   let successCount = 0;
   let errorCount = 0;
-  
+
   for (const project of allProjects) {
     try {
       await generateProjectEmbedding(project.id);
@@ -435,10 +464,10 @@ export async function generateAllProjectEmbeddings(): Promise<void> {
       console.error(`Failed to generate embedding for ${project.id}:`, error);
       errorCount++;
     }
-    
+
     // Add a small delay to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  
+
   console.log(`Completed: ${successCount} successful, ${errorCount} errors`);
 }

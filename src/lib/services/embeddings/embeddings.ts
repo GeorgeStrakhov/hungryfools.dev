@@ -2,6 +2,8 @@ import OpenAI from "openai";
 
 let openaiClient: OpenAI | null = null;
 
+// Unused function - keeping for potential future use
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     if (!process.env.CLOUDFLARE_API_KEY || !process.env.CLOUDFLARE_ACCOUNT_ID) {
@@ -76,11 +78,11 @@ export async function generateEmbeddings(
   try {
     // Use direct Cloudflare Workers AI API call instead of OpenAI wrapper
     const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/run/${model}`;
-    
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.CLOUDFLARE_API_KEY}`,
+        Authorization: `Bearer ${process.env.CLOUDFLARE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -90,13 +92,17 @@ export async function generateEmbeddings(
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Cloudflare API error (${response.status}): ${errorText}`);
+      throw new Error(
+        `Cloudflare API error (${response.status}): ${errorText}`,
+      );
     }
 
     const result = await response.json();
-    
+
     if (!result.success || !result.result?.data) {
-      throw new Error(`Invalid response from Cloudflare API: ${JSON.stringify(result)}`);
+      throw new Error(
+        `Invalid response from Cloudflare API: ${JSON.stringify(result)}`,
+      );
     }
 
     const embeddings = result.result.data;

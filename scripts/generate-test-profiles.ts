@@ -9,7 +9,10 @@ import { db } from "@/db";
 import { users } from "@/db/schema/auth";
 import { profiles, projects } from "@/db/schema/profile";
 import { answerStructured } from "@/lib/services/llm/llm";
-import { generateProfileEmbedding, generateProjectEmbedding } from "@/lib/services/embeddings/profile-embeddings";
+import {
+  generateProfileEmbedding,
+  generateProjectEmbedding,
+} from "@/lib/services/embeddings/profile-embeddings";
 import { z } from "zod";
 import crypto from "crypto";
 
@@ -24,13 +27,18 @@ const GeneratedProfileSchema = z.object({
   availableForHire: z.boolean(),
   openToCollaboration: z.boolean(),
   currentlyHiring: z.boolean(),
-  projects: z.array(z.object({
-    name: z.string(),
-    oneliner: z.string(),
-    description: z.string(),
-    url: z.string().optional(),
-    githubUrl: z.string().optional(),
-  })).min(1).max(3),
+  projects: z
+    .array(
+      z.object({
+        name: z.string(),
+        oneliner: z.string(),
+        description: z.string(),
+        url: z.string().optional(),
+        githubUrl: z.string().optional(),
+      }),
+    )
+    .min(1)
+    .max(3),
 });
 
 type GeneratedProfile = z.infer<typeof GeneratedProfileSchema>;
@@ -111,16 +119,66 @@ const PROFILE_ARCHETYPES = [
 
 // Technologies pool
 const TECH_STACK = {
-  languages: ["TypeScript", "Python", "Go", "Rust", "JavaScript", "Java", "C++", "Swift"],
-  frontend: ["Next.js", "React", "Vue", "Svelte", "Tailwind", "Framer Motion", "Three.js"],
-  backend: ["Node.js", "FastAPI", "Django", "Rails", "Express", "Nest.js", "GraphQL"],
-  databases: ["PostgreSQL", "MongoDB", "Redis", "DynamoDB", "Pinecone", "Qdrant"],
-  ai: ["OpenAI", "Anthropic", "LangChain", "Transformers", "PyTorch", "TensorFlow", "Ollama"],
+  languages: [
+    "TypeScript",
+    "Python",
+    "Go",
+    "Rust",
+    "JavaScript",
+    "Java",
+    "C++",
+    "Swift",
+  ],
+  frontend: [
+    "Next.js",
+    "React",
+    "Vue",
+    "Svelte",
+    "Tailwind",
+    "Framer Motion",
+    "Three.js",
+  ],
+  backend: [
+    "Node.js",
+    "FastAPI",
+    "Django",
+    "Rails",
+    "Express",
+    "Nest.js",
+    "GraphQL",
+  ],
+  databases: [
+    "PostgreSQL",
+    "MongoDB",
+    "Redis",
+    "DynamoDB",
+    "Pinecone",
+    "Qdrant",
+  ],
+  ai: [
+    "OpenAI",
+    "Anthropic",
+    "LangChain",
+    "Transformers",
+    "PyTorch",
+    "TensorFlow",
+    "Ollama",
+  ],
   cloud: ["AWS", "Vercel", "Cloudflare", "GCP", "Azure", "Fly.io", "Railway"],
-  tools: ["Docker", "Kubernetes", "Git", "GitHub Actions", "Terraform", "CI/CD"],
+  tools: [
+    "Docker",
+    "Kubernetes",
+    "Git",
+    "GitHub Actions",
+    "Terraform",
+    "CI/CD",
+  ],
 };
 
-async function generateProfile(archetype: typeof PROFILE_ARCHETYPES[0], index: number): Promise<GeneratedProfile> {
+async function generateProfile(
+  archetype: (typeof PROFILE_ARCHETYPES)[0],
+  index: number,
+): Promise<GeneratedProfile> {
   const systemPrompt = `You are generating a realistic developer profile for a directory of AI-first developers.
 The profile should be authentic, diverse, and interesting. Make it feel like a real person with genuine interests and projects.
 Important: Generate varied and creative content - avoid repetitive patterns or generic descriptions.`;
@@ -156,7 +214,7 @@ Be creative and make this person feel real and interesting. Avoid generic descri
 
 async function createTestUser(email: string, name: string): Promise<string> {
   const userId = crypto.randomUUID();
-  
+
   await db.insert(users).values({
     id: userId,
     email,
@@ -164,38 +222,41 @@ async function createTestUser(email: string, name: string): Promise<string> {
     image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
     emailVerified: new Date(),
   });
-  
+
   return userId;
 }
 
 async function main() {
   console.log("🚀 Starting test profile generation...\n");
-  
+
   const numberOfProfiles = 5; // Generate 5 profiles for testing
   const successfulProfiles: string[] = [];
   const failedProfiles: string[] = [];
-  
+
   for (let i = 0; i < numberOfProfiles; i++) {
     const archetype = PROFILE_ARCHETYPES[i % PROFILE_ARCHETYPES.length];
     const profileNumber = i + 1;
-    
+
     try {
-      console.log(`📝 Generating profile ${profileNumber}/${numberOfProfiles} (${archetype.type})...`);
-      
+      console.log(
+        `📝 Generating profile ${profileNumber}/${numberOfProfiles} (${archetype.type})...`,
+      );
+
       // Generate profile data using LLM
       const generatedData = await generateProfile(archetype, i);
-      
+
       // Create test user with timestamp to avoid duplicates
       const timestamp = Date.now();
       const email = `test.user${profileNumber}.${timestamp}@hungryfools.dev`;
       const userId = await createTestUser(email, generatedData.displayName);
-      
+
       // Create handle from name
-      const handle = generatedData.displayName
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "")
-        .slice(0, 20) + profileNumber;
-      
+      const handle =
+        generatedData.displayName
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "")
+          .slice(0, 20) + profileNumber;
+
       // Insert profile
       await db.insert(profiles).values({
         userId,
@@ -217,10 +278,12 @@ async function main() {
           website: generatedData.projects[0]?.url || undefined,
         },
         showcase: true,
-        createdAt: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000), // Random date in last 90 days
+        createdAt: new Date(
+          Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000,
+        ), // Random date in last 90 days
         updatedAt: new Date(),
       });
-      
+
       // Create projects for this user
       for (const projectData of generatedData.projects) {
         const projectId = crypto.randomUUID();
@@ -229,7 +292,7 @@ async function main() {
           .replace(/[^a-z0-9]/g, "-")
           .replace(/-+/g, "-")
           .replace(/^-|-$/g, "");
-        
+
         await db.insert(projects).values({
           id: projectId,
           userId,
@@ -241,44 +304,51 @@ async function main() {
           githubUrl: projectData.githubUrl || null,
           featured: Math.random() > 0.7, // 30% chance of being featured
           media: [], // No media for test profiles
-          createdAt: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000), // Random date in last 60 days
+          createdAt: new Date(
+            Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000,
+          ), // Random date in last 60 days
           updatedAt: new Date(),
         });
-        
+
         // Generate project embedding
-        console.log(`   🔸 Generating embedding for project: ${projectData.name}`);
+        console.log(
+          `   🔸 Generating embedding for project: ${projectData.name}`,
+        );
         await generateProjectEmbedding(projectId);
       }
-      
+
       // Generate profile embedding
-      console.log(`   🔸 Generating embedding for profile: ${generatedData.displayName}`);
+      console.log(
+        `   🔸 Generating embedding for profile: ${generatedData.displayName}`,
+      );
       await generateProfileEmbedding(userId);
-      
+
       successfulProfiles.push(generatedData.displayName);
-      console.log(`   ✅ Created profile: ${generatedData.displayName} (@${handle})\n`);
-      
+      console.log(
+        `   ✅ Created profile: ${generatedData.displayName} (@${handle})\n`,
+      );
+
       // Add delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
       console.error(`   ❌ Failed to create profile ${profileNumber}:`, error);
       failedProfiles.push(`Profile ${profileNumber}`);
     }
   }
-  
+
   console.log("\n📊 Generation Summary:");
   console.log(`✅ Successfully created: ${successfulProfiles.length} profiles`);
   if (failedProfiles.length > 0) {
     console.log(`❌ Failed: ${failedProfiles.length} profiles`);
   }
-  
+
   console.log("\n🎯 Test queries to try:");
   console.log("- 'AI developers in Berlin'");
   console.log("- 'Next.js experts who like music'");
   console.log("- 'Mastra.ai developers'");
   console.log("- 'Python developers building automation'");
   console.log("- 'Engineers interested in climbing'");
-  
+
   process.exit(0);
 }
 

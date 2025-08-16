@@ -174,7 +174,8 @@ export async function createOrUpdateProfileAction(input: Input) {
 
   // Trigger embedding generation for the profile
   // Use immediate mode for new profiles, queued for updates
-  const isNewProfile = !existingSameHandle[0] || existingSameHandle[0].userId !== session.user.id;
+  const isNewProfile =
+    !existingSameHandle[0] || existingSameHandle[0].userId !== session.user.id;
   await onProfileChange(session.user.id, isNewProfile);
 }
 

@@ -64,9 +64,7 @@ export function SearchInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    if (controlled) {
-      setValue(newValue);
-    }
+    setValue(newValue); // Always update internal state for consistent behavior
     onChange?.(newValue);
   };
 

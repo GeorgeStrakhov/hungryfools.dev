@@ -125,9 +125,9 @@ export const profileEmbeddings = pgTable(
     // HNSW index for fast similarity search
     embeddingIdx: index("profile_embeddings_embedding_idx").using(
       "hnsw",
-      table.embedding.op("vector_cosine_ops")
+      table.embedding.op("vector_cosine_ops"),
     ),
-  })
+  }),
 );
 
 export const projectEmbeddings = pgTable(
@@ -152,12 +152,14 @@ export const projectEmbeddings = pgTable(
       .notNull(),
   },
   (table) => ({
-    projectIdx: uniqueIndex("project_embeddings_project_idx").on(table.projectId),
+    projectIdx: uniqueIndex("project_embeddings_project_idx").on(
+      table.projectId,
+    ),
     embeddingIdx: index("project_embeddings_embedding_idx").using(
       "hnsw",
-      table.embedding.op("vector_cosine_ops")
+      table.embedding.op("vector_cosine_ops"),
     ),
-  })
+  }),
 );
 
 // Track embedding generation for monitoring/debugging

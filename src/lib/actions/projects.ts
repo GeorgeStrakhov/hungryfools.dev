@@ -8,7 +8,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { validateFields } from "@/lib/moderation/server";
-import { onProjectChange, onProjectDelete } from "@/lib/services/embeddings/lifecycle";
+import {
+  onProjectChange,
+  onProjectDelete,
+} from "@/lib/services/embeddings/lifecycle";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required").max(100),
