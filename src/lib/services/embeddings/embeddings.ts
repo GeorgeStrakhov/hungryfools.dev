@@ -67,14 +67,39 @@ export async function generateEmbeddings(
     throw new Error("Input contains empty strings");
   }
 
+  if (!process.env.CLOUDFLARE_API_KEY || !process.env.CLOUDFLARE_ACCOUNT_ID) {
+    throw new Error(
+      "Missing required environment variables: CLOUDFLARE_API_KEY and CLOUDFLARE_ACCOUNT_ID",
+    );
+  }
+
   try {
-    const openai = getOpenAIClient();
-    const response = await openai.embeddings.create({
-      model,
-      input: inputs,
+    // Use direct Cloudflare Workers AI API call instead of OpenAI wrapper
+    const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/run/${model}`;
+    
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.CLOUDFLARE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: inputs,
+      }),
     });
 
-    const embeddings = response.data.map((item) => item.embedding);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Cloudflare API error (${response.status}): ${errorText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success || !result.result?.data) {
+      throw new Error(`Invalid response from Cloudflare API: ${JSON.stringify(result)}`);
+    }
+
+    const embeddings = result.result.data;
 
     return {
       embeddings,

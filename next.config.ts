@@ -5,10 +5,15 @@ const nextConfig: NextConfig = {
   // Allow MDX files to be routed/imported
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   images: {
+    dangerouslyAllowSVG: true,
     remotePatterns: [
       {
         protocol: "https",
         hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "api.dicebear.com",
       },
     ],
   },

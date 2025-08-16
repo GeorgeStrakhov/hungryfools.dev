@@ -5,6 +5,9 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  index,
+  integer,
+  vector,
 } from "drizzle-orm/pg-core";
 import { users } from "@/db/schema/auth";
 
@@ -91,3 +94,84 @@ export const projects = pgTable(
     },
   ],
 );
+
+// Embedding tables for intelligent search
+export const profileEmbeddings = pgTable(
+  "profile_embeddings",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // BGE-M3 produces 1024-dimensional vectors
+    embedding: vector("embedding", { dimensions: 1024 }).notNull(),
+    // Track content changes to avoid unnecessary regeneration
+    contentHash: text("contentHash").notNull(),
+    // Store the content used for debugging/inspection
+    contentPreview: text("contentPreview").notNull(),
+    // Metadata
+    embeddingModel: text("embeddingModel").notNull().default("@cf/baai/bge-m3"),
+    createdAt: timestamp("createdAt", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updatedAt", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdx: uniqueIndex("profile_embeddings_user_idx").on(table.userId),
+    // HNSW index for fast similarity search
+    embeddingIdx: index("profile_embeddings_embedding_idx").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops")
+    ),
+  })
+);
+
+export const projectEmbeddings = pgTable(
+  "project_embeddings",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    projectId: text("projectId")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    userId: text("userId").notNull(), // Denormalized for easier joins
+    embedding: vector("embedding", { dimensions: 1024 }).notNull(),
+    contentHash: text("contentHash").notNull(),
+    contentPreview: text("contentPreview").notNull(),
+    embeddingModel: text("embeddingModel").notNull().default("@cf/baai/bge-m3"),
+    createdAt: timestamp("createdAt", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updatedAt", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    projectIdx: uniqueIndex("project_embeddings_project_idx").on(table.projectId),
+    embeddingIdx: index("project_embeddings_embedding_idx").using(
+      "hnsw",
+      table.embedding.op("vector_cosine_ops")
+    ),
+  })
+);
+
+// Track embedding generation for monitoring/debugging
+export const embeddingLogs = pgTable("embedding_logs", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  entityType: text("entityType").notNull(), // 'profile' or 'project'
+  entityId: text("entityId").notNull(),
+  action: text("action").notNull(), // 'created', 'updated', 'failed'
+  contentHash: text("contentHash"),
+  error: text("error"),
+  processingTimeMs: integer("processingTimeMs"),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

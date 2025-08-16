@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { validateFields } from "@/lib/moderation/server";
+import { onProjectChange, onProjectDelete } from "@/lib/services/embeddings/lifecycle";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required").max(100),
@@ -99,7 +100,7 @@ export async function createProject(data: unknown) {
 
   const now = new Date();
 
-  await db
+  const [newProject] = await db
     .insert(projects)
     .values({
       userId: session.user.id,
@@ -115,6 +116,11 @@ export async function createProject(data: unknown) {
       updatedAt: now,
     })
     .returning();
+
+  // Trigger embedding generation for the new project
+  if (newProject) {
+    await onProjectChange(newProject.id, true); // Immediate mode for new projects
+  }
 
   // Get user's handle for redirect
   const [profile] = await db
@@ -213,6 +219,9 @@ export async function updateProject(projectId: string, data: unknown) {
     })
     .where(eq(projects.id, projectId));
 
+  // Trigger embedding update for the project
+  await onProjectChange(projectId, false); // Queued mode for updates
+
   // Get user's handle for redirect
   const [profile] = await db
     .select()
@@ -256,6 +265,9 @@ export async function deleteProject(projectId: string) {
   // }
 
   await db.delete(projects).where(eq(projects.id, projectId));
+
+  // Update profile embedding since project list changed
+  await onProjectDelete(session.user.id);
 
   // Get user's handle for revalidation and redirect
   const [profile] = await db

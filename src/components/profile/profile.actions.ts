@@ -19,6 +19,7 @@ import {
   PROFILE_MODERATION_PROMPT,
 } from "@/lib/profile-utils";
 import { z } from "zod";
+import { onProfileChange } from "@/lib/services/embeddings/lifecycle";
 
 type Input = {
   handle?: string;
@@ -170,6 +171,11 @@ export async function createOrUpdateProfileAction(input: Input) {
       target: profiles.userId,
       set: values,
     });
+
+  // Trigger embedding generation for the profile
+  // Use immediate mode for new profiles, queued for updates
+  const isNewProfile = !existingSameHandle[0] || existingSameHandle[0].userId !== session.user.id;
+  await onProfileChange(session.user.id, isNewProfile);
 }
 
 export async function getOwnProfileAction() {
