@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { searchDirectory, type DirectorySearchResult } from "@/app/actions/search";
+import {
+  searchDirectory,
+  type DirectorySearchResult,
+} from "@/app/actions/search";
 import { DirectorySearch } from "./directory-search";
 
 interface DirectorySearchContainerProps {
@@ -13,7 +16,9 @@ interface DirectorySearchContainerProps {
   };
 }
 
-export function DirectorySearchContainer({ searchParams }: DirectorySearchContainerProps) {
+export function DirectorySearchContainer({
+  searchParams,
+}: DirectorySearchContainerProps) {
   const [initialData, setInitialData] = useState<{
     query: string;
     results: DirectorySearchResult[];
@@ -37,11 +42,12 @@ export function DirectorySearchContainer({ searchParams }: DirectorySearchContai
     async function loadInitialData() {
       const q = (searchParams.q ?? "").trim();
       const page = Math.max(1, parseInt(searchParams.page ?? "1", 10));
-      const limit = [12, 24, 48].includes(parseInt(searchParams.limit ?? "24", 10)) 
-        ? parseInt(searchParams.limit ?? "24", 10) 
+      const limit = [12, 24, 48].includes(
+        parseInt(searchParams.limit ?? "24", 10),
+      )
+        ? parseInt(searchParams.limit ?? "24", 10)
         : 24;
       const sort = searchParams.sort ?? (q ? "relevance" : "random");
-
 
       try {
         const searchResult = await searchDirectory(q, {
@@ -76,13 +82,18 @@ export function DirectorySearchContainer({ searchParams }: DirectorySearchContai
     }
 
     loadInitialData();
-  }, []); // Only run once on mount
+  }, [
+    searchParams.q,
+    searchParams.page,
+    searchParams.limit,
+    searchParams.sort,
+  ]); // React to URL parameter changes
 
   if (isLoading || !initialData) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
           <p className="text-muted-foreground">Loading directory...</p>
         </div>
       </div>

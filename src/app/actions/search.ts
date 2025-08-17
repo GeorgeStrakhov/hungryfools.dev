@@ -125,7 +125,7 @@ export interface PaginationOptions {
  */
 export async function searchDirectory(
   query: string,
-  options: PaginationOptions = {}
+  options: PaginationOptions = {},
 ): Promise<{
   results: DirectorySearchResult[];
   totalCount: number;
@@ -161,7 +161,11 @@ export async function searchDirectory(
   };
 }> {
   const trimmedQuery = query.trim();
-  const { page = 1, limit = 24, sort = trimmedQuery ? "relevance" : "random" } = options;
+  const {
+    page = 1,
+    limit = 24,
+    sort = trimmedQuery ? "relevance" : "random",
+  } = options;
 
   // If no query, return browse profiles with pagination
   if (!trimmedQuery) {
@@ -258,13 +262,19 @@ export async function searchDirectory(
 
     // Apply strict filters if they exist and have meaningful values
     let finalResults = directoryResults;
-    const hasStrictFilters = searchResult.parsedQuery.strictFilters && (
-      (searchResult.parsedQuery.strictFilters.locations && searchResult.parsedQuery.strictFilters.locations.length > 0) ||
-      (searchResult.parsedQuery.strictFilters.skills && searchResult.parsedQuery.strictFilters.skills.length > 0) ||
-      (searchResult.parsedQuery.strictFilters.companies && searchResult.parsedQuery.strictFilters.companies.length > 0) ||
-      (searchResult.parsedQuery.strictFilters.availability && Object.values(searchResult.parsedQuery.strictFilters.availability).some(v => v === true))
-    );
-    
+    const hasStrictFilters =
+      searchResult.parsedQuery.strictFilters &&
+      ((searchResult.parsedQuery.strictFilters.locations &&
+        searchResult.parsedQuery.strictFilters.locations.length > 0) ||
+        (searchResult.parsedQuery.strictFilters.skills &&
+          searchResult.parsedQuery.strictFilters.skills.length > 0) ||
+        (searchResult.parsedQuery.strictFilters.companies &&
+          searchResult.parsedQuery.strictFilters.companies.length > 0) ||
+        (searchResult.parsedQuery.strictFilters.availability &&
+          Object.values(
+            searchResult.parsedQuery.strictFilters.availability,
+          ).some((v) => v === true)));
+
     if (hasStrictFilters) {
       console.log(
         "Applying strict filters:",
@@ -373,7 +383,7 @@ async function fallbackSearch(options: PaginationOptions): Promise<{
  */
 function sortResults(
   results: DirectorySearchResult[],
-  sort: "recent" | "name" | "random"
+  sort: "recent" | "name" | "random",
 ): DirectorySearchResult[] {
   switch (sort) {
     case "name":
@@ -417,16 +427,16 @@ async function getBrowseProfiles(options: {
   const totalCount = totalCountResult[0]?.count ?? 0;
 
   // Determine ORDER BY based on sort option
-  const orderByClause = 
-    sort === "name" 
+  const orderByClause =
+    sort === "name"
       ? [asc(profiles.displayName), asc(profiles.handle)]
       : sort === "random"
-      ? [sql`random()`]
-      : [desc(profiles.createdAt)]; // default to recent
+        ? [sql`random()`]
+        : [desc(profiles.createdAt)]; // default to recent
 
   // Get paginated profiles with projects
   const offset = (page - 1) * limit;
-  
+
   // First get distinct profile IDs with pagination
   const profileSubquery = db
     .select({ userId: profiles.userId })
@@ -434,7 +444,7 @@ async function getBrowseProfiles(options: {
     .orderBy(...orderByClause)
     .limit(limit)
     .offset(offset)
-    .as('profileSubquery');
+    .as("profileSubquery");
 
   // Then get full data for these profiles with their projects
   const results = await db

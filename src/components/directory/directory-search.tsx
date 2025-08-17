@@ -42,7 +42,13 @@ export function DirectorySearch({
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchAbortController = useRef<AbortController | undefined>(undefined);
-  const performSearchRef = useRef<(query: string, options?: { page?: number; limit?: number; sort?: string }) => Promise<void>>();
+  const performSearchRef =
+    useRef<
+      (
+        query: string,
+        options?: { page?: number; limit?: number; sort?: string },
+      ) => Promise<void>
+    >(undefined);
   const isInternalUpdateRef = useRef(false);
 
   // Simple input state - only search on explicit user action
@@ -84,21 +90,22 @@ export function DirectorySearch({
   const performSearch = useCallback(
     async (
       query: string,
-      options?: { page?: number; limit?: number; sort?: string }
+      options?: { page?: number; limit?: number; sort?: string },
     ) => {
       // Use provided options or current state
       const searchPage = options?.page ?? page;
       const searchLimit = options?.limit ?? limit;
-      
+
       // Determine appropriate sort: if no sort specified in options, use context-appropriate default
-      const searchSort = options?.sort ?? (query.trim() ? "relevance" : "random");
+      const searchSort =
+        options?.sort ?? (query.trim() ? "relevance" : "random");
 
       // Reset to page 1 if query changed
       const finalPage = query !== searchQuery ? 1 : searchPage;
 
       // Set internal flag BEFORE any state changes to prevent useEffect race condition
       isInternalUpdateRef.current = true;
-      
+
       setSearchQuery(query);
       setIsSearching(true);
 
@@ -107,16 +114,16 @@ export function DirectorySearch({
         if (searchAbortController.current) {
           searchAbortController.current.abort();
         }
-        
+
         // Create new abort controller for this search
         searchAbortController.current = new AbortController();
-        
+
         const searchResult = await searchDirectory(query, {
           page: finalPage,
           limit: searchLimit,
           sort: searchSort as "relevance" | "recent" | "name" | "random",
         });
-        
+
         // Only update state if search wasn't aborted
         if (!searchAbortController.current.signal.aborted) {
           setResults(searchResult.results);
@@ -149,7 +156,7 @@ export function DirectorySearch({
         }
       }
     },
-    [router, searchQuery, page, limit, sort],
+    [router, searchQuery, page, limit],
   );
 
   // Keep ref updated with latest performSearch function
@@ -173,13 +180,13 @@ export function DirectorySearch({
   // Handle URL changes (back/forward navigation)
   useEffect(() => {
     const urlQuery = searchParams.get("q") || "";
-    
+
     // If this was our own URL update, just reset the flag and don't react
     if (isInternalUpdateRef.current) {
       isInternalUpdateRef.current = false;
       return;
     }
-    
+
     // Only trigger search if the query actually changed (not other URL params)
     if (urlQuery !== searchQuery) {
       setInputValue(urlQuery);
@@ -193,23 +200,32 @@ export function DirectorySearch({
   const searchInputKey = searchParams.get("q") || "empty";
 
   // Pagination handlers
-  const handlePageChange = useCallback((newPage: number) => {
-    if (performSearchRef.current) {
-      performSearchRef.current(searchQuery, { page: newPage });
-    }
-  }, [searchQuery]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (performSearchRef.current) {
+        performSearchRef.current(searchQuery, { page: newPage });
+      }
+    },
+    [searchQuery],
+  );
 
-  const handleLimitChange = useCallback((newLimit: number) => {
-    if (performSearchRef.current) {
-      performSearchRef.current(searchQuery, { page: 1, limit: newLimit });
-    }
-  }, [searchQuery]);
+  const handleLimitChange = useCallback(
+    (newLimit: number) => {
+      if (performSearchRef.current) {
+        performSearchRef.current(searchQuery, { page: 1, limit: newLimit });
+      }
+    },
+    [searchQuery],
+  );
 
-  const handleSortChange = useCallback((newSort: string) => {
-    if (performSearchRef.current) {
-      performSearchRef.current(searchQuery, { page: 1, sort: newSort });
-    }
-  }, [searchQuery]);
+  const handleSortChange = useCallback(
+    (newSort: string) => {
+      if (performSearchRef.current) {
+        performSearchRef.current(searchQuery, { page: 1, sort: newSort });
+      }
+    },
+    [searchQuery],
+  );
 
   // Calculate total pages
   const totalPages = Math.ceil(count / limit);

@@ -42,11 +42,13 @@ export function PaginationControls({
   onSortChange,
   isLoading = false,
 }: PaginationControlsProps) {
+  // Note: onLimitChange is intentionally unused as the limit selector is hidden
+  void onLimitChange;
   // Calculate which page numbers to show
   const getPageNumbers = () => {
     const pages: (number | "ellipsis")[] = [];
     const maxVisible = 7; // Max number of page buttons to show
-    
+
     if (totalPages <= maxVisible) {
       // Show all pages if total is small
       for (let i = 1; i <= totalPages; i++) {
@@ -55,29 +57,29 @@ export function PaginationControls({
     } else {
       // Always show first page
       pages.push(1);
-      
+
       if (currentPage > 3) {
         pages.push("ellipsis");
       }
-      
+
       // Show pages around current
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
-      
+
       if (currentPage < totalPages - 2) {
         pages.push("ellipsis");
       }
-      
+
       // Always show last page
       if (totalPages > 1) {
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -100,11 +102,11 @@ export function PaginationControls({
   return (
     <div className="space-y-4">
       {/* Top controls: Sort and Limit */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="text-muted-foreground text-sm">
           Showing {startResult}-{endResult} of {totalCount} results
         </div>
-        
+
         <div className="flex gap-2">
           {/* Sort selector */}
           <Select
@@ -149,10 +151,14 @@ export function PaginationControls({
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => onPageChange(currentPage - 1)}
-                className={currentPage === 1 || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={
+                  currentPage === 1 || isLoading
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
-            
+
             {getPageNumbers().map((pageNum, index) => (
               <PaginationItem key={index}>
                 {pageNum === "ellipsis" ? (
@@ -161,18 +167,26 @@ export function PaginationControls({
                   <PaginationLink
                     onClick={() => onPageChange(pageNum)}
                     isActive={pageNum === currentPage}
-                    className={isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    className={
+                      isLoading
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
                   >
                     {pageNum}
                   </PaginationLink>
                 )}
               </PaginationItem>
             ))}
-            
+
             <PaginationItem>
               <PaginationNext
                 onClick={() => onPageChange(currentPage + 1)}
-                className={currentPage === totalPages || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                className={
+                  currentPage === totalPages || isLoading
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
               />
             </PaginationItem>
           </PaginationContent>

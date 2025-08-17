@@ -355,6 +355,220 @@ function fuseScores(
 }
 
 /**
+ * Apply explicit match boosting based on field matches
+ */
+function applyExplicitMatchBoosts(
+  results: HybridSearchResult[],
+  parsedQuery: ParsedQuery,
+): HybridSearchResult[] {
+  const boostedResults = [...results];
+
+  // Define boost weights for different types of explicit matches
+  const BOOST_WEIGHTS = {
+    skill: 0.3, // Strong boost for skill matches
+    interest: 0.2, // Medium boost for interest matches
+    location: 0.15, // Medium boost for location matches
+    company: 0.25, // Strong boost for company matches
+    availability: 0.1, // Light boost for availability matches
+  };
+
+  console.log("🚀 Applying explicit match boosts...");
+
+  for (const result of boostedResults) {
+    if (result.type !== "profile") continue;
+
+    let totalBoost = 0;
+    const appliedBoosts: string[] = [];
+
+    // Skill matching
+    if (parsedQuery.skills.length > 0 && result.skills) {
+      const matchingSkills = result.skills.filter((skill) =>
+        parsedQuery.skills.some(
+          (searchSkill) =>
+            skill.toLowerCase().includes(searchSkill.toLowerCase()) ||
+            searchSkill.toLowerCase().includes(skill.toLowerCase()),
+        ),
+      );
+      if (matchingSkills.length > 0) {
+        const boost = BOOST_WEIGHTS.skill * matchingSkills.length;
+        totalBoost += boost;
+        appliedBoosts.push(`skills(${matchingSkills.length})`);
+      }
+    }
+
+    // Interest matching
+    if (parsedQuery.interests.length > 0 && result.interests) {
+      const matchingInterests = result.interests.filter((interest) =>
+        parsedQuery.interests.some(
+          (searchInterest) =>
+            interest.toLowerCase().includes(searchInterest.toLowerCase()) ||
+            searchInterest.toLowerCase().includes(interest.toLowerCase()),
+        ),
+      );
+      if (matchingInterests.length > 0) {
+        const boost = BOOST_WEIGHTS.interest * matchingInterests.length;
+        totalBoost += boost;
+        appliedBoosts.push(`interests(${matchingInterests.length})`);
+      }
+    }
+
+    // Location matching
+    if (parsedQuery.locations.length > 0 && result.location) {
+      const matchingLocations = parsedQuery.locations.filter((searchLocation) =>
+        result.location!.toLowerCase().includes(searchLocation.toLowerCase()),
+      );
+      if (matchingLocations.length > 0) {
+        totalBoost += BOOST_WEIGHTS.location;
+        appliedBoosts.push(`location`);
+      }
+    }
+
+    // Company matching (check headline for company mentions)
+    if (parsedQuery.companies.length > 0 && result.headline) {
+      const matchingCompanies = parsedQuery.companies.filter((company) =>
+        result.headline!.toLowerCase().includes(company.toLowerCase()),
+      );
+      if (matchingCompanies.length > 0) {
+        const boost = BOOST_WEIGHTS.company * matchingCompanies.length;
+        totalBoost += boost;
+        appliedBoosts.push(`companies(${matchingCompanies.length})`);
+      }
+    }
+
+    // Availability matching
+    if (parsedQuery.availability && result.availability) {
+      let availabilityMatches = 0;
+      if (parsedQuery.availability.hire && result.availability.hire)
+        availabilityMatches++;
+      if (parsedQuery.availability.collab && result.availability.collab)
+        availabilityMatches++;
+      if (parsedQuery.availability.hiring && result.availability.hiring)
+        availabilityMatches++;
+
+      if (availabilityMatches > 0) {
+        const boost = BOOST_WEIGHTS.availability * availabilityMatches;
+        totalBoost += boost;
+        appliedBoosts.push(`availability(${availabilityMatches})`);
+      }
+    }
+
+    // Apply the boost
+    if (totalBoost > 0) {
+      result.score += totalBoost;
+      console.log(
+        `   ⬆️ Boosted ${result.handle}: +${totalBoost.toFixed(3)} for ${appliedBoosts.join(", ")} | ${result.headline?.slice(0, 40)}...`,
+      );
+    }
+  }
+
+  return boostedResults;
+}
+
+/**
+ * Determine if reranking should be skipped based on explicit match strength
+ */
+function shouldSkipRerankingForExplicitMatches(
+  results: HybridSearchResult[],
+  parsedQuery: ParsedQuery,
+): boolean {
+  // Count profiles with explicit matches in top results
+  const topResults = results.slice(0, 10); // Check top 10 results
+  let explicitMatchCount = 0;
+  let totalMatchScore = 0;
+
+  for (const result of topResults) {
+    if (result.type !== "profile") continue;
+
+    let matchScore = 0;
+    let hasMatches = false;
+
+    // Check for skill matches
+    if (parsedQuery.skills.length > 0 && result.skills) {
+      const skillMatches = result.skills.filter((skill) =>
+        parsedQuery.skills.some(
+          (searchSkill) =>
+            skill.toLowerCase().includes(searchSkill.toLowerCase()) ||
+            searchSkill.toLowerCase().includes(skill.toLowerCase()),
+        ),
+      ).length;
+      if (skillMatches > 0) {
+        matchScore += skillMatches * 0.3;
+        hasMatches = true;
+      }
+    }
+
+    // Check for interest matches
+    if (parsedQuery.interests.length > 0 && result.interests) {
+      const interestMatches = result.interests.filter((interest) =>
+        parsedQuery.interests.some(
+          (searchInterest) =>
+            interest.toLowerCase().includes(searchInterest.toLowerCase()) ||
+            searchInterest.toLowerCase().includes(interest.toLowerCase()),
+        ),
+      ).length;
+      if (interestMatches > 0) {
+        matchScore += interestMatches * 0.2;
+        hasMatches = true;
+      }
+    }
+
+    // Check for location matches
+    if (parsedQuery.locations.length > 0 && result.location) {
+      const locationMatches = parsedQuery.locations.filter((searchLocation) =>
+        result.location!.toLowerCase().includes(searchLocation.toLowerCase()),
+      ).length;
+      if (locationMatches > 0) {
+        matchScore += 0.15;
+        hasMatches = true;
+      }
+    }
+
+    // Check for company matches
+    if (parsedQuery.companies.length > 0 && result.headline) {
+      const companyMatches = parsedQuery.companies.filter((company) =>
+        result.headline!.toLowerCase().includes(company.toLowerCase()),
+      ).length;
+      if (companyMatches > 0) {
+        matchScore += companyMatches * 0.25;
+        hasMatches = true;
+      }
+    }
+
+    if (hasMatches) {
+      explicitMatchCount++;
+      totalMatchScore += matchScore;
+    }
+  }
+
+  // Calculate criteria for skipping reranking
+  const explicitMatchRatio =
+    explicitMatchCount / Math.min(topResults.length, 5); // Top 5 ratio
+  const avgMatchScore =
+    explicitMatchCount > 0 ? totalMatchScore / explicitMatchCount : 0;
+  const hasMultipleFields =
+    parsedQuery.skills.length +
+      parsedQuery.interests.length +
+      parsedQuery.locations.length +
+      parsedQuery.companies.length >=
+    2;
+
+  // Skip reranking if:
+  // 1. At least 60% of top 5 results have explicit matches, OR
+  // 2. Average match score is high (>0.4), OR
+  // 3. Multiple query fields with decent match ratio (>40%)
+  const shouldSkip =
+    explicitMatchRatio >= 0.6 ||
+    avgMatchScore >= 0.4 ||
+    (hasMultipleFields && explicitMatchRatio >= 0.4);
+
+  console.log(
+    `📊 Reranking decision: ${explicitMatchCount}/${Math.min(topResults.length, 5)} explicit matches, avg score: ${avgMatchScore.toFixed(3)}, ratio: ${explicitMatchRatio.toFixed(2)} → ${shouldSkip ? "SKIP" : "APPLY"} reranking`,
+  );
+
+  return shouldSkip;
+}
+
+/**
  * Apply reranking using BGE reranker
  */
 async function applyReranking(
@@ -562,8 +776,22 @@ export async function hybridSearch(
     }
   }
 
+  // Apply explicit match boosting
+  fusedResults = applyExplicitMatchBoosts(fusedResults, parsedQuery);
+
   // Sort by final score
   fusedResults.sort((a, b) => b.score - a.score);
+
+  // Log top results after boosting but before reranking
+  console.log("\n📊 Top 5 results after explicit boosting:");
+  fusedResults.slice(0, 5).forEach((result, idx) => {
+    if (result.type === "profile") {
+      console.log(
+        `   ${idx + 1}. ${result.handle} (${result.score.toFixed(3)}) - ${result.headline?.slice(0, 60)}...`,
+      );
+    }
+  });
+
   fusedResults = fusedResults.slice(0, maxResults * 2); // Keep extra for reranking
 
   timing.fusion = Date.now() - fusionStart;
@@ -571,13 +799,42 @@ export async function hybridSearch(
     `   🔄 Fusion completed in ${timing.fusion}ms: ${fusedResults.length} combined results`,
   );
 
-  // 5. Optional reranking
+  // 5. Conditional reranking based on explicit match strength
   let finalResults = fusedResults;
   if (enableReranking && fusedResults.length > 1) {
-    const rerankStart = Date.now();
-    finalResults = await applyReranking(query, fusedResults);
-    timing.reranking = Date.now() - rerankStart;
-    console.log(`   🎯 Reranking completed in ${timing.reranking}ms`);
+    const shouldSkipReranking = shouldSkipRerankingForExplicitMatches(
+      fusedResults,
+      parsedQuery,
+    );
+
+    if (shouldSkipReranking) {
+      console.log(
+        "🎯 Skipping reranking - strong explicit matches found, preserving field-based ranking",
+      );
+      timing.reranking = 0;
+    } else {
+      console.log(
+        "🧠 Applying reranking - using semantic analysis for better relevance",
+      );
+      const rerankStart = Date.now();
+      finalResults = await applyReranking(query, fusedResults);
+      timing.reranking = Date.now() - rerankStart;
+      console.log(`   🎯 Reranking completed in ${timing.reranking}ms`);
+    }
+
+    // Log top results after reranking (or after skipping)
+    console.log(
+      shouldSkipReranking
+        ? "\n🎯 Top 5 results (reranking skipped):"
+        : "\n🎯 Top 5 results after reranking:",
+    );
+    finalResults.slice(0, 5).forEach((result, idx) => {
+      if (result.type === "profile") {
+        console.log(
+          `   ${idx + 1}. ${result.handle} (${result.score.toFixed(3)}) - ${result.headline?.slice(0, 60)}...`,
+        );
+      }
+    });
   }
 
   // Final result set
