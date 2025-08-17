@@ -141,7 +141,7 @@ export function Landing() {
           <p className="text-muted-foreground text-sm">
             Press Enter to search or{" "}
             <Link href="/directory" className="hover:text-foreground underline">
-              browse all developers
+              browse all vibecoders
             </Link>
           </p>
           <InlineDivider />

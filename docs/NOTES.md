@@ -1,5 +1,7 @@
 - display link to the user's github
 
+- pagination
+
 - edit profile - make it nicer
 
 - checkbox to allow / disallow being introduced

@@ -7,7 +7,7 @@ import {
 import { db } from "@/db";
 import { profiles, projects } from "@/db/schema/profile";
 import { users } from "@/db/schema/auth";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc, sql } from "drizzle-orm";
 
 export interface DirectorySearchResult {
   userId: string;
@@ -114,10 +114,19 @@ function applyStrictFilters(
   });
 }
 
+export interface PaginationOptions {
+  page?: number;
+  limit?: number;
+  sort?: "relevance" | "recent" | "name" | "random";
+}
+
 /**
  * Perform smart hybrid search on the directory
  */
-export async function searchDirectory(query: string): Promise<{
+export async function searchDirectory(
+  query: string,
+  options: PaginationOptions = {}
+): Promise<{
   results: DirectorySearchResult[];
   totalCount: number;
   timing?: {
@@ -152,19 +161,20 @@ export async function searchDirectory(query: string): Promise<{
   };
 }> {
   const trimmedQuery = query.trim();
+  const { page = 1, limit = 24, sort = trimmedQuery ? "relevance" : "random" } = options;
 
-  // If no query, return recent profiles
+  // If no query, return browse profiles with pagination
   if (!trimmedQuery) {
-    return await getRecentProfiles();
+    return await getBrowseProfiles({ page, limit, sort });
   }
 
   try {
     // Ensure search system is initialized
     await ensureSearchInitialized();
 
-    // Perform hybrid search
+    // Perform hybrid search with pagination
     const searchResult = await hybridSearch(trimmedQuery, {
-      maxResults: 48,
+      maxResults: limit * 3, // Get more results for reranking
       enableReranking: true,
       includeProjects: true,
     });
@@ -246,12 +256,16 @@ export async function searchDirectory(query: string): Promise<{
       });
     }
 
-    // Apply strict filters if they exist
+    // Apply strict filters if they exist and have meaningful values
     let finalResults = directoryResults;
-    if (
-      searchResult.parsedQuery.strictFilters &&
-      Object.keys(searchResult.parsedQuery.strictFilters).length > 0
-    ) {
+    const hasStrictFilters = searchResult.parsedQuery.strictFilters && (
+      (searchResult.parsedQuery.strictFilters.locations && searchResult.parsedQuery.strictFilters.locations.length > 0) ||
+      (searchResult.parsedQuery.strictFilters.skills && searchResult.parsedQuery.strictFilters.skills.length > 0) ||
+      (searchResult.parsedQuery.strictFilters.companies && searchResult.parsedQuery.strictFilters.companies.length > 0) ||
+      (searchResult.parsedQuery.strictFilters.availability && Object.values(searchResult.parsedQuery.strictFilters.availability).some(v => v === true))
+    );
+    
+    if (hasStrictFilters) {
       console.log(
         "Applying strict filters:",
         searchResult.parsedQuery.strictFilters,
@@ -281,9 +295,19 @@ export async function searchDirectory(query: string): Promise<{
       );
     }
 
+    // Apply sorting if not relevance (relevance is already sorted by search algorithm)
+    if (sort !== "relevance") {
+      finalResults = sortResults(finalResults, sort);
+    }
+
+    // Apply pagination
+    const totalCount = finalResults.length;
+    const startIndex = (page - 1) * limit;
+    const paginatedResults = finalResults.slice(startIndex, startIndex + limit);
+
     return {
-      results: finalResults,
-      totalCount: finalResults.length,
+      results: paginatedResults,
+      totalCount,
       timing: searchResult.timing,
       parsedQuery: {
         companies: searchResult.parsedQuery.companies,
@@ -324,29 +348,95 @@ export async function searchDirectory(query: string): Promise<{
     };
   } catch (error) {
     console.error("Hybrid search failed, falling back to basic search:", error);
-    return await fallbackSearch();
+    return await fallbackSearch(options);
   }
 }
 
 /**
  * Fallback to basic SQL search if hybrid search fails
  */
-async function fallbackSearch(): Promise<{
+async function fallbackSearch(options: PaginationOptions): Promise<{
   results: DirectorySearchResult[];
   totalCount: number;
 }> {
-  // For now, just return recent profiles as fallback
+  // For now, just return browse profiles as fallback
   // In production, you'd implement proper ILIKE search here
-  return await getRecentProfiles();
+  return await getBrowseProfiles({
+    page: options.page ?? 1,
+    limit: options.limit ?? 24,
+    sort: options.sort ?? "recent",
+  });
 }
 
 /**
- * Get recent profiles when no search query
+ * Sort results based on sort option
  */
-async function getRecentProfiles(): Promise<{
+function sortResults(
+  results: DirectorySearchResult[],
+  sort: "recent" | "name" | "random"
+): DirectorySearchResult[] {
+  switch (sort) {
+    case "name":
+      return [...results].sort((a, b) => {
+        const nameA = a.displayName || a.handle;
+        const nameB = b.displayName || b.handle;
+        return nameA.localeCompare(nameB);
+      });
+    case "random":
+      // Fisher-Yates shuffle
+      const shuffled = [...results];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    case "recent":
+    default:
+      // Results are already in recent order from DB
+      return results;
+  }
+}
+
+/**
+ * Get profiles for browsing (no search query)
+ */
+async function getBrowseProfiles(options: {
+  page: number;
+  limit: number;
+  sort: "relevance" | "recent" | "name" | "random";
+}): Promise<{
   results: DirectorySearchResult[];
   totalCount: number;
 }> {
+  const { page, limit, sort } = options;
+
+  // First, get total count of unique profiles
+  const totalCountResult = await db
+    .select({ count: sql<number>`count(DISTINCT ${profiles.userId})` })
+    .from(profiles);
+  const totalCount = totalCountResult[0]?.count ?? 0;
+
+  // Determine ORDER BY based on sort option
+  const orderByClause = 
+    sort === "name" 
+      ? [asc(profiles.displayName), asc(profiles.handle)]
+      : sort === "random"
+      ? [sql`random()`]
+      : [desc(profiles.createdAt)]; // default to recent
+
+  // Get paginated profiles with projects
+  const offset = (page - 1) * limit;
+  
+  // First get distinct profile IDs with pagination
+  const profileSubquery = db
+    .select({ userId: profiles.userId })
+    .from(profiles)
+    .orderBy(...orderByClause)
+    .limit(limit)
+    .offset(offset)
+    .as('profileSubquery');
+
+  // Then get full data for these profiles with their projects
   const results = await db
     .select({
       // Profile data
@@ -370,16 +460,16 @@ async function getRecentProfiles(): Promise<{
       projectFeatured: projects.featured,
     })
     .from(profiles)
+    .innerJoin(profileSubquery, eq(profiles.userId, profileSubquery.userId))
     .leftJoin(users, eq(profiles.userId, users.id))
     .leftJoin(projects, eq(profiles.userId, projects.userId))
-    .orderBy(desc(profiles.createdAt))
-    .limit(200);
+    .orderBy(...orderByClause);
 
   const grouped = groupProfileResults(results);
 
   return {
-    results: grouped.slice(0, 48),
-    totalCount: grouped.length,
+    results: grouped,
+    totalCount,
   };
 }
 

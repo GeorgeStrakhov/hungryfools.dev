@@ -9,6 +9,8 @@ import {
   type DirectorySearchResult,
 } from "@/app/actions/search";
 import { DirectoryResults } from "./directory-results";
+import { PaginationControls } from "./pagination-controls";
+import { PaginationBottom } from "./pagination-bottom";
 
 interface DirectorySearchProps {
   initialQuery: string;
@@ -23,6 +25,9 @@ interface DirectorySearchProps {
     reranking: number;
     total: number;
   };
+  initialPage?: number;
+  initialLimit?: number;
+  initialSort?: string;
 }
 
 export function DirectorySearch({
@@ -30,11 +35,14 @@ export function DirectorySearch({
   initialResults,
   initialCount,
   initialTiming,
+  initialPage = 1,
+  initialLimit = 24,
+  initialSort = "recent",
 }: DirectorySearchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchAbortController = useRef<AbortController | undefined>(undefined);
-  const performSearchRef = useRef<(query: string) => Promise<void>>();
+  const performSearchRef = useRef<(query: string, options?: { page?: number; limit?: number; sort?: string }) => Promise<void>>();
   const isInternalUpdateRef = useRef(false);
 
   // Simple input state - only search on explicit user action
@@ -44,6 +52,9 @@ export function DirectorySearch({
   const [count, setCount] = useState(initialCount);
   const [timing, setTiming] = useState(initialTiming);
   const [isSearching, setIsSearching] = useState(false);
+  const [page, setPage] = useState(initialPage);
+  const [limit, setLimit] = useState(initialLimit);
+  const [sort, setSort] = useState(initialSort);
   const [parsedQuery, setParsedQuery] = useState<
     | {
         companies: string[];
@@ -71,31 +82,58 @@ export function DirectorySearch({
 
   // Perform the actual search
   const performSearch = useCallback(
-    async (query: string) => {
-      // Don't search if query hasn't changed
-      if (query === searchQuery) return;
+    async (
+      query: string,
+      options?: { page?: number; limit?: number; sort?: string }
+    ) => {
+      // Use provided options or current state
+      const searchPage = options?.page ?? page;
+      const searchLimit = options?.limit ?? limit;
+      
+      // Determine appropriate sort: if no sort specified in options, use context-appropriate default
+      const searchSort = options?.sort ?? (query.trim() ? "relevance" : "random");
 
+      // Reset to page 1 if query changed
+      const finalPage = query !== searchQuery ? 1 : searchPage;
+
+      // Set internal flag BEFORE any state changes to prevent useEffect race condition
+      isInternalUpdateRef.current = true;
+      
       setSearchQuery(query);
       setIsSearching(true);
 
       try {
+        // Cancel any ongoing search
+        if (searchAbortController.current) {
+          searchAbortController.current.abort();
+        }
+        
         // Create new abort controller for this search
         searchAbortController.current = new AbortController();
-
-        const searchResult = await searchDirectory(query);
-
+        
+        const searchResult = await searchDirectory(query, {
+          page: finalPage,
+          limit: searchLimit,
+          sort: searchSort as "relevance" | "recent" | "name" | "random",
+        });
+        
         // Only update state if search wasn't aborted
         if (!searchAbortController.current.signal.aborted) {
           setResults(searchResult.results);
           setCount(searchResult.totalCount);
           setTiming(searchResult.timing);
           setParsedQuery(searchResult.parsedQuery);
+          setPage(finalPage);
+          setLimit(searchLimit);
+          setSort(searchSort);
 
           // Update URL after successful search
-          isInternalUpdateRef.current = true;
           const params = new URLSearchParams();
-          if (query) {
-            params.set("q", query);
+          if (query) params.set("q", query);
+          if (finalPage > 1) params.set("page", finalPage.toString());
+          if (searchLimit !== 24) params.set("limit", searchLimit.toString());
+          if (searchSort !== (query ? "relevance" : "random")) {
+            params.set("sort", searchSort);
           }
           const newUrl = `/directory${params.toString() ? `?${params.toString()}` : ""}`;
           router.replace(newUrl, { scroll: false });
@@ -111,7 +149,7 @@ export function DirectorySearch({
         }
       }
     },
-    [router, searchQuery],
+    [router, searchQuery, page, limit, sort],
   );
 
   // Keep ref updated with latest performSearch function
@@ -142,15 +180,39 @@ export function DirectorySearch({
       return;
     }
     
-    // This is external navigation (back/forward), sync the input and search
-    setInputValue(urlQuery);
-    if (performSearchRef.current) {
-      performSearchRef.current(urlQuery);
+    // Only trigger search if the query actually changed (not other URL params)
+    if (urlQuery !== searchQuery) {
+      setInputValue(urlQuery);
+      if (performSearchRef.current) {
+        performSearchRef.current(urlQuery);
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, searchQuery]);
 
   // Create a stable key for remounting only on URL navigation
   const searchInputKey = searchParams.get("q") || "empty";
+
+  // Pagination handlers
+  const handlePageChange = useCallback((newPage: number) => {
+    if (performSearchRef.current) {
+      performSearchRef.current(searchQuery, { page: newPage });
+    }
+  }, [searchQuery]);
+
+  const handleLimitChange = useCallback((newLimit: number) => {
+    if (performSearchRef.current) {
+      performSearchRef.current(searchQuery, { page: 1, limit: newLimit });
+    }
+  }, [searchQuery]);
+
+  const handleSortChange = useCallback((newSort: string) => {
+    if (performSearchRef.current) {
+      performSearchRef.current(searchQuery, { page: 1, sort: newSort });
+    }
+  }, [searchQuery]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(count / limit);
 
   return (
     <div>
@@ -209,6 +271,24 @@ export function DirectorySearch({
         )}
       </div>
 
+      {/* Pagination Controls (Top) */}
+      {count > 0 && (
+        <div className="mb-6">
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            totalCount={count}
+            limit={limit}
+            sort={sort}
+            isSearchMode={!!searchQuery}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+            onSortChange={handleSortChange}
+            isLoading={isSearching}
+          />
+        </div>
+      )}
+
       {/* Search Results */}
       <div className="relative">
         {/* Loading Overlay */}
@@ -243,7 +323,7 @@ export function DirectorySearch({
                   onClick={() => handleSearch("")}
                   className="underline hover:no-underline"
                 >
-                  browse all developers
+                  browse all vibecoders
                 </button>
               </p>
             )}
@@ -257,6 +337,18 @@ export function DirectorySearch({
           />
         )}
       </div>
+
+      {/* Pagination Controls (Bottom) */}
+      {count > 0 && totalPages > 1 && (
+        <div className="mt-6">
+          <PaginationBottom
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            isLoading={isSearching}
+          />
+        </div>
+      )}
     </div>
   );
 }
