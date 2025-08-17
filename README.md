@@ -1,6 +1,6 @@
 # HungryFools.dev
 
-_a directory of hungry and foolish vibecoders who get shit done_
+_a directory of hungry and foolish vibecoders who ship human-level stuff at superhuman speed_
 
 This is a simple lil' website where AI-first developers can list themselves, find each other for collaborations and get hired.
 
@@ -10,7 +10,7 @@ This is a simple lil' website where AI-first developers can list themselves, fin
 
 - for a small fee companies can list themselves as vibecoder-friendly and say they are hiring.
 
-- for good search - we build embeddings of the profiles and have a hybrid search (both keywords and vector similarity + text to sql)
+- for good search - we build embeddings of the profiles and projects and have a hybrid search (both keywords and vector similarity, reranking, smart filters)
 
 ## Tech Stack
 
