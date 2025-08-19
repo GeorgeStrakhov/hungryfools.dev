@@ -25,7 +25,9 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
 
   const toggle = (v: string) => {
     const k = v.toLowerCase();
-    const newVibes = vibes.includes(k) ? vibes.filter((x) => x !== k) : [...vibes, k];
+    const newVibes = vibes.includes(k)
+      ? vibes.filter((x) => x !== k)
+      : [...vibes, k];
     setField("vibes", newVibes);
   };
 
@@ -54,7 +56,9 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
       <div className="text-center">
         <h1 className="text-2xl font-semibold">{STEP_CONFIG.vibe.title}</h1>
         {STEP_CONFIG.vibe.subtitle && (
-          <p className="text-muted-foreground mt-2">{STEP_CONFIG.vibe.subtitle}</p>
+          <p className="text-muted-foreground mt-2">
+            {STEP_CONFIG.vibe.subtitle}
+          </p>
         )}
       </div>
 
@@ -63,7 +67,9 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
           {VIBE_OPTIONS.map((option) => (
             <Button
               key={option}
-              variant={vibes.includes(option.toLowerCase()) ? "default" : "outline"}
+              variant={
+                vibes.includes(option.toLowerCase()) ? "default" : "outline"
+              }
               onClick={() => toggle(option)}
               className="justify-start"
             >
@@ -88,9 +94,10 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
           <p className="flex items-start gap-2">
             <span className="text-lg">🦆</span>
             <span>
-              <strong>Heads up!</strong> PacDuck will clean up and structure your responses to keep
-              them professional and consistent. Your unique voice will be preserved while making
-              everything community-friendly.
+              <strong>Heads up!</strong> PacDuck will clean up and structure
+              your responses to keep them professional and consistent. Your
+              unique voice will be preserved while making everything
+              community-friendly.
             </span>
           </p>
         </div>

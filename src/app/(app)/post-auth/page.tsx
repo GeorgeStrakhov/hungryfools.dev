@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { profiles } from "@/db/schema/profile";
 import { users } from "@/db/schema/auth";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 export default async function PostAuthRouter() {

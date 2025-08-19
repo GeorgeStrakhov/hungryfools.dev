@@ -64,8 +64,11 @@ const profileOutput = z.object({
 });
 
 export async function createOrUpdateProfileAction(input: Input) {
-  console.log("🔵 [SERVER] createOrUpdateProfileAction received:", JSON.stringify(input, null, 2));
-  
+  console.log(
+    "🔵 [SERVER] createOrUpdateProfileAction received:",
+    JSON.stringify(input, null, 2),
+  );
+
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
@@ -84,7 +87,9 @@ export async function createOrUpdateProfileAction(input: Input) {
     location: input.location,
   };
   const fieldsToModerate = Object.fromEntries(
-    Object.entries(textFields).filter(([, value]) => value !== undefined && value !== ""),
+    Object.entries(textFields).filter(
+      ([, value]) => value !== undefined && value !== "",
+    ),
   );
   type ModeratedFields = {
     displayName?: string;
@@ -103,16 +108,18 @@ export async function createOrUpdateProfileAction(input: Input) {
       )) as ModeratedFields;
     } catch (e: unknown) {
       const err = e as { message?: string };
-      const ex = new Error(
+      const ex: Error & { name: string } = new Error(
         err?.message || PACDUCK_MESSAGES.generic,
-      );
-      (ex as any).name = "ModerationError";
+      ) as Error & { name: string };
+      ex.name = "ModerationError";
       throw ex;
     }
   }
 
   // Determine final handle
-  const userProvidedHandle = Boolean(input.handle && String(input.handle).trim());
+  const userProvidedHandle = Boolean(
+    input.handle && String(input.handle).trim(),
+  );
   let finalHandle: string;
   if (userProvidedHandle) {
     const requested = normalizeHandle(input.handle as string);
@@ -122,7 +129,10 @@ export async function createOrUpdateProfileAction(input: Input) {
       .from(profiles)
       .where(eq(profiles.handle, requested))
       .limit(1);
-    if (existingSameHandle[0] && existingSameHandle[0].userId !== session.user.id) {
+    if (
+      existingSameHandle[0] &&
+      existingSameHandle[0].userId !== session.user.id
+    ) {
       throw new Error("HANDLE_TAKEN");
     }
     finalHandle = requested;
@@ -136,7 +146,10 @@ export async function createOrUpdateProfileAction(input: Input) {
       .from(profiles)
       .where(eq(profiles.handle, generated))
       .limit(1);
-    if (existingSameHandle[0] && existingSameHandle[0].userId !== session.user.id) {
+    if (
+      existingSameHandle[0] &&
+      existingSameHandle[0].userId !== session.user.id
+    ) {
       const suffix = Math.random().toString(36).slice(2, 6);
       generated = `${generated}-${suffix}`;
     }
@@ -145,18 +158,21 @@ export async function createOrUpdateProfileAction(input: Input) {
 
   // Merge links (only override provided keys). If no github link exists, prefill from session if possible
   const existingLinks = existingProfile?.links || {};
-  const sessionGithub = session.user?.name
-    ? undefined
-    : undefined; // placeholder if you store github username elsewhere in session
   const links: ProfileLinks = {
     ...existingLinks,
-    ...(input.github !== undefined ? { github: input.github || undefined } : {}),
+    ...(input.github !== undefined
+      ? { github: input.github || undefined }
+      : {}),
     ...(input.x !== undefined ? { x: input.x || undefined } : {}),
-    ...(input.website !== undefined ? { website: input.website || undefined } : {}),
+    ...(input.website !== undefined
+      ? { website: input.website || undefined }
+      : {}),
     ...(input.email !== undefined ? { email: input.email || undefined } : {}),
   };
   // Best GitHub link: use stored githubUsername only (never guess from handle)
-  const githubUsername = (session.user as any)?.githubUsername as string | null | undefined;
+  const githubUsername = (
+    session.user as unknown as { githubUsername?: string | null }
+  )?.githubUsername as string | null | undefined;
   if (!links.github && githubUsername) {
     links.github = `https://github.com/${githubUsername}`;
   }
@@ -165,9 +181,15 @@ export async function createOrUpdateProfileAction(input: Input) {
   const existingAvailability = existingProfile?.availability || {};
   const availability: ProfileAvailability = {
     ...existingAvailability,
-    ...(input.availHire !== undefined ? { hire: Boolean(input.availHire) } : {}),
-    ...(input.availCollab !== undefined ? { collab: Boolean(input.availCollab) } : {}),
-    ...(input.availHiring !== undefined ? { hiring: Boolean(input.availHiring) } : {}),
+    ...(input.availHire !== undefined
+      ? { hire: Boolean(input.availHire) }
+      : {}),
+    ...(input.availCollab !== undefined
+      ? { collab: Boolean(input.availCollab) }
+      : {}),
+    ...(input.availHiring !== undefined
+      ? { hiring: Boolean(input.availHiring) }
+      : {}),
   };
 
   // Merge top-level fields
@@ -175,30 +197,46 @@ export async function createOrUpdateProfileAction(input: Input) {
     userId: session.user.id,
     handle: finalHandle.toLowerCase(),
     displayName:
-      moderatedFields.displayName ?? input.displayName ?? existingProfile?.displayName ?? session.user.name,
-    headline: moderatedFields.headline ?? input.headline ?? existingProfile?.headline ?? null,
+      moderatedFields.displayName ??
+      input.displayName ??
+      existingProfile?.displayName ??
+      session.user.name,
+    headline:
+      moderatedFields.headline ??
+      input.headline ??
+      existingProfile?.headline ??
+      null,
     bio: moderatedFields.bio ?? input.bio ?? existingProfile?.bio ?? null,
     profileImage: input.profileImage ?? existingProfile?.profileImage ?? null,
     skills:
       input.skills !== undefined
         ? csvToArray(input.skills, PROFILE_FIELD_LIMITS.skills.max)
-        : existingProfile?.skills ?? null,
+        : (existingProfile?.skills ?? null),
     interests:
       input.interests !== undefined
         ? csvToArray(input.interests, PROFILE_FIELD_LIMITS.interests.max)
-        : existingProfile?.interests ?? null,
+        : (existingProfile?.interests ?? null),
     location:
-      moderatedFields.location ?? (input.location !== undefined ? input.location : existingProfile?.location ?? null),
+      moderatedFields.location ??
+      (input.location !== undefined
+        ? input.location
+        : (existingProfile?.location ?? null)),
     links,
     availability,
-    showcase: input.showcase !== undefined ? Boolean(input.showcase) : existingProfile?.showcase ?? false,
+    showcase:
+      input.showcase !== undefined
+        ? Boolean(input.showcase)
+        : (existingProfile?.showcase ?? false),
     // Raw onboarding data
-    vibeSelections: input.vibeSelections ?? existingProfile?.vibeSelections ?? null,
+    vibeSelections:
+      input.vibeSelections ?? existingProfile?.vibeSelections ?? null,
     vibeText: input.vibeText ?? existingProfile?.vibeText ?? null,
     vibeTags: input.vibeTags ?? existingProfile?.vibeTags ?? null,
-    stackSelections: input.stackSelections ?? existingProfile?.stackSelections ?? null,
+    stackSelections:
+      input.stackSelections ?? existingProfile?.stackSelections ?? null,
     stackText: input.stackText ?? existingProfile?.stackText ?? null,
-    expertiseSelections: input.expertiseSelections ?? existingProfile?.expertiseSelections ?? null,
+    expertiseSelections:
+      input.expertiseSelections ?? existingProfile?.expertiseSelections ?? null,
     updatedAt: new Date(),
   };
 

@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useSession } from "next-auth/react";
 import { completeOnboardingAction } from "../actions";
 
@@ -28,7 +35,10 @@ const defaultData: OnboardingWizardData = {
 
 interface WizardContextValue {
   data: OnboardingWizardData;
-  setField: <K extends keyof OnboardingWizardData>(field: K, value: OnboardingWizardData[K]) => void;
+  setField: <K extends keyof OnboardingWizardData>(
+    field: K,
+    value: OnboardingWizardData[K],
+  ) => void;
   bulkSet: (partial: Partial<OnboardingWizardData>) => void;
   reset: () => void;
   finalizing: boolean;
@@ -41,7 +51,11 @@ function storageKey(userId: string | undefined) {
   return userId ? `onboarding:${userId}` : "onboarding:anon";
 }
 
-export function OnboardingWizardProvider({ children }: { children: React.ReactNode }) {
+export function OnboardingWizardProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { data: session } = useSession();
   const [data, setData] = useState<OnboardingWizardData>(defaultData);
   const [finalizing, setFinalizing] = useState(false);
@@ -67,7 +81,10 @@ export function OnboardingWizardProvider({ children }: { children: React.ReactNo
   }, [data, session?.user?.id]);
 
   const setField = useCallback(
-    <K extends keyof OnboardingWizardData>(field: K, value: OnboardingWizardData[K]) => {
+    <K extends keyof OnboardingWizardData>(
+      field: K,
+      value: OnboardingWizardData[K],
+    ) => {
       setData((prev) => ({ ...prev, [field]: value }));
     },
     [],
@@ -107,11 +124,16 @@ export function OnboardingWizardProvider({ children }: { children: React.ReactNo
     [data, setField, bulkSet, reset, finalizing, finalize],
   );
 
-  return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>;
+  return (
+    <WizardContext.Provider value={value}>{children}</WizardContext.Provider>
+  );
 }
 
 export function useOnboardingWizard(): WizardContextValue {
   const ctx = useContext(WizardContext);
-  if (!ctx) throw new Error("useOnboardingWizard must be used within OnboardingWizardProvider");
+  if (!ctx)
+    throw new Error(
+      "useOnboardingWizard must be used within OnboardingWizardProvider",
+    );
   return ctx;
 }

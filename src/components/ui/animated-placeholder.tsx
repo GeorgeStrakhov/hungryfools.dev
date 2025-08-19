@@ -30,14 +30,14 @@ export function useAnimatedPlaceholder({
   const [isDeleting, setIsDeleting] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const getNextRandomIndex = () => {
+  const getNextRandomIndex = React.useCallback(() => {
     if (suggestions.length <= 1) return 0;
     let nextIndex;
     do {
       nextIndex = Math.floor(Math.random() * suggestions.length);
     } while (nextIndex === currentIndex);
     return nextIndex;
-  };
+  }, [suggestions.length, currentIndex]);
 
   useEffect(() => {
     // Stop animation if user is typing
@@ -100,6 +100,7 @@ export function useAnimatedPlaceholder({
     basePlaceholder,
     typingSpeed,
     pauseBetween,
+    getNextRandomIndex,
   ]);
 
   // Cleanup on unmount
@@ -109,7 +110,7 @@ export function useAnimatedPlaceholder({
         clearTimeout(timeoutRef.current);
       }
     };
-  }, []);
+  }, []); // effect runs once on mount/unmount
 
   return currentText;
 }

@@ -104,7 +104,6 @@ export default async function EditProfilePage({ params }: Params) {
           defaults={defaults}
           onboardingData={onboardingData}
           initialPurposes={initialPurposes}
-          redirectTo={`/u/${profile.handle}`}
           profileImage={profile.profileImage}
           userImage={user?.image}
         />

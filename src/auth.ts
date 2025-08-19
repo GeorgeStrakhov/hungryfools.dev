@@ -20,11 +20,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [GitHub],
   session: { strategy: "database" },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({
+      user,
+      account,
+      profile,
+    }: {
+      user: { id?: string };
+      account?: { provider?: string };
+      profile?: { login?: string };
+    }) {
       // Capture GitHub username on first sign-in/link
       try {
         if (account?.provider === "github" && user?.id) {
-          const githubLogin = (profile as any)?.login as string | undefined;
+          const githubLogin = (profile as unknown as { login?: string })
+            ?.login as string | undefined;
           if (githubLogin) {
             await db
               .update(users)
@@ -46,7 +55,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.isAdmin = user.isAdmin ?? false;
         // expose github username to consumers
         // @ts-expect-error - runtime augmentation
-        session.user.githubUsername = (user as any).githubUsername ?? null;
+        session.user.githubUsername =
+          (user as unknown as { githubUsername?: string | null })
+            ?.githubUsername ?? null;
         // Debug: log github username presence in session
         try {
           // @ts-expect-error - runtime augmentation
@@ -63,16 +74,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   events: {
-    async signIn({ user, account, profile, isNewUser }) {
+    async signIn({
+      user,
+      account,
+      profile,
+    }: {
+      user: { id?: string };
+      account?: { provider?: string };
+      profile?: { login?: string };
+    }) {
       try {
         if (account?.provider === "github" && user?.id) {
-          const githubLogin = (profile as any)?.login as string | undefined;
+          const githubLogin = (profile as unknown as { login?: string })
+            ?.login as string | undefined;
           if (githubLogin) {
             await db
               .update(users)
               .set({ githubUsername: githubLogin })
               .where(eq(users.id, user.id));
-            console.log("🟢 [AUTH] stored githubUsername on signIn:", githubLogin);
+            console.log(
+              "🟢 [AUTH] stored githubUsername on signIn:",
+              githubLogin,
+            );
           }
         }
       } catch (e) {

@@ -40,10 +40,18 @@ export function Question({
       const next = value.includes(key)
         ? value.filter((v) => v !== key)
         : [...value, key];
-      console.log("❓ Question: select multi", { key, oldValue: value, newValue: next });
+      console.log("❓ Question: select multi", {
+        key,
+        oldValue: value,
+        newValue: next,
+      });
       onChange(next);
     } else {
-      console.log("❓ Question: select single", { key, oldValue: value, newValue: [key] });
+      console.log("❓ Question: select single", {
+        key,
+        oldValue: value,
+        newValue: [key],
+      });
       onChange([key]);
     }
   };

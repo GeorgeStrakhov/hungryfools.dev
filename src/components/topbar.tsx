@@ -12,18 +12,11 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { getAvatarUrl } from "@/lib/utils/avatar";
-import { Building2, Home, Users } from "lucide-react";
+import { Building2, Users, Github } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 
@@ -190,6 +183,14 @@ const MainNav = () => (
     >
       Companies
     </Link>
+    <Link
+      href="https://github.com/GeorgeStrakhov/hungryfools.dev"
+      className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Source Code
+    </Link>
   </nav>
 );
 
@@ -270,6 +271,16 @@ const MobileNav = () => {
             >
               <Building2 className="h-5 w-5" />
               Companies
+            </Link>
+            <Link
+              href="https://github.com/GeorgeStrakhov/hungryfools.dev"
+              className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-2 text-sm font-medium"
+              onClick={() => setOpen(false)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Github className="h-5 w-5" />
+              Source Code
             </Link>
           </div>
         </div>

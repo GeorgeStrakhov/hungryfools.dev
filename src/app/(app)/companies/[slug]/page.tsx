@@ -59,7 +59,7 @@ export default async function CompanyDetailPage({ params }: Params) {
                   href={row.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-hf-yellow hover:underline"
+                  className="text-hf-yellow flex items-center gap-2 hover:underline"
                 >
                   <Globe className="h-4 w-4" />
                   <span>Visit website</span>
@@ -68,7 +68,7 @@ export default async function CompanyDetailPage({ params }: Params) {
               {row.contactEmail && (
                 <a
                   href={`mailto:${row.contactEmail}`}
-                  className="flex items-center gap-2 text-hf-yellow hover:underline"
+                  className="text-hf-yellow flex items-center gap-2 hover:underline"
                 >
                   <Mail className="h-4 w-4" />
                   <span>Contact</span>

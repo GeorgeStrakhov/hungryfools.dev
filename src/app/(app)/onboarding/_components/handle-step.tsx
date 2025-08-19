@@ -42,8 +42,12 @@ export function HandleStep({ onNext, onBack }: HandleStepProps) {
     if (wizard.handle) {
       setRawInput(wizard.handle);
     } else if (session?.user) {
-      const githubUsername = (session.user as any)?.githubUsername as string | undefined;
-      const preferred = githubUsername ? normalizeHandle(githubUsername) : generateDefaultHandle(session.user);
+      const githubUsername = (
+        session.user as unknown as { githubUsername?: string }
+      )?.githubUsername;
+      const preferred = githubUsername
+        ? normalizeHandle(githubUsername)
+        : generateDefaultHandle(session.user);
       setRawInput(preferred);
       setField("handle", preferred);
     }
@@ -72,7 +76,7 @@ export function HandleStep({ onNext, onBack }: HandleStepProps) {
           available: Boolean(result.available),
           isOwnHandle: Boolean(result.isOwnHandle),
           checking: false,
-          error: (result as any).error,
+          error: (result as { error?: string }).error,
         });
       } catch {
         setAvailability({
@@ -173,7 +177,9 @@ export function HandleStep({ onNext, onBack }: HandleStepProps) {
               <p className="text-muted-foreground mb-1 text-sm font-medium">
                 Handle will be:
               </p>
-              <p className="font-mono text-sm font-semibold">{slugifiedPreview}</p>
+              <p className="font-mono text-sm font-semibold">
+                {slugifiedPreview}
+              </p>
             </div>
           )}
 
@@ -181,7 +187,8 @@ export function HandleStep({ onNext, onBack }: HandleStepProps) {
             <div className="mt-4">
               {slugifiedPreview.length < PROFILE_FIELD_LIMITS.handle.min ? (
                 <p className="text-sm text-amber-600">
-                  Handle must be at least {PROFILE_FIELD_LIMITS.handle.min} characters long
+                  Handle must be at least {PROFILE_FIELD_LIMITS.handle.min}{" "}
+                  characters long
                 </p>
               ) : !availability.checking ? (
                 availability.error ? (

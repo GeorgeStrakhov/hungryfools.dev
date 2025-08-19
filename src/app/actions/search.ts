@@ -221,7 +221,12 @@ export async function searchDirectory(
         })
         .from(profiles)
         .leftJoin(users, eq(profiles.userId, users.id))
-        .where(and(eq(profiles.userId, searchResult.userId), eq(users.onboardingCompleted, true)))
+        .where(
+          and(
+            eq(profiles.userId, searchResult.userId),
+            eq(users.onboardingCompleted, true),
+          ),
+        )
         .limit(1);
 
       if (profileData.length === 0) continue;

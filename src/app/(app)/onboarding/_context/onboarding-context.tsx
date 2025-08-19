@@ -184,7 +184,10 @@ export function OnboardingProvider({
           onboardingData.expertise = profile.expertiseSelections;
 
         dispatch({ type: "BULK_UPDATE_DATA", data: onboardingData });
-        console.log("🔄 OnboardingProvider: Loaded profile data", onboardingData);
+        console.log(
+          "🔄 OnboardingProvider: Loaded profile data",
+          onboardingData,
+        );
       }
 
       dispatch({ type: "SET_INITIALIZED", initialized: true });
@@ -201,10 +204,13 @@ export function OnboardingProvider({
     loadInitialData();
   }, [loadInitialData]);
 
-  const updateData = useCallback((field: keyof OnboardingData, value: unknown) => {
-    console.log(`🔧 OnboardingProvider: Updating ${field}`, value);
-    dispatch({ type: "UPDATE_DATA", field, value });
-  }, []);
+  const updateData = useCallback(
+    (field: keyof OnboardingData, value: unknown) => {
+      console.log(`🔧 OnboardingProvider: Updating ${field}`, value);
+      dispatch({ type: "UPDATE_DATA", field, value });
+    },
+    [],
+  );
 
   const bulkUpdateData = useCallback((data: Partial<OnboardingData>) => {
     dispatch({ type: "BULK_UPDATE_DATA", data });
@@ -282,7 +288,9 @@ export function OnboardingProvider({
       field: K,
       value: OnboardingData[K],
     ) => {
-      await saveOverrides({ [field]: value } as Partial<OnboardingData>, [field]);
+      await saveOverrides({ [field]: value } as Partial<OnboardingData>, [
+        field,
+      ]);
       // Keep local state in sync immediately
       dispatch({ type: "UPDATE_DATA", field, value });
     },

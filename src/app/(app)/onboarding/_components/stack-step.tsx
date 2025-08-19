@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
-import { STACK_CORE } from "@/lib/onboarding-options";
+// import { STACK_CORE } from "@/lib/onboarding-options";
 
 // options centralized in lib
 
@@ -32,7 +32,10 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
 
   const remove = (v: string) => {
     const k = v.toLowerCase();
-    setField("stack", stack.filter((x) => x !== k));
+    setField(
+      "stack",
+      stack.filter((x) => x !== k),
+    );
   };
 
   const toggle = (v: string) => {
@@ -92,7 +95,9 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
       <div className="text-center">
         <h1 className="text-2xl font-semibold">{STEP_CONFIG.stack.title}</h1>
         {STEP_CONFIG.stack.subtitle && (
-          <p className="text-muted-foreground mt-2">{STEP_CONFIG.stack.subtitle}</p>
+          <p className="text-muted-foreground mt-2">
+            {STEP_CONFIG.stack.subtitle}
+          </p>
         )}
       </div>
 
@@ -101,7 +106,9 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
           {CORE.map((tech) => (
             <Button
               key={tech}
-              variant={stack.includes(tech.toLowerCase()) ? "default" : "outline"}
+              variant={
+                stack.includes(tech.toLowerCase()) ? "default" : "outline"
+              }
               onClick={() => toggle(tech)}
               className="justify-start"
             >
@@ -115,7 +122,12 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
             <p className="mb-2 text-sm font-medium">Selected:</p>
             <div className="flex flex-wrap gap-2">
               {stack.map((tech) => (
-                <Button key={tech} variant="secondary" size="sm" onClick={() => remove(tech)}>
+                <Button
+                  key={tech}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => remove(tech)}
+                >
                   {tech} ×
                 </Button>
               ))}
@@ -124,7 +136,10 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
         )}
 
         <div>
-          <label htmlFor="custom-tech" className="mb-2 block text-sm font-medium">
+          <label
+            htmlFor="custom-tech"
+            className="mb-2 block text-sm font-medium"
+          >
             Add other technologies
           </label>
           <div className="flex gap-2">
@@ -135,14 +150,22 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
               onKeyDown={handleCustomKeyDown}
               placeholder="e.g., LlamaIndex, Ollama, Pinecone..."
             />
-            <Button type="button" onClick={addCustomTech} disabled={!customTech.trim()} variant="outline">
+            <Button
+              type="button"
+              onClick={addCustomTech}
+              disabled={!customTech.trim()}
+              variant="outline"
+            >
               Add
             </Button>
           </div>
         </div>
 
         <div>
-          <label htmlFor="power-tool" className="mb-2 block text-sm font-medium">
+          <label
+            htmlFor="power-tool"
+            className="mb-2 block text-sm font-medium"
+          >
             What&apos;s your power tool/language?
           </label>
           <Input
@@ -157,8 +180,9 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
           <p className="flex items-start gap-2">
             <span className="text-lg">🦆</span>
             <span>
-              <strong>Note:</strong> PacDuck will normalize your tech stack into standard terms (e.g.,
-              &quot;JS&quot; → &quot;javascript&quot;, &quot;React.js&quot; → &quot;react&quot;) to help with search and
+              <strong>Note:</strong> PacDuck will normalize your tech stack into
+              standard terms (e.g., &quot;JS&quot; → &quot;javascript&quot;,
+              &quot;React.js&quot; → &quot;react&quot;) to help with search and
               matching.
             </span>
           </p>

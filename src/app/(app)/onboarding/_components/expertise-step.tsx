@@ -30,7 +30,9 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
 
   const toggle = (v: string) => {
     const k = v.toLowerCase();
-    setExpertise((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
+    setExpertise((prev) =>
+      prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k],
+    );
   };
 
   const addCustomSkill = async () => {
@@ -78,9 +80,13 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">{STEP_CONFIG.expertise.title}</h1>
+        <h1 className="text-2xl font-semibold">
+          {STEP_CONFIG.expertise.title}
+        </h1>
         {STEP_CONFIG.expertise.subtitle && (
-          <p className="text-muted-foreground mt-2">{STEP_CONFIG.expertise.subtitle}</p>
+          <p className="text-muted-foreground mt-2">
+            {STEP_CONFIG.expertise.subtitle}
+          </p>
         )}
       </div>
 
@@ -89,7 +95,9 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
           {EXPERTISE_OTHER.map((skill) => (
             <Button
               key={skill}
-              variant={expertise.includes(skill.toLowerCase()) ? "default" : "outline"}
+              variant={
+                expertise.includes(skill.toLowerCase()) ? "default" : "outline"
+              }
               onClick={() => toggle(skill)}
               className="justify-start"
             >
@@ -103,7 +111,12 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
             <p className="mb-2 text-sm font-medium">Selected:</p>
             <div className="flex flex-wrap gap-2">
               {expertise.map((skill) => (
-                <Button key={skill} variant="secondary" size="sm" onClick={() => toggle(skill)}>
+                <Button
+                  key={skill}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => toggle(skill)}
+                >
                   {skill} ×
                 </Button>
               ))}
@@ -112,7 +125,10 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
         )}
 
         <div>
-          <label htmlFor="custom-skill" className="mb-2 block text-sm font-medium">
+          <label
+            htmlFor="custom-skill"
+            className="mb-2 block text-sm font-medium"
+          >
             Add other skills
           </label>
           <div className="flex gap-2">
@@ -123,7 +139,12 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
               onKeyDown={handleCustomKeyDown}
               placeholder="e.g., Wine Enthusiast, Rock Climbing, Film Buff..."
             />
-            <Button type="button" onClick={addCustomSkill} disabled={!customSkill.trim()} variant="outline">
+            <Button
+              type="button"
+              onClick={addCustomSkill}
+              disabled={!customSkill.trim()}
+              variant="outline"
+            >
               Add
             </Button>
           </div>

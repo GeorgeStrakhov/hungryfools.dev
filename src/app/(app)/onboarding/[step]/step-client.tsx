@@ -19,7 +19,12 @@ interface OnboardingStepClientProps {
 }
 
 export function OnboardingStepClient({ step }: OnboardingStepClientProps) {
-  const { goNext: navNext, goPrev, skipStep, goToDirectory } = useStepNavigation(step);
+  const {
+    goNext: navNext,
+    goPrev,
+    skipStep,
+    goToDirectory,
+  } = useStepNavigation(step);
   const { finalize } = useOnboardingWizard();
 
   // Progress indicator
@@ -33,7 +38,9 @@ export function OnboardingStepClient({ step }: OnboardingStepClientProps) {
         await finalize();
       } catch (e) {
         const err = e as { message?: string };
-        toast.error(err?.message || "Failed to save. Please fix and try again.");
+        toast.error(
+          err?.message || "Failed to save. Please fix and try again.",
+        );
         return; // stay on current step
       }
     }
@@ -48,7 +55,9 @@ export function OnboardingStepClient({ step }: OnboardingStepClientProps) {
         await finalize();
       } catch (e) {
         const err = e as { message?: string };
-        toast.error(err?.message || "Failed to save. Please fix and try again.");
+        toast.error(
+          err?.message || "Failed to save. Please fix and try again.",
+        );
         return;
       }
     }
@@ -87,9 +96,7 @@ export function OnboardingStepClient({ step }: OnboardingStepClientProps) {
         );
 
       case "showcase":
-        return (
-          <ShowcaseStep onNext={goNext} onBack={goPrev} onSkip={goSkip} />
-        );
+        return <ShowcaseStep onNext={goNext} onBack={goPrev} onSkip={goSkip} />;
 
       case "done":
         return <DoneStep onFinish={goToDirectory} />;
@@ -101,21 +108,21 @@ export function OnboardingStepClient({ step }: OnboardingStepClientProps) {
 
   return (
     <div className="space-y-6">
-        {/* Progress bar */}
-        {step !== "done" && (
-          <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800">
-            <div
-              className="h-2 rounded-full transition-all duration-300"
-              style={{
-                width: `${progress}%`,
-                backgroundColor: "var(--hf-yellow)",
-              }}
-            />
-          </div>
-        )}
+      {/* Progress bar */}
+      {step !== "done" && (
+        <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+          <div
+            className="h-2 rounded-full transition-all duration-300"
+            style={{
+              width: `${progress}%`,
+              backgroundColor: "var(--hf-yellow)",
+            }}
+          />
+        </div>
+      )}
 
-        {/* Step content */}
-        <div className="onboarding-step">{renderStep()}</div>
-      </div>
+      {/* Step content */}
+      <div className="onboarding-step">{renderStep()}</div>
+    </div>
   );
 }

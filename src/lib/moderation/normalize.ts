@@ -39,8 +39,10 @@ export async function normalizeAndModerate<
   };
   collect(sanitized);
   if (flatTexts.some(containsBlockedContent)) {
-    const error = new Error(PACDUCK_MESSAGES.profanity);
-    (error as any).name = "ModerationError";
+    const error: Error & { name: string } = new Error(
+      PACDUCK_MESSAGES.profanity,
+    ) as Error & { name: string };
+    error.name = "ModerationError";
     throw error;
   }
 

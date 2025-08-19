@@ -168,7 +168,7 @@ Clean up project info:
 
 // Finalize onboarding: write all fields in one transaction and set onboarding flag
 import { users } from "@/db/schema/auth";
-import { profiles } from "@/db/schema/profile";
+// import { profiles } from "@/db/schema/profile";
 import { eq } from "drizzle-orm";
 
 const completeInput = z.object({
@@ -218,12 +218,12 @@ export async function completeOnboardingAction(payload: unknown) {
   const enrichCalls: Promise<unknown>[] = [];
   if ((input.vibes?.length || 0) > 0 || (input.vibeText || "").trim()) {
     enrichCalls.push(
-      saveVibeAction({ vibes: input.vibes ?? [], oneLine: input.vibeText })
+      saveVibeAction({ vibes: input.vibes ?? [], oneLine: input.vibeText }),
     );
   }
   if ((input.stack?.length || 0) > 0 || (input.stackText || "").trim()) {
     enrichCalls.push(
-      saveStackAction({ stack: input.stack ?? [], power: input.stackText })
+      saveStackAction({ stack: input.stack ?? [], power: input.stackText }),
     );
   }
   if ((input.expertise?.length || 0) > 0) {
@@ -234,8 +234,10 @@ export async function completeOnboardingAction(payload: unknown) {
       await Promise.all(enrichCalls);
     } catch (e: unknown) {
       const err = e as { message?: string };
-      const ex = new Error(err?.message || PACDUCK_MESSAGES.generic);
-      (ex as any).name = "ModerationError";
+      const ex: Error & { name: string } = new Error(
+        err?.message || PACDUCK_MESSAGES.generic,
+      ) as Error & { name: string };
+      ex.name = "ModerationError";
       throw ex;
     }
   }
@@ -297,14 +299,20 @@ export async function updateOnboardingFromEditAction(payload: unknown) {
 
   // Enrichment calls
   const enrich: Promise<unknown>[] = [];
-  if ((input.vibes && input.vibes.length > 0) || (input.vibeText && input.vibeText.trim())) {
+  if (
+    (input.vibes && input.vibes.length > 0) ||
+    (input.vibeText && input.vibeText.trim())
+  ) {
     enrich.push(
-      saveVibeAction({ vibes: input.vibes ?? [], oneLine: input.vibeText })
+      saveVibeAction({ vibes: input.vibes ?? [], oneLine: input.vibeText }),
     );
   }
-  if ((input.stack && input.stack.length > 0) || (input.stackText && input.stackText.trim())) {
+  if (
+    (input.stack && input.stack.length > 0) ||
+    (input.stackText && input.stackText.trim())
+  ) {
     enrich.push(
-      saveStackAction({ stack: input.stack ?? [], power: input.stackText })
+      saveStackAction({ stack: input.stack ?? [], power: input.stackText }),
     );
   }
   if (input.expertise && input.expertise.length > 0) {

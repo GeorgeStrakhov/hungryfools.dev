@@ -5,13 +5,18 @@ import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+// import { Checkbox } from "@/components/ui/checkbox";
 import { createOrUpdateProfileAction } from "./profile.actions";
 import { PROFILE_FIELD_LIMITS, normalizeHandle } from "@/lib/profile-utils";
 import { ImageUpload } from "@/components/media/image-upload";
 import { getAvatarUrl } from "@/lib/utils/avatar";
 import posthog from "posthog-js";
-import { PURPOSE_OPTIONS, VIBE_OPTIONS, STACK_CORE, EXPERTISE_OTHER } from "@/lib/onboarding-options";
+import {
+  PURPOSE_OPTIONS,
+  VIBE_OPTIONS,
+  STACK_CORE,
+  EXPERTISE_OTHER,
+} from "@/lib/onboarding-options";
 import { updateOnboardingFromEditAction } from "@/app/(app)/onboarding/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -47,7 +52,6 @@ export function ProfileForm({
   defaults,
   onboardingData,
   initialPurposes,
-  redirectTo,
   profileImage,
   userImage,
 }: {
@@ -61,7 +65,7 @@ export function ProfileForm({
     expertiseSelections?: string[];
   };
   initialPurposes?: string[];
-  redirectTo?: string;
+
   profileImage?: string | null;
   userImage?: string | null;
 }) {
@@ -72,12 +76,24 @@ export function ProfileForm({
   >(profileImage || null);
   const router = useRouter();
   // Local state for onboarding-derived fields
-  const [purposes, setPurposes] = React.useState<string[]>(initialPurposes ?? []);
-  const [vibes, setVibes] = React.useState<string[]>(onboardingData?.vibeSelections ?? []);
-  const [vibeText, setVibeText] = React.useState<string>(onboardingData?.vibeText ?? "");
-  const [stack, setStack] = React.useState<string[]>(onboardingData?.stackSelections ?? []);
-  const [stackText, setStackText] = React.useState<string>(onboardingData?.stackText ?? "");
-  const [expertise, setExpertise] = React.useState<string[]>(onboardingData?.expertiseSelections ?? []);
+  const [purposes, setPurposes] = React.useState<string[]>(
+    initialPurposes ?? [],
+  );
+  const [vibes, setVibes] = React.useState<string[]>(
+    onboardingData?.vibeSelections ?? [],
+  );
+  const [vibeText, setVibeText] = React.useState<string>(
+    onboardingData?.vibeText ?? "",
+  );
+  const [stack, setStack] = React.useState<string[]>(
+    onboardingData?.stackSelections ?? [],
+  );
+  const [stackText, setStackText] = React.useState<string>(
+    onboardingData?.stackText ?? "",
+  );
+  const [expertise, setExpertise] = React.useState<string[]>(
+    onboardingData?.expertiseSelections ?? [],
+  );
   // Inputs for chip autocompletes
   const [vibeInput, setVibeInput] = React.useState("");
   const [stackInput, setStackInput] = React.useState("");
@@ -122,7 +138,8 @@ export function ProfileForm({
       try {
         const res = await fetch("/api/user/handle");
         const data = await res.json();
-        const finalHandle = (data && data.handle) || normalizeHandle(parsed.data.handle);
+        const finalHandle =
+          (data && data.handle) || normalizeHandle(parsed.data.handle);
         router.push(`/u/${finalHandle}`);
       } catch {
         const fallback = normalizeHandle(parsed.data.handle);
@@ -276,10 +293,14 @@ export function ProfileForm({
 
       {/* Onboarding-derived fields */}
       <div className="mt-8 space-y-8 border-t pt-8">
-        <h3 className="text-xl md:text-2xl font-semibold">Profile Preferences</h3>
+        <h3 className="text-xl font-semibold md:text-2xl">
+          Profile Preferences
+        </h3>
         {/* Purposes */}
-        <div className="space-y-3 md:space-y-4 mt-4 md:mt-6">
-          <label className="text-base md:text-lg font-semibold">What are you here for?</label>
+        <div className="mt-4 space-y-3 md:mt-6 md:space-y-4">
+          <label className="text-base font-semibold md:text-lg">
+            What are you here for?
+          </label>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {PURPOSE_OPTIONS.map((o) => {
               const active = purposes.includes(o.key);
@@ -288,7 +309,7 @@ export function ProfileForm({
                   key={o.key}
                   type="button"
                   variant={active ? "default" : "outline"}
-                  className="justify-start h-auto p-3 md:p-4 text-sm md:text-base"
+                  className="h-auto justify-start p-3 text-sm md:p-4 md:text-base"
                   onClick={() =>
                     setPurposes((prev) =>
                       prev.includes(o.key)
@@ -305,13 +326,23 @@ export function ProfileForm({
         </div>
 
         {/* Vibes */}
-        <div className="space-y-3 md:space-y-4 mt-6 md:mt-8">
-          <label className="text-base md:text-lg font-semibold">Your vibe</label>
+        <div className="mt-6 space-y-3 md:mt-8 md:space-y-4">
+          <label className="text-base font-semibold md:text-lg">
+            Your vibe
+          </label>
           {/* Chips */}
           {vibes.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {vibes.map((v) => (
-                <Button key={v} type="button" size="sm" variant="secondary" onClick={() => setVibes((prev) => prev.filter((x) => x !== v))}>
+                <Button
+                  key={v}
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    setVibes((prev) => prev.filter((x) => x !== v))
+                  }
+                >
                   {v} ×
                 </Button>
               ))}
@@ -335,15 +366,29 @@ export function ProfileForm({
           />
           {vibeInput.trim() && (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {VIBE_OPTIONS.filter((o) => o.toLowerCase().includes(vibeInput.toLowerCase())).slice(0, 8).map((opt) => {
-                const k = opt.toLowerCase();
-                const disabled = vibes.includes(k);
-                return (
-                  <Button key={opt} type="button" variant={disabled ? "secondary" : "outline"} disabled={disabled} onClick={() => { if (!disabled) setVibes([...vibes, k]); setVibeInput(""); }} className="justify-start h-auto p-3 md:p-4 text-sm md:text-base">
-                    {opt}
-                  </Button>
-                );
-              })}
+              {VIBE_OPTIONS.filter((o) =>
+                o.toLowerCase().includes(vibeInput.toLowerCase()),
+              )
+                .slice(0, 8)
+                .map((opt) => {
+                  const k = opt.toLowerCase();
+                  const disabled = vibes.includes(k);
+                  return (
+                    <Button
+                      key={opt}
+                      type="button"
+                      variant={disabled ? "secondary" : "outline"}
+                      disabled={disabled}
+                      onClick={() => {
+                        if (!disabled) setVibes([...vibes, k]);
+                        setVibeInput("");
+                      }}
+                      className="h-auto justify-start p-3 text-sm md:p-4 md:text-base"
+                    >
+                      {opt}
+                    </Button>
+                  );
+                })}
             </div>
           )}
           <Input
@@ -355,12 +400,22 @@ export function ProfileForm({
         </div>
 
         {/* Stack */}
-        <div className="space-y-3 md:space-y-4 mt-6 md:mt-8">
-          <label className="text-base md:text-lg font-semibold pb-4">Your stack</label>
+        <div className="mt-6 space-y-3 md:mt-8 md:space-y-4">
+          <label className="pb-4 text-base font-semibold md:text-lg">
+            Your stack
+          </label>
           {stack.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {stack.map((s) => (
-                <Button key={s} type="button" size="sm" variant="secondary" onClick={() => setStack((prev) => prev.filter((x) => x !== s))}>
+                <Button
+                  key={s}
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    setStack((prev) => prev.filter((x) => x !== s))
+                  }
+                >
                   {s} ×
                 </Button>
               ))}
@@ -383,15 +438,29 @@ export function ProfileForm({
           />
           {stackInput.trim() && (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {STACK_CORE.filter((o) => o.toLowerCase().includes(stackInput.toLowerCase())).slice(0, 8).map((opt) => {
-                const k = opt.toLowerCase();
-                const disabled = stack.includes(k);
-                return (
-                  <Button key={opt} type="button" variant={disabled ? "secondary" : "outline"} disabled={disabled} onClick={() => { if (!disabled) setStack([...stack, k]); setStackInput(""); }} className="justify-start h-auto p-3 md:p-4 text-sm md:text-base">
-                    {opt}
-                  </Button>
-                );
-              })}
+              {STACK_CORE.filter((o) =>
+                o.toLowerCase().includes(stackInput.toLowerCase()),
+              )
+                .slice(0, 8)
+                .map((opt) => {
+                  const k = opt.toLowerCase();
+                  const disabled = stack.includes(k);
+                  return (
+                    <Button
+                      key={opt}
+                      type="button"
+                      variant={disabled ? "secondary" : "outline"}
+                      disabled={disabled}
+                      onClick={() => {
+                        if (!disabled) setStack([...stack, k]);
+                        setStackInput("");
+                      }}
+                      className="h-auto justify-start p-3 text-sm md:p-4 md:text-base"
+                    >
+                      {opt}
+                    </Button>
+                  );
+                })}
             </div>
           )}
           <Input
@@ -403,12 +472,22 @@ export function ProfileForm({
         </div>
 
         {/* Expertise */}
-        <div className="space-y-3 md:space-y-4 mt-6 md:mt-8">
-          <label className="text-base md:text-lg font-semibold">Other expertise</label>
+        <div className="mt-6 space-y-3 md:mt-8 md:space-y-4">
+          <label className="text-base font-semibold md:text-lg">
+            Other expertise
+          </label>
           {expertise.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {expertise.map((s) => (
-                <Button key={s} type="button" size="sm" variant="secondary" onClick={() => setExpertise((prev) => prev.filter((x) => x !== s))}>
+                <Button
+                  key={s}
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    setExpertise((prev) => prev.filter((x) => x !== s))
+                  }
+                >
                   {s} ×
                 </Button>
               ))}
@@ -431,15 +510,29 @@ export function ProfileForm({
           />
           {expertiseInput.trim() && (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {EXPERTISE_OTHER.filter((o) => o.toLowerCase().includes(expertiseInput.toLowerCase())).slice(0, 8).map((opt) => {
-                const k = opt.toLowerCase();
-                const disabled = expertise.includes(k);
-                return (
-                  <Button key={opt} type="button" variant={disabled ? "secondary" : "outline"} disabled={disabled} onClick={() => { if (!disabled) setExpertise([...expertise, k]); setExpertiseInput(""); }} className="justify-start h-auto p-3 md:p-4 text-sm md:text-base">
-                    {opt}
-                  </Button>
-                );
-              })}
+              {EXPERTISE_OTHER.filter((o) =>
+                o.toLowerCase().includes(expertiseInput.toLowerCase()),
+              )
+                .slice(0, 8)
+                .map((opt) => {
+                  const k = opt.toLowerCase();
+                  const disabled = expertise.includes(k);
+                  return (
+                    <Button
+                      key={opt}
+                      type="button"
+                      variant={disabled ? "secondary" : "outline"}
+                      disabled={disabled}
+                      onClick={() => {
+                        if (!disabled) setExpertise([...expertise, k]);
+                        setExpertiseInput("");
+                      }}
+                      className="h-auto justify-start p-3 text-sm md:p-4 md:text-base"
+                    >
+                      {opt}
+                    </Button>
+                  );
+                })}
             </div>
           )}
         </div>
