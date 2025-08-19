@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { answerStructured } from "@/lib/services/llm/llm";
-import { containsBlockedContent } from "./shared";
+import { containsBlockedContent, PACDUCK_MESSAGES } from "./shared";
 
 function basicSanitize<T extends Record<string, unknown>>(input: T): T {
   const out: Record<string, unknown> = {};
@@ -39,7 +39,9 @@ export async function normalizeAndModerate<
   };
   collect(sanitized);
   if (flatTexts.some(containsBlockedContent)) {
-    throw new Error("Content contains disallowed slurs or hate speech");
+    const error = new Error(PACDUCK_MESSAGES.profanity);
+    (error as any).name = "ModerationError";
+    throw error;
   }
 
   // If no API key, fallback to baseline mapping via output schema defaults

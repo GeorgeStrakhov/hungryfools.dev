@@ -8,29 +8,9 @@ import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
+import { EXPERTISE_OTHER } from "@/lib/onboarding-options";
 
-const OTHER = [
-  "Musician",
-  "Artist",
-  "Writer",
-  "Photographer",
-  "Videographer",
-  "Designer",
-  "Chef/Foodie",
-  "Book Lover",
-  "Gamer",
-  "Athlete",
-  "Traveler",
-  "Language Learner",
-  "Podcaster",
-  "Content Creator",
-  "Teacher",
-  "Speaker",
-  "Community Builder",
-  "Consultant",
-  "Entrepreneur",
-  "Parent",
-];
+// options centralized in lib
 
 interface ExpertiseStepProps {
   onNext: () => void;
@@ -106,7 +86,7 @@ export function ExpertiseStep({ onNext, onBack, onSkip }: ExpertiseStepProps) {
 
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-2">
-          {OTHER.map((skill) => (
+          {EXPERTISE_OTHER.map((skill) => (
             <Button
               key={skill}
               variant={expertise.includes(skill.toLowerCase()) ? "default" : "outline"}

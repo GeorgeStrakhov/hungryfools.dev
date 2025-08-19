@@ -7,10 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createOrUpdateProfileAction } from "./profile.actions";
-import { PROFILE_FIELD_LIMITS } from "@/lib/profile-utils";
+import { PROFILE_FIELD_LIMITS, normalizeHandle } from "@/lib/profile-utils";
 import { ImageUpload } from "@/components/media/image-upload";
 import { getAvatarUrl } from "@/lib/utils/avatar";
 import posthog from "posthog-js";
+import { PURPOSE_OPTIONS, VIBE_OPTIONS, STACK_CORE, EXPERTISE_OTHER } from "@/lib/onboarding-options";
+import { updateOnboardingFromEditAction } from "@/app/(app)/onboarding/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -44,6 +46,7 @@ const schema = z.object({
 export function ProfileForm({
   defaults,
   onboardingData,
+  initialPurposes,
   redirectTo,
   profileImage,
   userImage,
@@ -57,6 +60,7 @@ export function ProfileForm({
     stackText?: string;
     expertiseSelections?: string[];
   };
+  initialPurposes?: string[];
   redirectTo?: string;
   profileImage?: string | null;
   userImage?: string | null;
@@ -67,6 +71,17 @@ export function ProfileForm({
     string | null
   >(profileImage || null);
   const router = useRouter();
+  // Local state for onboarding-derived fields
+  const [purposes, setPurposes] = React.useState<string[]>(initialPurposes ?? []);
+  const [vibes, setVibes] = React.useState<string[]>(onboardingData?.vibeSelections ?? []);
+  const [vibeText, setVibeText] = React.useState<string>(onboardingData?.vibeText ?? "");
+  const [stack, setStack] = React.useState<string[]>(onboardingData?.stackSelections ?? []);
+  const [stackText, setStackText] = React.useState<string>(onboardingData?.stackText ?? "");
+  const [expertise, setExpertise] = React.useState<string[]>(onboardingData?.expertiseSelections ?? []);
+  // Inputs for chip autocompletes
+  const [vibeInput, setVibeInput] = React.useState("");
+  const [stackInput, setStackInput] = React.useState("");
+  const [expertiseInput, setExpertiseInput] = React.useState("");
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formRef.current) return;
@@ -88,20 +103,40 @@ export function ProfileForm({
     }
     setPending(true);
     try {
+      // Save canonical profile fields (server will moderate)
       await createOrUpdateProfileAction({
         ...parsed.data,
         profileImage: currentProfileImage || undefined,
       });
+      // Save onboarding-derived fields in one go with normalization
+      await updateOnboardingFromEditAction({
+        purposes,
+        vibes,
+        vibeText,
+        stack,
+        stackText,
+        expertise,
+      });
       posthog.capture("profile_update");
       toast.success("Profile saved");
-      router.push(redirectTo || "/directory");
+      try {
+        const res = await fetch("/api/user/handle");
+        const data = await res.json();
+        const finalHandle = (data && data.handle) || normalizeHandle(parsed.data.handle);
+        router.push(`/u/${finalHandle}`);
+      } catch {
+        const fallback = normalizeHandle(parsed.data.handle);
+        router.push(`/u/${fallback}`);
+      }
     } catch (err: unknown) {
       console.error(err);
       const error = err as { name?: string; message?: string };
-      if (error?.name === "ModerationError") {
+      if (error?.message === "HANDLE_TAKEN") {
+        toast.error("This handle is already taken. Please choose another.");
+      } else if (error?.name === "ModerationError") {
         toast.error(error.message || "Content did not pass moderation");
       } else {
-        toast.error("Failed to save profile");
+        toast.error("Duck says: couldn’t save profile. Try again.");
       }
     } finally {
       setPending(false);
@@ -109,7 +144,7 @@ export function ProfileForm({
   };
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="grid max-w-2xl gap-4">
+    <form ref={formRef} onSubmit={onSubmit} className="grid max-w-4xl gap-4">
       <div className="grid gap-2">
         <label>Handle</label>
         <Input
@@ -237,34 +272,178 @@ export function ProfileForm({
           defaultValue={defaults?.email}
         />
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="availHire"
-            name="availHire"
-            defaultChecked={defaults?.availHire}
-          />
-          <label htmlFor="availHire">Open to hire</label>
+      {/* Availability now controlled by Purposes section below */}
+
+      {/* Onboarding-derived fields */}
+      <div className="mt-8 space-y-8 border-t pt-8">
+        <h3 className="text-xl md:text-2xl font-semibold">Profile Preferences</h3>
+        {/* Purposes */}
+        <div className="space-y-3 md:space-y-4 mt-4 md:mt-6">
+          <label className="text-base md:text-lg font-semibold">What are you here for?</label>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {PURPOSE_OPTIONS.map((o) => {
+              const active = purposes.includes(o.key);
+              return (
+                <Button
+                  key={o.key}
+                  type="button"
+                  variant={active ? "default" : "outline"}
+                  className="justify-start h-auto p-3 md:p-4 text-sm md:text-base"
+                  onClick={() =>
+                    setPurposes((prev) =>
+                      prev.includes(o.key)
+                        ? prev.filter((k) => k !== o.key)
+                        : [...prev, o.key],
+                    )
+                  }
+                >
+                  {o.label}
+                </Button>
+              );
+            })}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="availCollab"
-            name="availCollab"
-            defaultChecked={defaults?.availCollab}
+
+        {/* Vibes */}
+        <div className="space-y-3 md:space-y-4 mt-6 md:mt-8">
+          <label className="text-base md:text-lg font-semibold">Your vibe</label>
+          {/* Chips */}
+          {vibes.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {vibes.map((v) => (
+                <Button key={v} type="button" size="sm" variant="secondary" onClick={() => setVibes((prev) => prev.filter((x) => x !== v))}>
+                  {v} ×
+                </Button>
+              ))}
+            </div>
+          )}
+          {/* Autocomplete input */}
+          <Input
+            value={vibeInput}
+            onChange={(e) => setVibeInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const term = vibeInput.trim();
+                if (!term) return;
+                const k = term.toLowerCase();
+                if (!vibes.includes(k)) setVibes([...vibes, k]);
+                setVibeInput("");
+              }
+            }}
+            placeholder="Type to add (press Enter)"
           />
-          <label htmlFor="availCollab">Open to collab</label>
+          {vibeInput.trim() && (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {VIBE_OPTIONS.filter((o) => o.toLowerCase().includes(vibeInput.toLowerCase())).slice(0, 8).map((opt) => {
+                const k = opt.toLowerCase();
+                const disabled = vibes.includes(k);
+                return (
+                  <Button key={opt} type="button" variant={disabled ? "secondary" : "outline"} disabled={disabled} onClick={() => { if (!disabled) setVibes([...vibes, k]); setVibeInput(""); }} className="justify-start h-auto p-3 md:p-4 text-sm md:text-base">
+                    {opt}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
+          <Input
+            id="vibeText"
+            value={vibeText}
+            onChange={(e) => setVibeText(e.target.value)}
+            placeholder="Add more details (optional)"
+          />
         </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="availHiring"
-            name="availHiring"
-            defaultChecked={defaults?.availHiring}
+
+        {/* Stack */}
+        <div className="space-y-3 md:space-y-4 mt-6 md:mt-8">
+          <label className="text-base md:text-lg font-semibold pb-4">Your stack</label>
+          {stack.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {stack.map((s) => (
+                <Button key={s} type="button" size="sm" variant="secondary" onClick={() => setStack((prev) => prev.filter((x) => x !== s))}>
+                  {s} ×
+                </Button>
+              ))}
+            </div>
+          )}
+          <Input
+            value={stackInput}
+            onChange={(e) => setStackInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const term = stackInput.trim();
+                if (!term) return;
+                const k = term.toLowerCase();
+                if (!stack.includes(k)) setStack([...stack, k]);
+                setStackInput("");
+              }
+            }}
+            placeholder="Type to add technology (press Enter)"
           />
-          <label htmlFor="availHiring">I am hiring</label>
+          {stackInput.trim() && (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {STACK_CORE.filter((o) => o.toLowerCase().includes(stackInput.toLowerCase())).slice(0, 8).map((opt) => {
+                const k = opt.toLowerCase();
+                const disabled = stack.includes(k);
+                return (
+                  <Button key={opt} type="button" variant={disabled ? "secondary" : "outline"} disabled={disabled} onClick={() => { if (!disabled) setStack([...stack, k]); setStackInput(""); }} className="justify-start h-auto p-3 md:p-4 text-sm md:text-base">
+                    {opt}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
+          <Input
+            id="stackText"
+            value={stackText}
+            onChange={(e) => setStackText(e.target.value)}
+            placeholder="What’s your power tool/language?"
+          />
+        </div>
+
+        {/* Expertise */}
+        <div className="space-y-3 md:space-y-4 mt-6 md:mt-8">
+          <label className="text-base md:text-lg font-semibold">Other expertise</label>
+          {expertise.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {expertise.map((s) => (
+                <Button key={s} type="button" size="sm" variant="secondary" onClick={() => setExpertise((prev) => prev.filter((x) => x !== s))}>
+                  {s} ×
+                </Button>
+              ))}
+            </div>
+          )}
+          <Input
+            value={expertiseInput}
+            onChange={(e) => setExpertiseInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const term = expertiseInput.trim();
+                if (!term) return;
+                const k = term.toLowerCase();
+                if (!expertise.includes(k)) setExpertise([...expertise, k]);
+                setExpertiseInput("");
+              }
+            }}
+            placeholder="Type to add expertise (press Enter)"
+          />
+          {expertiseInput.trim() && (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {EXPERTISE_OTHER.filter((o) => o.toLowerCase().includes(expertiseInput.toLowerCase())).slice(0, 8).map((opt) => {
+                const k = opt.toLowerCase();
+                const disabled = expertise.includes(k);
+                return (
+                  <Button key={opt} type="button" variant={disabled ? "secondary" : "outline"} disabled={disabled} onClick={() => { if (!disabled) setExpertise([...expertise, k]); setExpertiseInput(""); }} className="justify-start h-auto p-3 md:p-4 text-sm md:text-base">
+                    {opt}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Onboarding Data section removed to simplify edit UI */}
 
       <div>
         <Button type="submit" disabled={pending}>

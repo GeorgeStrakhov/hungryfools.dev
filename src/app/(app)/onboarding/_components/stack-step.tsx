@@ -8,67 +8,9 @@ import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
+import { STACK_CORE } from "@/lib/onboarding-options";
 
-const CORE = [
-  "Next.js",
-  "TypeScript",
-  "Python",
-  "FastAPI",
-  "React",
-  "Vercel",
-  "AWS",
-  "Azure",
-  "GCP",
-  "Supabase",
-  "Cloudflare",
-  "Railway",
-  "Netlify",
-  "Render",
-  "Mastra",
-  "Agno",
-  "SmolAgents",
-  "CrewAI",
-  "PydanticAI",
-  "LangChain",
-  "LangGraph",
-  "AutoGen",
-  // LLM Providers
-  "OpenAI",
-  "Anthropic",
-  "Groq",
-  "xAI Grok",
-  "Gemini",
-  "HuggingFace",
-  "Replicate",
-  "fal.ai",
-  // AI Dev Tools
-  "Cursor",
-  "Windsurf",
-  "Claude Code",
-  "Codeium",
-  // AI Builders
-  "v0",
-  "Lovable",
-  "Bolt",
-  // Video/Image AI
-  "Runway",
-  "Kling",
-  "Wan",
-  "Veo-3",
-  "FLUX",
-  "Imagen-4",
-  // UI/Styling
-  "TailwindCSS",
-  "shadcn/ui",
-  "Framer",
-  // Database
-  "PostgreSQL",
-  "Drizzle",
-  "Neon",
-  "PostHog",
-  "Postmark",
-  "Stripe",
-];
+// options centralized in lib
 
 interface StackStepProps {
   onNext: () => void;

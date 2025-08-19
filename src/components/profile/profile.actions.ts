@@ -11,6 +11,7 @@ import {
 } from "@/db/schema/profile";
 import { eq } from "drizzle-orm";
 import { normalizeAndModerate } from "@/lib/moderation/normalize";
+import { PACDUCK_MESSAGES } from "@/lib/moderation/shared";
 import {
   generateDefaultHandle,
   normalizeHandle,
@@ -93,12 +94,21 @@ export async function createOrUpdateProfileAction(input: Input) {
   };
   let moderatedFields: ModeratedFields = {};
   if (Object.keys(fieldsToModerate).length > 0) {
-    moderatedFields = (await normalizeAndModerate(
-      fieldsToModerate,
-      profileInput,
-      profileOutput,
-      PROFILE_MODERATION_PROMPT,
-    )) as ModeratedFields;
+    try {
+      moderatedFields = (await normalizeAndModerate(
+        fieldsToModerate,
+        profileInput,
+        profileOutput,
+        PROFILE_MODERATION_PROMPT,
+      )) as ModeratedFields;
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      const ex = new Error(
+        err?.message || PACDUCK_MESSAGES.generic,
+      );
+      (ex as any).name = "ModerationError";
+      throw ex;
+    }
   }
 
   // Determine final handle

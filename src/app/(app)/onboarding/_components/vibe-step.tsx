@@ -7,23 +7,11 @@ import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
+import { VIBE_OPTIONS } from "@/lib/onboarding-options";
 import posthog from "posthog-js";
 import React from "react";
 
-const VIBE_OPTIONS = [
-  "Ship-first Vibecoder",
-  "AI Agent Orchestrator",
-  "Prompt Engineer",
-  "Claude Code Wizard",
-  "Cursor Power User",
-  "Windsurf Navigator",
-  "Model Fine-tuner",
-  "RAG Architect",
-  "Agentic Framework Builder",
-  "LLM Whisperer",
-  "Token Optimizer",
-  "Reasoning Chain Designer",
-];
+// options centralized in lib
 
 interface VibeStepProps {
   onNext: () => void;

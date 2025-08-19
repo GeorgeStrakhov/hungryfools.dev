@@ -74,7 +74,7 @@ export default async function EditProfilePage({ params }: Params) {
     availHiring: profile.availability?.hiring ?? false,
   };
 
-  // Onboarding data for readonly display
+  // Onboarding data for editing
   const onboardingData = {
     vibeTags: profile.vibeTags ?? [],
     vibeSelections: profile.vibeSelections ?? [],
@@ -84,9 +84,16 @@ export default async function EditProfilePage({ params }: Params) {
     expertiseSelections: profile.expertiseSelections ?? [],
   };
 
+  // Purposes derived from availability/showcase
+  const initialPurposes: string[] = [];
+  if (profile.showcase) initialPurposes.push("list");
+  if (profile.availability?.collab) initialPurposes.push("find");
+  if (profile.availability?.hire) initialPurposes.push("get_hired");
+  if (profile.availability?.hiring) initialPurposes.push("hiring");
+
   return (
     <div className="hf-container py-6 md:py-10">
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-4xl">
         <div className="mb-8">
           <h1 className="text-2xl font-bold sm:text-3xl">Edit Profile</h1>
           <p className="text-muted-foreground mt-2">
@@ -96,6 +103,7 @@ export default async function EditProfilePage({ params }: Params) {
         <ProfileForm
           defaults={defaults}
           onboardingData={onboardingData}
+          initialPurposes={initialPurposes}
           redirectTo={`/u/${profile.handle}`}
           profileImage={profile.profileImage}
           userImage={user?.image}

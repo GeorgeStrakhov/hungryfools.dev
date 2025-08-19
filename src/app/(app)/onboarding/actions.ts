@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { projects, type ProjectMedia } from "@/db/schema/profile";
 import { auth } from "@/auth";
 import { z } from "zod";
+import { PACDUCK_MESSAGES } from "@/lib/moderation/shared";
 import { normalizeAndModerate } from "@/lib/moderation/normalize";
 import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { PROFILE_FIELD_LIMITS } from "@/lib/profile-utils";
@@ -229,7 +230,14 @@ export async function completeOnboardingAction(payload: unknown) {
     enrichCalls.push(saveExpertiseAction({ expertise: input.expertise ?? [] }));
   }
   if (enrichCalls.length > 0) {
-    await Promise.all(enrichCalls);
+    try {
+      await Promise.all(enrichCalls);
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      const ex = new Error(err?.message || PACDUCK_MESSAGES.generic);
+      (ex as any).name = "ModerationError";
+      throw ex;
+    }
   }
 
   // 3) Mark onboarding completed
@@ -237,4 +245,74 @@ export async function completeOnboardingAction(payload: unknown) {
     .update(users)
     .set({ onboardingCompleted: true })
     .where(eq(users.id, session.user.id));
+}
+
+// Update onboarding-derived fields from the profile edit page
+
+const editOnboardingInput = z.object({
+  purposes: z.array(z.string()).optional(),
+  vibes: z.array(z.string()).optional(),
+  vibeText: z.string().optional(),
+  stack: z.array(z.string()).optional(),
+  stackText: z.string().optional(),
+  expertise: z.array(z.string()).optional(),
+});
+
+export async function updateOnboardingFromEditAction(payload: unknown) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const input = editOnboardingInput.parse(payload);
+
+  // Map purposes to availability/showcase if provided
+  const availability = input.purposes
+    ? {
+        collab: input.purposes.includes("find"),
+        hire: input.purposes.includes("get_hired"),
+        hiring: input.purposes.includes("hiring"),
+        showcase: input.purposes.includes("list"),
+      }
+    : null;
+
+  // Persist raw selections + availability mapping
+  await createOrUpdateProfileAction({
+    ...(availability
+      ? {
+          availCollab: availability.collab,
+          availHire: availability.hire,
+          availHiring: availability.hiring,
+          showcase: availability.showcase,
+        }
+      : {}),
+    ...(input.vibes ? { vibeSelections: input.vibes } : {}),
+    ...(input.vibeText && input.vibeText.trim()
+      ? { vibeText: input.vibeText.trim() }
+      : {}),
+    ...(input.stack ? { stackSelections: input.stack } : {}),
+    ...(input.stackText && input.stackText.trim()
+      ? { stackText: input.stackText.trim() }
+      : {}),
+    ...(input.expertise ? { expertiseSelections: input.expertise } : {}),
+  });
+
+  // Enrichment calls
+  const enrich: Promise<unknown>[] = [];
+  if ((input.vibes && input.vibes.length > 0) || (input.vibeText && input.vibeText.trim())) {
+    enrich.push(
+      saveVibeAction({ vibes: input.vibes ?? [], oneLine: input.vibeText })
+    );
+  }
+  if ((input.stack && input.stack.length > 0) || (input.stackText && input.stackText.trim())) {
+    enrich.push(
+      saveStackAction({ stack: input.stack ?? [], power: input.stackText })
+    );
+  }
+  if (input.expertise && input.expertise.length > 0) {
+    enrich.push(saveExpertiseAction({ expertise: input.expertise }));
+  }
+  if (enrich.length > 0) {
+    await Promise.all(enrich);
+  }
+
+  return { success: true } as const;
 }

@@ -12,31 +12,23 @@ import {
 import { Question } from "./question";
 import { STEP_CONFIG } from "../_lib/steps";
 import { useOnboardingWizard } from "../_context/wizard-context";
+import { PURPOSE_OPTIONS } from "@/lib/onboarding-options";
 import { useState } from "react";
 import posthog from "posthog-js";
 
-const OPTIONS = [
-  {
-    key: "list",
-    label: "List myself as an expert vibecoder / AI-first developer",
-    icon: <Sparkles className="size-5" />,
-  },
-  {
-    key: "find",
-    label: "Find vibecoders / AI-first developers to work with",
-    icon: <Users className="size-5" />,
-  },
-  {
-    key: "get_hired",
-    label: "Get hired",
-    icon: <BriefcaseBusiness className="size-5" />,
-  },
-  {
-    key: "hiring",
-    label: "I'm hiring AI-first developers",
-    icon: <UserPlus2 className="size-5" />,
-  },
-];
+const OPTIONS = PURPOSE_OPTIONS.map((o) => ({
+  ...o,
+  icon:
+    o.key === "list" ? (
+      <Sparkles className="size-5" />
+    ) : o.key === "find" ? (
+      <Users className="size-5" />
+    ) : o.key === "get_hired" ? (
+      <BriefcaseBusiness className="size-5" />
+    ) : (
+      <UserPlus2 className="size-5" />
+    ),
+}));
 
 interface PurposeStepProps {
   onNext: () => void;
