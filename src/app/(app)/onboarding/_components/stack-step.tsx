@@ -102,7 +102,7 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
       </div>
 
       <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {STACK_CORE.map((tech) => (
             <Button
               key={tech}

@@ -195,6 +195,7 @@ npx tsx scripts/test-hybrid-search.ts all
 ```
 
 The generated profiles include:
+
 - **Diverse developers** from different companies (OpenAI, Anthropic, Mastra.ai, etc.)
 - **Global locations** (Berlin, San Francisco, London, Remote, etc.)
 - **Varied tech stacks** (Next.js, Python, AI/ML, TypeScript, etc.)
@@ -202,12 +203,14 @@ The generated profiles include:
 - **Personal interests** for complex query testing
 
 **Example test queries that work:**
+
 - `"AI developers in Berlin"`
 - `"Next.js experts who like music"`
 - `"Python developers building automation"`
 - `"machine learning engineers interested in photography"`
 
 **Cleanup when done:**
+
 ```bash
 # Remove all test users and data
 npx tsx scripts/cleanup-test-users.ts

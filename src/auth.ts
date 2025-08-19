@@ -64,18 +64,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           (user as unknown as { githubUsername?: string | null })
             ?.githubUsername ?? null;
         // Debug: log github username presence in session
+        /*
         try {
           // @ts-expect-error - runtime augmentation
           const gh = session.user.githubUsername;
-          /*
           console.log(
             "🟣 [AUTH] session githubUsername:",
             gh ?? null,
             "for user:",
             session.user.id,
           );
-          */
         } catch {}
+        */
       }
       return session;
     },
@@ -104,7 +104,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               .update(users)
               .set({ githubUsername: githubLogin })
               .where(eq(users.id, user.id));
-              /*
+            /*
             console.log(
               "🟢 [AUTH] stored githubUsername on signIn:",
               githubLogin,
