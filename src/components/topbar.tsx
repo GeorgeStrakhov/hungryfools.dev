@@ -294,7 +294,7 @@ export function Topbar() {
 
   return (
     <header className="supports-[backdrop-filter]:bg-background/80 bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
-      <div className="relative container flex h-14 max-w-screen-2xl items-center justify-between px-6 md:px-8">
+      <div className="relative w-full flex h-14 items-center justify-between px-6 lg:px-12">
         <div className="flex items-center gap-4">
           <MobileNav />
           <Link

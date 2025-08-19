@@ -34,7 +34,7 @@ HungryFools.dev is a directory where AI-first developers can show off their work
 - **Authentication**: [Auth.js v5](https://authjs.dev/) with GitHub OAuth
 - **Database**: [Neon Postgres 17](https://neon.tech/) with [Drizzle ORM](https://orm.drizzle.team/)
 - **File Storage**: [Cloudflare R2](https://developers.cloudflare.com/r2/)
-- **AI Services**: [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) (BGE-M3 embeddings, LLM)
+- **AI Services**: [Groq](https://groq.com/) (LLM via kimi-k2-instruct), [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) (BGE-M3 embeddings)
 - **Analytics**: [PostHog](https://posthog.com/) (EU region)
 - **Email**: [Postmark](https://postmarkapp.com/)
 - **Deployment**: [Vercel](https://vercel.com/)
@@ -164,6 +164,13 @@ pnpm db:migrate
 1. Create a [PostHog](https://posthog.com/) account (choose EU region)
 2. Get your Project API Key from the settings
 
+#### Groq (LLM)
+
+1. Create a [Groq](https://groq.com/) account
+2. Get your API key from the console
+3. Add to `.env.local`: `GROQ_API_KEY=your-groq-api-key`
+4. Used for structured LLM responses (query parsing, profile generation) with the kimi-k2-instruct model
+
 ### 6. Start Development Server
 
 ```bash
@@ -171,6 +178,40 @@ pnpm dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.
+
+### 7. Testing the Search System (Optional)
+
+To test the intelligent search functionality, you can generate mock profiles:
+
+```bash
+# Generate 30 diverse test profiles with AI-generated content
+npx tsx scripts/generate-batch-test-profiles.ts 3
+
+# Test the hybrid search system
+npx tsx scripts/test-hybrid-search.ts
+
+# Try specific test queries
+npx tsx scripts/test-hybrid-search.ts all
+```
+
+The generated profiles include:
+- **Diverse developers** from different companies (OpenAI, Anthropic, Mastra.ai, etc.)
+- **Global locations** (Berlin, San Francisco, London, Remote, etc.)
+- **Varied tech stacks** (Next.js, Python, AI/ML, TypeScript, etc.)
+- **Realistic projects** with embeddings for semantic search
+- **Personal interests** for complex query testing
+
+**Example test queries that work:**
+- `"AI developers in Berlin"`
+- `"Next.js experts who like music"`
+- `"Python developers building automation"`
+- `"machine learning engineers interested in photography"`
+
+**Cleanup when done:**
+```bash
+# Remove all test users and data
+npx tsx scripts/cleanup-test-users.ts
+```
 
 ## 📁 Project Structure
 
@@ -212,6 +253,13 @@ pnpm format           # Format code with Prettier
 # Database
 pnpm db:generate      # Generate migration files
 pnpm db:migrate       # Run database migrations
+
+# Testing & Development
+npx tsx scripts/generate-test-profiles.ts           # Generate 5 test profiles
+npx tsx scripts/generate-batch-test-profiles.ts 3   # Generate 30 test profiles (3 batches)
+npx tsx scripts/test-hybrid-search.ts               # Test search with sample queries
+npx tsx scripts/test-hybrid-search.ts all           # Test all search queries
+npx tsx scripts/cleanup-test-users.ts               # Remove all test users
 
 # Code Quality
 pnpm prettier         # Check code formatting
