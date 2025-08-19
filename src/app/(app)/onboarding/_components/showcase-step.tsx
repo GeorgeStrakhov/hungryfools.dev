@@ -21,9 +21,15 @@ interface ShowcaseStepProps {
   onNext: () => void;
   onBack: () => void;
   onSkip: () => void;
+  isFinalizingProfile?: boolean;
 }
 
-export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
+export function ShowcaseStep({
+  onNext,
+  onBack,
+  onSkip,
+  isFinalizingProfile = false,
+}: ShowcaseStepProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async (data: ProjectFormData) => {
@@ -45,7 +51,20 @@ export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
+      {/* Loading overlay when creating profile */}
+      {isFinalizingProfile && (
+        <div className="bg-background/80 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+          <div className="space-y-4 text-center">
+            <div className="border-primary mx-auto h-12 w-12 animate-spin rounded-full border-b-2"></div>
+            <p className="text-lg font-medium">Creating your profile...</p>
+            <p className="text-muted-foreground text-sm">
+              This will just take a moment
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="text-center">
         <h1 className="text-2xl font-semibold">{STEP_CONFIG.showcase.title}</h1>
         {STEP_CONFIG.showcase.subtitle && (
@@ -63,7 +82,7 @@ export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
         enhanceWithAI={true}
         showPreview={true}
         submitLabel="Create Project"
-        isLoading={isSaving}
+        isLoading={isSaving || isFinalizingProfile}
         initialData={{
           featured: true, // First project is featured by default
         }}

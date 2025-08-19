@@ -25,7 +25,7 @@ export function OnboardingStepClient({ step }: OnboardingStepClientProps) {
     skipStep,
     goToDirectory,
   } = useStepNavigation(step);
-  const { finalize } = useOnboardingWizard();
+  const { finalize, finalizing } = useOnboardingWizard();
 
   // Progress indicator
   const progress = getStepProgress(step);
@@ -96,7 +96,14 @@ export function OnboardingStepClient({ step }: OnboardingStepClientProps) {
         );
 
       case "showcase":
-        return <ShowcaseStep onNext={goNext} onBack={goPrev} onSkip={goSkip} />;
+        return (
+          <ShowcaseStep
+            onNext={goNext}
+            onBack={goPrev}
+            onSkip={goSkip}
+            isFinalizingProfile={finalizing}
+          />
+        );
 
       case "done":
         return <DoneStep onFinish={goToDirectory} />;
