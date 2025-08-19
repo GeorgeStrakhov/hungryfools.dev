@@ -79,6 +79,15 @@ export default async function PublicProfilePage({ params }: Params) {
               {profile.headline && (
                 <p className="mt-3 text-base sm:text-lg">{profile.headline}</p>
               )}
+              {profile.vibeTags && profile.vibeTags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {profile.vibeTags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

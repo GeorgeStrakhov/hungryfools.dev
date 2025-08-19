@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getOwnProfileAction } from "@/components/profile/profile.actions";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 interface ProfileData {
   handle?: string;
@@ -35,6 +36,7 @@ interface ProfileData {
 
 export function useProfileData() {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export function useProfileData() {
     };
 
     loadProfile();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, pathname]); // Refresh on route changes
 
   return {
     profileData,

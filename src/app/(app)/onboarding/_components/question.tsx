@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 type Option = {
   key: string;
@@ -20,6 +21,7 @@ export function Question({
   onBack,
   nextLabel = "Next",
   backLabel = "Back",
+  isSaving = false,
 }: {
   title: string;
   subtitle?: string;
@@ -31,14 +33,17 @@ export function Question({
   onBack?: () => void;
   nextLabel?: string;
   backLabel?: string;
+  isSaving?: boolean;
 }) {
   const select = (key: string) => {
     if (multi) {
       const next = value.includes(key)
         ? value.filter((v) => v !== key)
         : [...value, key];
+      console.log("❓ Question: select multi", { key, oldValue: value, newValue: next });
       onChange(next);
     } else {
+      console.log("❓ Question: select single", { key, oldValue: value, newValue: [key] });
       onChange([key]);
     }
   };
@@ -67,15 +72,22 @@ export function Question({
       {(onNext || onBack) && (
         <div className="nav-buttons flex justify-between">
           {onBack ? (
-            <Button variant="ghost" onClick={onBack}>
+            <Button variant="ghost" onClick={onBack} disabled={isSaving}>
               {backLabel}
             </Button>
           ) : (
             <div />
           )}
           {onNext && (
-            <Button onClick={onNext} disabled={value.length === 0}>
-              {nextLabel}
+            <Button onClick={onNext} disabled={value.length === 0 || isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                nextLabel
+              )}
             </Button>
           )}
         </div>

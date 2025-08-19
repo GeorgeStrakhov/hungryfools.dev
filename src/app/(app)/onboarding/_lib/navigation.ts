@@ -4,15 +4,15 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { type Step, getNextStep, getPrevStep, buildStepUrl } from "./steps";
 
-export function useStepNavigation(currentStep: Step, handle?: string) {
+export function useStepNavigation(currentStep: Step) {
   const router = useRouter();
 
   const navigateToStep = useCallback(
     (step: Step) => {
-      const url = buildStepUrl(step, handle);
+      const url = buildStepUrl(step);
       router.push(url);
     },
-    [router, handle],
+    [router],
   );
 
   const goNext = useCallback(() => {

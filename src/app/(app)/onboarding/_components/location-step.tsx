@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { toast } from "sonner";
 import { MapPin, Loader2 } from "lucide-react";
 import { validateStep } from "@/lib/hooks/useModeration";
-import { useProfileData } from "@/lib/hooks/useProfileData";
+import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
 
 interface LocationStepProps {
@@ -17,38 +16,29 @@ interface LocationStepProps {
 }
 
 export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
-  const { profileData } = useProfileData();
-  const [location, setLocation] = useState("");
+  const { data, setField } = useOnboardingWizard();
+  const [localLocation, setLocalLocation] = useState("");
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Load existing location or auto-detect (only once)
+  // Initialize from wizard state (only once)
   useEffect(() => {
     if (hasInitialized) return;
 
-    if (profileData?.location) {
-      // Use existing location from profile
-      setLocation(profileData.location);
-      setHasInitialized(true);
-      return;
-    }
-
-    // Only proceed with auto-detection if profileData has been loaded (not null)
-    // and there's no existing location
-    if (profileData !== null) {
-      // Auto-detect location if no existing data
+    if (data.location) {
+      setLocalLocation(data.location);
+    } else {
       const detectLocation = async () => {
         setIsDetecting(true);
         try {
-          // Use ipapi.co for IP-based location detection
           const response = await fetch("https://ipapi.co/json/");
-          const data = await response.json();
-
-          if (data.city && data.region) {
-            const detected = `${data.city}, ${data.region}`;
+          const d = await response.json();
+          if (d.city && d.region) {
+            const detected = `${d.city}, ${d.region}`;
             setDetectedLocation(detected);
-            setLocation(detected);
+            // Privacy: do NOT auto-save detected location to the store
+            setLocalLocation(detected);
           }
         } catch (error) {
           console.error("Failed to detect location:", error);
@@ -56,23 +46,21 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
           setIsDetecting(false);
         }
       };
-
       detectLocation();
-      setHasInitialized(true);
     }
-  }, [profileData, hasInitialized]);
+
+    setHasInitialized(true);
+  }, [hasInitialized, data.location, setField]);
 
   const handleNext = async () => {
-    if (!location.trim()) {
+    if (!localLocation.trim()) {
       toast.error("Please enter your location or skip this step");
       return;
     }
 
     try {
-      // Moderate location input
-      await validateStep(location.trim(), "location", 100);
-
-      await createOrUpdateProfileAction({ location: location.trim() });
+      await validateStep(localLocation.trim(), "location", 100);
+      setField("location", localLocation.trim());
       onNext();
     } catch (error: unknown) {
       const err = error as { name?: string; message?: string };
@@ -85,6 +73,8 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
   };
 
   const handleSkip = async () => {
+    // Clear any stored location to respect privacy if user skips
+    setField("location", "");
     onSkip();
   };
 
@@ -107,8 +97,11 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
           <div className="relative">
             <Input
               id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              value={localLocation}
+              onChange={(e) => {
+                setLocalLocation(e.target.value);
+                setField("location", e.target.value);
+              }}
               placeholder={
                 isDetecting ? "Detecting location..." : "San Francisco, CA"
               }
@@ -137,7 +130,16 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
             <Button variant="outline" onClick={handleSkip}>
               Skip
             </Button>
-            <Button onClick={handleNext}>Next</Button>
+            <Button onClick={handleNext}>
+              {isDetecting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Next"
+              )}
+            </Button>
           </div>
         </div>
       </div>

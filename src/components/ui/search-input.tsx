@@ -28,6 +28,9 @@ interface SearchInputProps {
 
 const defaultSearchSuggestions = [
   "Mastra.ai specialist from Europe, who also digs music",
+  "Framer designer who also codes",
+  "Pydantic.ai magician, only from USA",
+  "Agno developer, also knows devops",
   "vector database expert in San Francisco, open for hire",
   "React developer who ships MVPs in days, not months",
   "AI engineer building the next unicorn startup",

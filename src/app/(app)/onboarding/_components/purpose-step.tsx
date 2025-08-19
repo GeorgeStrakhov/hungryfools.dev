@@ -1,13 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Users, BriefcaseBusiness, UserPlus2 } from "lucide-react";
+import {
+  Sparkles,
+  Users,
+  BriefcaseBusiness,
+  UserPlus2,
+  Loader2,
+} from "lucide-react";
 import { Question } from "./question";
-import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { STEP_CONFIG } from "../_lib/steps";
-import { useProfileData } from "@/lib/hooks/useProfileData";
+import { useOnboardingWizard } from "../_context/wizard-context";
+import { useState } from "react";
 import posthog from "posthog-js";
 
 const OPTIONS = [
@@ -39,67 +44,36 @@ interface PurposeStepProps {
 
 export function PurposeStep({ onNext }: PurposeStepProps) {
   const router = useRouter();
-  const [value, setValue] = useState<string[]>([]);
-  const { profileData } = useProfileData();
-
-  // Load existing availability settings on mount
-  useEffect(() => {
-    if (profileData) {
-      const existingPurposes: string[] = [];
-      if (profileData.showcase) existingPurposes.push("list");
-      if (profileData.availability?.collab) existingPurposes.push("find");
-      if (profileData.availability?.hire) existingPurposes.push("get_hired");
-      if (profileData.availability?.hiring) existingPurposes.push("hiring");
-
-      setValue(existingPurposes);
-    }
-  }, [profileData]);
+  const { data, setField } = useOnboardingWizard();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleNext = async () => {
-    value.forEach((v) => posthog.capture("purpose_select", { choice: v }));
-
-    if (value.includes("find") && value.length === 1) {
-      await createOrUpdateProfileAction({
-        headline: "I build AI agents and ship MVPs with vibecoding",
-        availCollab: true,
-      });
-      // Skip directly to directory
-      router.replace("/directory");
-      return;
-    } else {
-      await createOrUpdateProfileAction({
-        availCollab: value.includes("find"),
-        availHire: value.includes("get_hired"),
-        availHiring: value.includes("hiring"),
-        showcase: value.includes("list"),
-      });
+    try {
+      setIsSubmitting(true);
+      data.purposes.forEach((v) => posthog.capture("purpose_select", { choice: v }));
       onNext();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div>
       <div className="mb-8 flex flex-col items-center gap-4 text-center">
-        <Image
-          src="/images/PacDuck.png"
-          alt="PacDuck"
-          width={120}
-          height={120}
-        />
+        <Image src="/images/PacDuck.png" alt="PacDuck" width={120} height={120} />
         <h1 className="text-2xl font-semibold">{STEP_CONFIG.purpose.title}</h1>
         {STEP_CONFIG.purpose.subtitle && (
-          <p className="text-muted-foreground">
-            {STEP_CONFIG.purpose.subtitle}
-          </p>
+          <p className="text-muted-foreground">{STEP_CONFIG.purpose.subtitle}</p>
         )}
       </div>
       <Question
         title="Select one or more"
         options={OPTIONS}
         multi
-        value={value}
-        onChange={setValue}
+        value={data.purposes}
+        onChange={(vals) => setField("purposes", vals)}
         onNext={handleNext}
+        isSaving={isSubmitting}
       />
     </div>
   );

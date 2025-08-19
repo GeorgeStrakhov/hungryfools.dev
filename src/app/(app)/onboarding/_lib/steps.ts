@@ -15,7 +15,6 @@ export interface StepConfig {
   title: string;
   subtitle?: string;
   canSkip?: boolean;
-  requiresHandle?: boolean;
 }
 
 export const STEP_CONFIG: Record<Step, StepConfig> = {
@@ -31,29 +30,24 @@ export const STEP_CONFIG: Record<Step, StepConfig> = {
     title: "Where are you based?",
     subtitle: "Help others find local collaborators",
     canSkip: true,
-    requiresHandle: true,
   },
   vibe: {
     title: "What's your vibe?",
     subtitle: "Pick tags that describe your AI development style",
-    requiresHandle: true,
   },
   stack: {
     title: "What's your stack?",
     subtitle: "Technologies you love working with",
-    requiresHandle: true,
   },
   expertise: {
     title: "Any other expertise?",
     subtitle: "Skills beyond coding",
     canSkip: true,
-    requiresHandle: true,
   },
   showcase: {
     title: "Add your first project?",
     subtitle: "Show off something cool you've built",
     canSkip: true,
-    requiresHandle: true,
   },
   done: {
     title: "PacDuck says hooray!",
@@ -86,10 +80,6 @@ export function getStepProgress(currentStep: Step): number {
   return Math.round(((currentIndex + 1) / STEPS.length) * 100);
 }
 
-export function buildStepUrl(step: Step, handle?: string): string {
-  const url = `/onboarding/${step}`;
-  if (handle && STEP_CONFIG[step].requiresHandle) {
-    return `${url}?handle=${encodeURIComponent(handle)}`;
-  }
-  return url;
+export function buildStepUrl(step: Step): string {
+  return `/onboarding/${step}`;
 }

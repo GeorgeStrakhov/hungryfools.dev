@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -410,24 +411,29 @@ export function ProjectForm({
       {mode === "onboarding" ? (
         <div className="nav-buttons flex justify-between">
           {onBack && (
-            <Button variant="ghost" onClick={onBack}>
+            <Button variant="ghost" onClick={onBack} disabled={isLoading}>
               Back
             </Button>
           )}
           <div className="space-x-2">
             {onSkip && (
-              <Button variant="outline" onClick={onSkip}>
+              <Button variant="outline" onClick={onSkip} disabled={isLoading}>
                 Skip for now
               </Button>
             )}
             <Button type="submit" disabled={isLoading}>
-              {isLoading
-                ? "Creating..."
-                : formData.name ||
-                    formData.description ||
-                    formData.media.length > 0
-                  ? "Create Project"
-                  : "Next"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : formData.name ||
+                formData.description ||
+                formData.media.length > 0 ? (
+                "Create Project"
+              ) : (
+                "Next"
+              )}
             </Button>
           </div>
         </div>

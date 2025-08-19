@@ -221,6 +221,7 @@ async function createTestUser(email: string, name: string): Promise<string> {
     name,
     image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
     emailVerified: new Date(),
+    onboardingCompleted: true,
   });
 
   return userId;

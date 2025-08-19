@@ -1,12 +1,12 @@
 - display link to the user's github
 
-- pagination
-
 - edit profile - make it nicer
 
 - checkbox to allow / disallow being introduced
 
 - nicer directory view. show projects with opensource (githubUrl)
+
+- show company listings
 
 - one more pass at analytics
 

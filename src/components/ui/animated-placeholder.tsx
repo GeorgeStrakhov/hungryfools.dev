@@ -26,8 +26,18 @@ export function useAnimatedPlaceholder({
 }: AnimatedPlaceholderProps) {
   const [currentText, setCurrentText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [previousIndex, setPreviousIndex] = useState(-1);
   const [isDeleting, setIsDeleting] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const getNextRandomIndex = () => {
+    if (suggestions.length <= 1) return 0;
+    let nextIndex;
+    do {
+      nextIndex = Math.floor(Math.random() * suggestions.length);
+    } while (nextIndex === currentIndex);
+    return nextIndex;
+  };
 
   useEffect(() => {
     // Stop animation if user is typing
@@ -52,7 +62,9 @@ export function useAnimatedPlaceholder({
         // Clear text instantly and move to next suggestion
         setCurrentText("");
         setIsDeleting(false);
-        setCurrentIndex((prev) => (prev + 1) % suggestions.length);
+        const nextIndex = getNextRandomIndex();
+        setPreviousIndex(currentIndex);
+        setCurrentIndex(nextIndex);
       } else {
         // Typing text
         if (currentText.length < currentSuggestion.length) {
@@ -81,6 +93,7 @@ export function useAnimatedPlaceholder({
   }, [
     currentText,
     currentIndex,
+    previousIndex,
     isDeleting,
     isTyping,
     suggestions,

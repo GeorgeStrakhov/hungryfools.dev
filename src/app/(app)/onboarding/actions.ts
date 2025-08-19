@@ -64,18 +64,28 @@ const showcaseOutput = z.object({
 });
 
 export async function saveVibeAction(payload: unknown) {
-  const out = await normalizeAndModerate(
-    payload,
-    vibeInput,
-    vibeOutput,
-    `
-You are a helpful assistant that normalizes a developer's vibe into a short headline and tags.
-- Keep headline punchy (<= ${PROFILE_FIELD_LIMITS.headline.max} chars) and non-cringe.
-- Use lowercase kebab-case for tags (e.g., agent-wrangler).
+  const input = vibeInput.parse(payload);
+
+  // If user provided text, use it directly as headline (preserve their exact words)
+  if (input.oneLine?.trim()) {
+    await createOrUpdateProfileAction({ headline: input.oneLine.trim() });
+  }
+
+  // Process vibe selections into standardized tags (if any selected)
+  if (input.vibes && input.vibes.length > 0) {
+    const out = await normalizeAndModerate(
+      { vibes: input.vibes },
+      z.object({ vibes: z.array(z.string()) }),
+      vibeOutput,
+      `
+You are a helpful assistant that normalizes developer vibe selections into standardized tags.
+- Convert vibe selections into lowercase kebab-case tags (e.g., "Ship-first Vibecoder" → "ship-first-vibecoder").
+- Keep tags consistent and searchable.
+- Return only the vibeTags array.
 `,
-  );
-  // TODO: Store vibeTags when we add them to the profile schema
-  await createOrUpdateProfileAction({ headline: out.headline });
+    );
+    await createOrUpdateProfileAction({ vibeTags: out.vibeTags });
+  }
 }
 
 export async function saveStackAction(payload: unknown) {
@@ -153,4 +163,78 @@ Clean up project info:
     createdAt: now,
     updatedAt: now,
   });
+}
+
+// Finalize onboarding: write all fields in one transaction and set onboarding flag
+import { users } from "@/db/schema/auth";
+import { profiles } from "@/db/schema/profile";
+import { eq } from "drizzle-orm";
+
+const completeInput = z.object({
+  purposes: z.array(z.string()),
+  handle: z.string().min(3),
+  location: z.string().optional(),
+  vibes: z.array(z.string()).optional(),
+  vibeText: z.string().optional(),
+  stack: z.array(z.string()).optional(),
+  stackText: z.string().optional(),
+  expertise: z.array(z.string()).optional(),
+});
+
+export async function completeOnboardingAction(payload: unknown) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const input = completeInput.parse(payload);
+
+  // 1) Persist profile core fields atomically
+  const availability = {
+    collab: input.purposes.includes("find"),
+    hire: input.purposes.includes("get_hired"),
+    hiring: input.purposes.includes("hiring"),
+  };
+
+  const cleanedLocation = input.location?.trim();
+
+  // Reuse profile upsert but pass explicit fields; let it normalize/validate handle
+  await createOrUpdateProfileAction({
+    handle: input.handle,
+    location: cleanedLocation ? cleanedLocation : undefined,
+    displayName: session.user.name || undefined,
+    availCollab: availability.collab,
+    availHire: availability.hire,
+    availHiring: availability.hiring,
+    showcase: input.purposes.includes("list"),
+    // Raw selections for persistence
+    vibeSelections: input.vibes ?? [],
+    vibeText: (input.vibeText || "").trim() || undefined,
+    stackSelections: input.stack ?? [],
+    stackText: (input.stackText || "").trim() || undefined,
+    expertiseSelections: input.expertise ?? [],
+  });
+
+  // 2) Run AI enrichment in parallel where applicable
+  const enrichCalls: Promise<unknown>[] = [];
+  if ((input.vibes?.length || 0) > 0 || (input.vibeText || "").trim()) {
+    enrichCalls.push(
+      saveVibeAction({ vibes: input.vibes ?? [], oneLine: input.vibeText })
+    );
+  }
+  if ((input.stack?.length || 0) > 0 || (input.stackText || "").trim()) {
+    enrichCalls.push(
+      saveStackAction({ stack: input.stack ?? [], power: input.stackText })
+    );
+  }
+  if ((input.expertise?.length || 0) > 0) {
+    enrichCalls.push(saveExpertiseAction({ expertise: input.expertise ?? [] }));
+  }
+  if (enrichCalls.length > 0) {
+    await Promise.all(enrichCalls);
+  }
+
+  // 3) Mark onboarding completed
+  await db
+    .update(users)
+    .set({ onboardingCompleted: true })
+    .where(eq(users.id, session.user.id));
 }

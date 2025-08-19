@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { saveStackAction } from "@/app/(app)/onboarding/actions";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
-import { useProfileData } from "@/lib/hooks/useProfileData";
-import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
+import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
 
 const CORE = [
@@ -26,6 +25,7 @@ const CORE = [
   "Netlify",
   "Render",
   "Mastra",
+  "Agno",
   "SmolAgents",
   "CrewAI",
   "PydanticAI",
@@ -53,6 +53,7 @@ const CORE = [
   // Video/Image AI
   "Runway",
   "Kling",
+  "Wan",
   "Veo-3",
   "FLUX",
   "Imagen-4",
@@ -75,32 +76,21 @@ interface StackStepProps {
 }
 
 export function StackStep({ onNext, onBack }: StackStepProps) {
-  const { profileData } = useProfileData();
-  const [stack, setStack] = useState<string[]>([]);
-  const [power, setPower] = useState("");
+  const { data, setField } = useOnboardingWizard();
+  const { stack, stackText } = data;
   const [customTech, setCustomTech] = useState("");
-  const [, setSaving] = useState(false);
-
-  // Load existing raw stack data on mount
-  useEffect(() => {
-    if (profileData?.stackSelections) {
-      setStack(profileData.stackSelections);
-    }
-    if (profileData?.stackText) {
-      setPower(profileData.stackText);
-    }
-  }, [profileData]);
+  const [saving, setSaving] = useState(false);
 
   const add = (v: string) => {
     const k = v.toLowerCase();
     if (!stack.includes(k)) {
-      setStack((prev) => [...prev, k]);
+      setField("stack", [...stack, k]);
     }
   };
 
   const remove = (v: string) => {
     const k = v.toLowerCase();
-    setStack((prev) => prev.filter((x) => x !== k));
+    setField("stack", stack.filter((x) => x !== k));
   };
 
   const toggle = (v: string) => {
@@ -115,7 +105,6 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
   const addCustomTech = async () => {
     if (customTech.trim()) {
       try {
-        // Moderate custom tech input
         await validateStep(customTech.trim(), "tech-stack", 50);
         add(customTech.trim());
         setCustomTech("");
@@ -137,39 +126,12 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
     }
   };
 
-  // Debounced autosave - save both raw data and process with LLM
-  useEffect(() => {
-    const id = setTimeout(async () => {
-      try {
-        // Save raw data for state persistence
-        await createOrUpdateProfileAction({
-          stackSelections: stack,
-          stackText: power,
-        });
-        // Also process with LLM for skills
-        await saveStackAction({ stack, power });
-      } catch (error) {
-        console.error("Autosave failed:", error);
-      }
-    }, 2000);
-    return () => clearTimeout(id);
-  }, [stack, power]);
-
   const handleNext = async () => {
-    setSaving(true);
     try {
-      // Moderate power tool input if provided
-      if (power.trim()) {
-        await validateStep(power.trim(), "power-tool", 100);
+      setSaving(true);
+      if (stackText.trim()) {
+        await validateStep(stackText.trim(), "power-tool", 100);
       }
-
-      // Save both raw data and process with LLM
-      await createOrUpdateProfileAction({
-        stackSelections: stack,
-        stackText: power,
-      });
-      await saveStackAction({ stack, power });
-
       onNext();
     } catch (error: unknown) {
       const err = error as { name?: string; message?: string };
@@ -188,9 +150,7 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
       <div className="text-center">
         <h1 className="text-2xl font-semibold">{STEP_CONFIG.stack.title}</h1>
         {STEP_CONFIG.stack.subtitle && (
-          <p className="text-muted-foreground mt-2">
-            {STEP_CONFIG.stack.subtitle}
-          </p>
+          <p className="text-muted-foreground mt-2">{STEP_CONFIG.stack.subtitle}</p>
         )}
       </div>
 
@@ -199,9 +159,7 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
           {CORE.map((tech) => (
             <Button
               key={tech}
-              variant={
-                stack.includes(tech.toLowerCase()) ? "default" : "outline"
-              }
+              variant={stack.includes(tech.toLowerCase()) ? "default" : "outline"}
               onClick={() => toggle(tech)}
               className="justify-start"
             >
@@ -215,12 +173,7 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
             <p className="mb-2 text-sm font-medium">Selected:</p>
             <div className="flex flex-wrap gap-2">
               {stack.map((tech) => (
-                <Button
-                  key={tech}
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => remove(tech)}
-                >
+                <Button key={tech} variant="secondary" size="sm" onClick={() => remove(tech)}>
                   {tech} ×
                 </Button>
               ))}
@@ -229,10 +182,7 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
         )}
 
         <div>
-          <label
-            htmlFor="custom-tech"
-            className="mb-2 block text-sm font-medium"
-          >
+          <label htmlFor="custom-tech" className="mb-2 block text-sm font-medium">
             Add other technologies
           </label>
           <div className="flex gap-2">
@@ -243,28 +193,20 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
               onKeyDown={handleCustomKeyDown}
               placeholder="e.g., LlamaIndex, Ollama, Pinecone..."
             />
-            <Button
-              type="button"
-              onClick={addCustomTech}
-              disabled={!customTech.trim()}
-              variant="outline"
-            >
+            <Button type="button" onClick={addCustomTech} disabled={!customTech.trim()} variant="outline">
               Add
             </Button>
           </div>
         </div>
 
         <div>
-          <label
-            htmlFor="power-tool"
-            className="mb-2 block text-sm font-medium"
-          >
+          <label htmlFor="power-tool" className="mb-2 block text-sm font-medium">
             What&apos;s your power tool/language?
           </label>
           <Input
             id="power-tool"
-            value={power}
-            onChange={(e) => setPower(e.target.value)}
+            value={stackText}
+            onChange={(e) => setField("stackText", e.target.value)}
             placeholder="Claude Sonnet + Cursor when I need to ship MVP fast"
           />
         </div>
@@ -273,19 +215,27 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
           <p className="flex items-start gap-2">
             <span className="text-lg">🦆</span>
             <span>
-              <strong>Note:</strong> PacDuck will normalize your tech stack into
-              standard terms (e.g., &quot;JS&quot; → &quot;javascript&quot;,
-              &quot;React.js&quot; → &quot;react&quot;) to help with search and
+              <strong>Note:</strong> PacDuck will normalize your tech stack into standard terms (e.g.,
+              &quot;JS&quot; → &quot;javascript&quot;, &quot;React.js&quot; → &quot;react&quot;) to help with search and
               matching.
             </span>
           </p>
         </div>
 
         <div className="nav-buttons flex justify-between">
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="ghost" onClick={onBack} disabled={saving}>
             Back
           </Button>
-          <Button onClick={handleNext}>Next</Button>
+          <Button onClick={handleNext} disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Next"
+            )}
+          </Button>
         </div>
       </div>
     </div>

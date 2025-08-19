@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
-import {
-  createOrUpdateProfileAction,
-  checkHandleAvailabilityAction,
-} from "@/components/profile/profile.actions";
+import { checkHandleAvailabilityAction } from "@/components/profile/profile.actions";
 import { toast } from "sonner";
 import {
   generateDefaultHandle,
@@ -16,59 +13,41 @@ import {
 } from "@/lib/profile-utils";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { validateStep } from "@/lib/hooks/useModeration";
-import { useProfileData } from "@/lib/hooks/useProfileData";
+import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
 
 interface HandleStepProps {
   onNext: () => void;
   onBack: () => void;
-  handle?: string;
 }
 
-export function HandleStep({
-  onNext,
-  onBack,
-  handle: initialHandle,
-}: HandleStepProps) {
+export function HandleStep({ onNext, onBack }: HandleStepProps) {
   const { data: session } = useSession();
-  const { profileData } = useProfileData();
-  const [rawInput, setRawInput] = useState(initialHandle || "");
-  const [handle, setHandle] = useState(initialHandle || "");
+  const { data: wizard, setField } = useOnboardingWizard();
+  const [rawInput, setRawInput] = useState("");
   const [availability, setAvailability] = useState<{
     available: boolean;
     isOwnHandle: boolean;
     checking: boolean;
     error?: string;
   }>({ available: true, isOwnHandle: false, checking: false });
+  const [submitting, setSubmitting] = useState(false);
 
   // Generate slugified preview
   const slugifiedPreview = rawInput ? normalizeHandle(rawInput) : "";
 
-  // Load existing handle or generate default
+  // Initialize from wizard state (only once)
   useEffect(() => {
-    if (!session?.user) return;
-
-    // If we have profile data with an existing handle, use that
-    if (profileData?.handle) {
-      setRawInput(profileData.handle);
-      setHandle(profileData.handle);
-      return;
+    if (rawInput) return;
+    if (wizard.handle) {
+      setRawInput(wizard.handle);
+    } else if (session?.user) {
+      const githubUsername = (session.user as any)?.githubUsername as string | undefined;
+      const preferred = githubUsername ? normalizeHandle(githubUsername) : generateDefaultHandle(session.user);
+      setRawInput(preferred);
+      setField("handle", preferred);
     }
-
-    // Otherwise, generate default if no input yet
-    if (!rawInput && !handle) {
-      const defaultHandle = generateDefaultHandle(session.user);
-      setRawInput(defaultHandle);
-      setHandle(defaultHandle);
-    }
-  }, [session?.user, profileData, rawInput, handle]);
-
-  // Update handle when user finishes typing
-  useEffect(() => {
-    if (slugifiedPreview) {
-      setHandle(slugifiedPreview);
-    }
-  }, [slugifiedPreview]);
+  }, [wizard.handle, session?.user, rawInput, setField]);
 
   // Check handle availability with debouncing
   useEffect(() => {
@@ -93,7 +72,7 @@ export function HandleStep({
           available: Boolean(result.available),
           isOwnHandle: Boolean(result.isOwnHandle),
           checking: false,
-          error: result.error,
+          error: (result as any).error,
         });
       } catch {
         setAvailability({
@@ -127,10 +106,12 @@ export function HandleStep({
     }
 
     try {
+      setSubmitting(true);
       // Moderate the handle
       await validateStep(slugifiedPreview, "handle", 50);
 
-      await createOrUpdateProfileAction({ handle: slugifiedPreview.trim() });
+      // Store locally; persist at finish
+      setField("handle", slugifiedPreview.trim());
       onNext();
     } catch (error: unknown) {
       const err = error as { name?: string; message?: string };
@@ -141,6 +122,8 @@ export function HandleStep({
       } else {
         toast.error("Could not save handle. Try again.");
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -164,7 +147,11 @@ export function HandleStep({
             <Input
               id="handle"
               value={rawInput}
-              onChange={(e) => setRawInput(e.target.value)}
+              onChange={(e) => {
+                setRawInput(e.target.value);
+                const slugified = normalizeHandle(e.target.value);
+                setField("handle", slugified || "");
+              }}
               placeholder="your-handle"
               className="pr-10 text-lg"
             />
@@ -186,9 +173,7 @@ export function HandleStep({
               <p className="text-muted-foreground mb-1 text-sm font-medium">
                 Handle will be:
               </p>
-              <p className="font-mono text-sm font-semibold">
-                {slugifiedPreview}
-              </p>
+              <p className="font-mono text-sm font-semibold">{slugifiedPreview}</p>
             </div>
           )}
 
@@ -196,8 +181,7 @@ export function HandleStep({
             <div className="mt-4">
               {slugifiedPreview.length < PROFILE_FIELD_LIMITS.handle.min ? (
                 <p className="text-sm text-amber-600">
-                  Handle must be at least {PROFILE_FIELD_LIMITS.handle.min}{" "}
-                  characters long
+                  Handle must be at least {PROFILE_FIELD_LIMITS.handle.min} characters long
                 </p>
               ) : !availability.checking ? (
                 availability.error ? (
@@ -237,11 +221,19 @@ export function HandleStep({
             disabled={
               !slugifiedPreview.trim() ||
               slugifiedPreview.length < PROFILE_FIELD_LIMITS.handle.min ||
-              !availability.available ||
-              availability.checking
+              (!availability.available && !availability.isOwnHandle) ||
+              availability.checking ||
+              submitting
             }
           >
-            Next
+            {submitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Next"
+            )}
           </Button>
         </div>
       </div>

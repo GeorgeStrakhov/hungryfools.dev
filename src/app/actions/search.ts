@@ -7,7 +7,7 @@ import {
 import { db } from "@/db";
 import { profiles, projects } from "@/db/schema/profile";
 import { users } from "@/db/schema/auth";
-import { eq, desc, asc, sql } from "drizzle-orm";
+import { eq, desc, asc, sql, and } from "drizzle-orm";
 
 export interface DirectorySearchResult {
   userId: string;
@@ -221,7 +221,7 @@ export async function searchDirectory(
         })
         .from(profiles)
         .leftJoin(users, eq(profiles.userId, users.id))
-        .where(eq(profiles.userId, searchResult.userId))
+        .where(and(eq(profiles.userId, searchResult.userId), eq(users.onboardingCompleted, true)))
         .limit(1);
 
       if (profileData.length === 0) continue;
@@ -421,9 +421,12 @@ async function getBrowseProfiles(options: {
   const { page, limit, sort } = options;
 
   // First, get total count of unique profiles
+  // Only count profiles whose users completed onboarding
   const totalCountResult = await db
     .select({ count: sql<number>`count(DISTINCT ${profiles.userId})` })
-    .from(profiles);
+    .from(profiles)
+    .leftJoin(users, eq(profiles.userId, users.id))
+    .where(eq(users.onboardingCompleted, true));
   const totalCount = totalCountResult[0]?.count ?? 0;
 
   // Determine ORDER BY based on sort option
@@ -441,6 +444,8 @@ async function getBrowseProfiles(options: {
   const profileSubquery = db
     .select({ userId: profiles.userId })
     .from(profiles)
+    .leftJoin(users, eq(profiles.userId, users.id))
+    .where(eq(users.onboardingCompleted, true))
     .orderBy(...orderByClause)
     .limit(limit)
     .offset(offset)

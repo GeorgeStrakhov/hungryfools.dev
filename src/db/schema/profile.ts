@@ -42,6 +42,7 @@ export const profiles = pgTable("profile", {
   // Raw onboarding data for state persistence
   vibeSelections: jsonb("vibeSelections").$type<string[]>(),
   vibeText: text("vibeText"),
+  vibeTags: jsonb("vibeTags").$type<string[]>(), // Processed standardized vibe tags
   stackSelections: jsonb("stackSelections").$type<string[]>(),
   stackText: text("stackText"),
   expertiseSelections: jsonb("expertiseSelections").$type<string[]>(),

@@ -64,6 +64,20 @@
       "when": 1755378367165,
       "tag": "0008_silent_pandemic",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1755598686510,
+      "tag": "0009_bored_sugar_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1755613513674,
+      "tag": "0010_curved_butterfly",
+      "breakpoints": true
     }
   ]
 }

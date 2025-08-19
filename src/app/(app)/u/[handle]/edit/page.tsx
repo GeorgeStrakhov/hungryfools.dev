@@ -74,6 +74,16 @@ export default async function EditProfilePage({ params }: Params) {
     availHiring: profile.availability?.hiring ?? false,
   };
 
+  // Onboarding data for readonly display
+  const onboardingData = {
+    vibeTags: profile.vibeTags ?? [],
+    vibeSelections: profile.vibeSelections ?? [],
+    vibeText: profile.vibeText ?? "",
+    stackSelections: profile.stackSelections ?? [],
+    stackText: profile.stackText ?? "",
+    expertiseSelections: profile.expertiseSelections ?? [],
+  };
+
   return (
     <div className="hf-container py-6 md:py-10">
       <div className="mx-auto max-w-2xl">
@@ -85,6 +95,7 @@ export default async function EditProfilePage({ params }: Params) {
         </div>
         <ProfileForm
           defaults={defaults}
+          onboardingData={onboardingData}
           redirectTo={`/u/${profile.handle}`}
           profileImage={profile.profileImage}
           userImage={user?.image}

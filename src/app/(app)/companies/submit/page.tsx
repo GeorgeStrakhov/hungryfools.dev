@@ -9,6 +9,7 @@ import { ImageUpload } from "@/components/media/image-upload";
 import { signIn, useSession } from "next-auth/react";
 import { submitCompany } from "@/lib/actions/companies";
 import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function SubmitCompanyPage() {
   const { data: session } = useSession();
@@ -77,6 +78,13 @@ export default function SubmitCompanyPage() {
         Submit your company to be listed as vibecoder-friendly. We&apos;ll
         review and approve it shortly.
       </p>
+
+      <Alert className="mt-4">
+        <AlertDescription>
+          We charge a $50/month fee for company listings. This helps us keep the
+          service free for developers.
+        </AlertDescription>
+      </Alert>
 
       {success ? (
         <div className="mt-8 rounded-lg border p-8 text-center">
@@ -173,7 +181,7 @@ export default function SubmitCompanyPage() {
 
           <div className="pt-2">
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Submitting…" : "Submit"}
+              {submitting ? "Submitting…" : "Submit for Review"}
             </Button>
           </div>
         </form>

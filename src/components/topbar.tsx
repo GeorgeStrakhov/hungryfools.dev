@@ -12,12 +12,24 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { getAvatarUrl } from "@/lib/utils/avatar";
+import { Building2, Home, Users } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { clsx } from "clsx";
 
 function UserAvatar() {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [userHandle, setUserHandle] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const user = session?.user;
@@ -32,21 +44,26 @@ function UserAvatar() {
   useEffect(() => {
     if (user?.id) {
       // Fetch user handle and profile data
-      Promise.all([
-        fetch("/api/user/handle").then((res) => res.json()),
-        fetch("/api/user/profile").then((res) => res.json()),
-      ])
-        .then(([handleData, profileData]) => {
+      const fetchUserData = async () => {
+        try {
+          const [handleData, profileData] = await Promise.all([
+            fetch("/api/user/handle").then((res) => res.json()),
+            fetch("/api/user/profile").then((res) => res.json()),
+          ]);
           if (handleData.handle) {
             setUserHandle(handleData.handle);
           }
           if (profileData.profileImage) {
             setProfileImage(profileData.profileImage);
           }
-        })
-        .catch(console.error);
+        } catch (error) {
+          console.error("Failed to fetch user data:", error);
+        }
+      };
+
+      fetchUserData();
     }
-  }, [user?.id]);
+  }, [user?.id, pathname]); // Refresh on route changes
 
   if (!user) return null;
 
@@ -159,24 +176,134 @@ function UserAvatar() {
   );
 }
 
+const MainNav = () => (
+  <nav className="hidden items-center space-x-6 text-sm font-medium md:flex">
+    <Link
+      href="/directory"
+      className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+    >
+      Developers
+    </Link>
+    <Link
+      href="/companies"
+      className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+    >
+      Companies
+    </Link>
+  </nav>
+);
+
+const MobileNav = () => {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-5 w-5"
+          >
+            <line x1="3" x2="21" y1="6" y2="6" />
+            <line x1="3" x2="21" y1="12" y2="12" />
+            <line x1="3" x2="21" y1="18" y2="18" />
+          </svg>
+          <span className="sr-only">Toggle Menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="pr-0 pl-3">
+        <div className="my-4 h-[calc(100vh-8rem)] pt-8 pr-4 pb-10 pl-4">
+          <div className="flex flex-col space-y-2">
+            <Link
+              href="/"
+              className={clsx(
+                "flex items-center gap-2 rounded-md p-2 text-sm font-medium",
+                pathname === "/"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+              onClick={() => setOpen(false)}
+            >
+              <Image
+                src="/images/PacDuck.png"
+                alt="PacDuck"
+                width={20}
+                height={20}
+                className="w-auto"
+              />
+              Home
+            </Link>
+            <Link
+              href="/directory"
+              className={clsx(
+                "flex items-center gap-2 rounded-md p-2 text-sm font-medium",
+                pathname === "/directory"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+              onClick={() => setOpen(false)}
+            >
+              <Users className="h-5 w-5" />
+              Developers
+            </Link>
+            <Link
+              href="/companies"
+              className={clsx(
+                "flex items-center gap-2 rounded-md p-2 text-sm font-medium",
+                pathname === "/companies"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+              onClick={() => setOpen(false)}
+            >
+              <Building2 className="h-5 w-5" />
+              Companies
+            </Link>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
 export function Topbar() {
   const { data: session } = useSession();
 
   return (
     <header className="supports-[backdrop-filter]:bg-background/80 bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
-      <div className="flex h-14 w-full items-center justify-between gap-3 px-6 md:px-8">
-        <Link
-          href="/"
-          className="text-hf-accent flex items-center gap-2 font-semibold"
-        >
-          <Image
-            src="/images/PacDuck.png"
-            alt="PacDuck"
-            width={20}
-            height={20}
-            className="w-auto"
-          />
-        </Link>
+      <div className="relative container flex h-14 max-w-screen-2xl items-center justify-between px-6 md:px-8">
+        <div className="flex items-center gap-4">
+          <MobileNav />
+          <Link
+            href="/"
+            className="text-hf-accent mr-6 flex items-center gap-2 font-semibold"
+          >
+            <Image
+              src="/images/PacDuck.png"
+              alt="PacDuck"
+              width={20}
+              height={20}
+              className="w-auto"
+            />
+          </Link>
+        </div>
+
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <MainNav />
+        </div>
+
         <div className="flex items-center gap-3">
           {session?.user ? (
             <UserAvatar />

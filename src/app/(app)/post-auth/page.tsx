@@ -1,7 +1,8 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { profiles } from "@/db/schema/profile";
-import { eq } from "drizzle-orm";
+import { users } from "@/db/schema/auth";
+import { eq, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 export default async function PostAuthRouter() {
@@ -10,12 +11,13 @@ export default async function PostAuthRouter() {
     redirect("/");
   }
   const [existing] = await db
-    .select({ userId: profiles.userId })
+    .select({ userId: profiles.userId, completed: users.onboardingCompleted })
     .from(profiles)
+    .leftJoin(users, eq(profiles.userId, users.id))
     .where(eq(profiles.userId, session.user.id))
     .limit(1);
 
-  if (existing) {
+  if (existing && existing.completed) {
     redirect("/directory");
   } else {
     redirect("/onboarding/purpose");

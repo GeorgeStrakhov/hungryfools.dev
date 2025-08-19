@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ProjectForm } from "@/components/projects/project-form";
 import { saveShowcaseAction } from "@/app/(app)/onboarding/actions";
 import { STEP_CONFIG } from "../_lib/steps";
@@ -23,20 +24,24 @@ interface ShowcaseStepProps {
 }
 
 export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
-  // For now, ProjectForm handles its own state management
-  // TODO: Add project loading when we have a projects API endpoint
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async (data: ProjectFormData) => {
-    // Convert ProjectForm data to showcase action format for AI enhancement
-    await saveShowcaseAction({
-      title: data.name,
-      link: data.url,
-      githubUrl: data.githubUrl,
-      oneliner: data.oneliner,
-      summary: data.description,
-      media: data.media,
-    });
-    onNext();
+    setIsSaving(true);
+    try {
+      // Convert ProjectForm data to showcase action format for AI enhancement
+      await saveShowcaseAction({
+        title: data.name,
+        link: data.url,
+        githubUrl: data.githubUrl,
+        oneliner: data.oneliner,
+        summary: data.description,
+        media: data.media,
+      });
+      onNext();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -58,6 +63,7 @@ export function ShowcaseStep({ onNext, onBack, onSkip }: ShowcaseStepProps) {
         enhanceWithAI={true}
         showPreview={true}
         submitLabel="Create Project"
+        isLoading={isSaving}
         initialData={{
           featured: true, // First project is featured by default
         }}

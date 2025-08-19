@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { saveVibeAction } from "@/app/(app)/onboarding/actions";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
-import { useProfileData } from "@/lib/hooks/useProfileData";
-import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
+import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
 import posthog from "posthog-js";
+import React from "react";
 
 const VIBE_OPTIONS = [
   "Ship-first Vibecoder",
@@ -32,65 +31,23 @@ interface VibeStepProps {
 }
 
 export function VibeStep({ onNext, onBack }: VibeStepProps) {
-  const { profileData } = useProfileData();
-  const [vibes, setVibes] = useState<string[]>([]);
-  const [free, setFree] = useState("");
-  const [, setSaving] = useState(false);
-
-  // Load existing raw onboarding data on mount
-  useEffect(() => {
-    if (profileData) {
-      if (profileData.vibeSelections) {
-        setVibes(profileData.vibeSelections);
-      }
-      if (profileData.vibeText) {
-        setFree(profileData.vibeText);
-      }
-    }
-  }, [profileData]);
+  const { data, setField } = useOnboardingWizard();
+  const { vibes, vibeText } = data;
+  const [saving, setSaving] = React.useState(false);
 
   const toggle = (v: string) => {
     const k = v.toLowerCase();
-    setVibes((prev) =>
-      prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k],
-    );
+    const newVibes = vibes.includes(k) ? vibes.filter((x) => x !== k) : [...vibes, k];
+    setField("vibes", newVibes);
   };
 
-  // Debounced autosave - save both raw data and process with LLM
-  useEffect(() => {
-    const id = setTimeout(async () => {
-      try {
-        // Save raw data for state persistence
-        await createOrUpdateProfileAction({
-          vibeSelections: vibes,
-          vibeText: free,
-        });
-        // Also process with LLM for headline
-        await saveVibeAction({ vibes, oneLine: free });
-      } catch (error) {
-        console.error("Autosave failed:", error);
-      }
-    }, 2000);
-    return () => clearTimeout(id);
-  }, [vibes, free]);
-
   const handleNext = async () => {
-    setSaving(true);
     try {
-      // Moderate free text vibe input if provided
-      if (free.trim()) {
-        await validateStep(free.trim(), "vibe-description", 140);
+      setSaving(true);
+      if (vibeText.trim()) {
+        await validateStep(vibeText.trim(), "vibe-description", 140);
       }
-
-      posthog.capture("vibe_complete", { vibes, free });
-
-      // Save both raw data and process with LLM
-      await createOrUpdateProfileAction({
-        vibeSelections: vibes,
-        vibeText: free,
-      });
-      await saveVibeAction({ vibes, oneLine: free });
-
+      posthog.capture("vibe_complete", { vibes, free: vibeText });
       onNext();
     } catch (error: unknown) {
       const err = error as { name?: string; message?: string };
@@ -109,9 +66,7 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
       <div className="text-center">
         <h1 className="text-2xl font-semibold">{STEP_CONFIG.vibe.title}</h1>
         {STEP_CONFIG.vibe.subtitle && (
-          <p className="text-muted-foreground mt-2">
-            {STEP_CONFIG.vibe.subtitle}
-          </p>
+          <p className="text-muted-foreground mt-2">{STEP_CONFIG.vibe.subtitle}</p>
         )}
       </div>
 
@@ -120,9 +75,7 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
           {VIBE_OPTIONS.map((option) => (
             <Button
               key={option}
-              variant={
-                vibes.includes(option.toLowerCase()) ? "default" : "outline"
-              }
+              variant={vibes.includes(option.toLowerCase()) ? "default" : "outline"}
               onClick={() => toggle(option)}
               className="justify-start"
             >
@@ -137,8 +90,8 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
           </label>
           <Input
             id="free-vibe"
-            value={free}
-            onChange={(e) => setFree(e.target.value)}
+            value={vibeText}
+            onChange={(e) => setField("vibeText", e.target.value)}
             placeholder="e.g., I focus on early-stage prototypes and MVPs"
           />
         </div>
@@ -147,19 +100,27 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
           <p className="flex items-start gap-2">
             <span className="text-lg">🦆</span>
             <span>
-              <strong>Heads up!</strong> PacDuck will clean up and structure
-              your responses to keep them professional and consistent. Your
-              unique voice will be preserved while making everything
-              community-friendly.
+              <strong>Heads up!</strong> PacDuck will clean up and structure your responses to keep
+              them professional and consistent. Your unique voice will be preserved while making
+              everything community-friendly.
             </span>
           </p>
         </div>
 
         <div className="nav-buttons flex justify-between">
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="ghost" onClick={onBack} disabled={saving}>
             Back
           </Button>
-          <Button onClick={handleNext}>Next</Button>
+          <Button onClick={handleNext} disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Next"
+            )}
+          </Button>
         </div>
       </div>
     </div>

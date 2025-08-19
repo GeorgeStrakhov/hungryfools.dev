@@ -28,7 +28,11 @@ export default async function CompaniesPage() {
           <Button asChild>
             <Link href="/companies/submit">Add my company</Link>
           </Button>
-        ) : null}
+        ) : (
+          <Button asChild>
+            <Link href="/api/auth/signin">Sign in to add your company</Link>
+          </Button>
+        )}
       </div>
 
       {rows.length === 0 ? (

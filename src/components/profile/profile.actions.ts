@@ -41,6 +41,7 @@ type Input = {
   // Raw onboarding data
   vibeSelections?: string[];
   vibeText?: string;
+  vibeTags?: string[]; // Processed standardized vibe tags
   stackSelections?: string[];
   stackText?: string;
   expertiseSelections?: string[];
@@ -62,31 +63,34 @@ const profileOutput = z.object({
 });
 
 export async function createOrUpdateProfileAction(input: Input) {
+  console.log("🔵 [SERVER] createOrUpdateProfileAction received:", JSON.stringify(input, null, 2));
+  
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Moderate free text fields
+  // Load existing profile for merge-on-update behavior
+  const [existingProfile] = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.userId, session.user.id))
+    .limit(1);
+
+  // Moderate free text fields (only those explicitly provided)
   const textFields = {
     displayName: input.displayName,
     headline: input.headline,
     bio: input.bio,
     location: input.location,
   };
-
-  // Filter out undefined values for moderation
   const fieldsToModerate = Object.fromEntries(
-    Object.entries(textFields).filter(
-      ([, value]) => value !== undefined && value !== "",
-    ),
+    Object.entries(textFields).filter(([, value]) => value !== undefined && value !== ""),
   );
-
   type ModeratedFields = {
     displayName?: string;
     headline?: string;
     bio?: string;
     location?: string;
   };
-
   let moderatedFields: ModeratedFields = {};
   if (Object.keys(fieldsToModerate).length > 0) {
     moderatedFields = (await normalizeAndModerate(
@@ -97,85 +101,109 @@ export async function createOrUpdateProfileAction(input: Input) {
     )) as ModeratedFields;
   }
 
-  // Derive handle when not provided
-  const userProvidedHandle = Boolean(
-    input.handle && String(input.handle).trim(),
-  );
-  let derivedHandle = input.handle ? normalizeHandle(input.handle) : "";
-  if (!derivedHandle) {
-    derivedHandle = generateDefaultHandle(session.user);
-  }
-
-  // Ensure uniqueness: if handle is taken by another user, append suffix
-  const existingSameHandle = await db
-    .select()
-    .from(profiles)
-    .where(eq(profiles.handle, derivedHandle))
-    .limit(1);
-  if (
-    existingSameHandle[0] &&
-    existingSameHandle[0].userId !== session.user.id
-  ) {
-    if (userProvidedHandle) {
-      // If user explicitly chose this handle, surface an error to the UI instead of silently changing it
+  // Determine final handle
+  const userProvidedHandle = Boolean(input.handle && String(input.handle).trim());
+  let finalHandle: string;
+  if (userProvidedHandle) {
+    const requested = normalizeHandle(input.handle as string);
+    // Ensure uniqueness
+    const existingSameHandle = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.handle, requested))
+      .limit(1);
+    if (existingSameHandle[0] && existingSameHandle[0].userId !== session.user.id) {
       throw new Error("HANDLE_TAKEN");
-    } else {
-      const suffix = Math.random().toString(36).slice(2, 6);
-      derivedHandle = `${derivedHandle}-${suffix}`;
     }
+    finalHandle = requested;
+  } else if (existingProfile?.handle) {
+    finalHandle = existingProfile.handle;
+  } else {
+    // New profile with no provided handle → generate default and ensure uniqueness
+    let generated = generateDefaultHandle(session.user);
+    const existingSameHandle = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.handle, generated))
+      .limit(1);
+    if (existingSameHandle[0] && existingSameHandle[0].userId !== session.user.id) {
+      const suffix = Math.random().toString(36).slice(2, 6);
+      generated = `${generated}-${suffix}`;
+    }
+    finalHandle = generated;
   }
 
+  // Merge links (only override provided keys). If no github link exists, prefill from session if possible
+  const existingLinks = existingProfile?.links || {};
+  const sessionGithub = session.user?.name
+    ? undefined
+    : undefined; // placeholder if you store github username elsewhere in session
   const links: ProfileLinks = {
-    github: input.github || undefined,
-    x: input.x || undefined,
-    website: input.website || undefined,
-    email: input.email || undefined,
+    ...existingLinks,
+    ...(input.github !== undefined ? { github: input.github || undefined } : {}),
+    ...(input.x !== undefined ? { x: input.x || undefined } : {}),
+    ...(input.website !== undefined ? { website: input.website || undefined } : {}),
+    ...(input.email !== undefined ? { email: input.email || undefined } : {}),
   };
+  // Best GitHub link: use stored githubUsername only (never guess from handle)
+  const githubUsername = (session.user as any)?.githubUsername as string | null | undefined;
+  if (!links.github && githubUsername) {
+    links.github = `https://github.com/${githubUsername}`;
+  }
 
+  // Merge availability (only override provided flags)
+  const existingAvailability = existingProfile?.availability || {};
   const availability: ProfileAvailability = {
-    hire: Boolean(input.availHire),
-    collab: Boolean(input.availCollab),
-    hiring: Boolean(input.availHiring),
+    ...existingAvailability,
+    ...(input.availHire !== undefined ? { hire: Boolean(input.availHire) } : {}),
+    ...(input.availCollab !== undefined ? { collab: Boolean(input.availCollab) } : {}),
+    ...(input.availHiring !== undefined ? { hiring: Boolean(input.availHiring) } : {}),
   };
 
+  // Merge top-level fields
   const values = {
     userId: session.user.id,
-    handle: derivedHandle.toLowerCase(),
+    handle: finalHandle.toLowerCase(),
     displayName:
-      moderatedFields.displayName || input.displayName || session.user.name,
-    headline: moderatedFields.headline || input.headline,
-    bio: moderatedFields.bio || input.bio || null,
-    profileImage: input.profileImage,
-    skills: csvToArray(input.skills, PROFILE_FIELD_LIMITS.skills.max),
-    interests: csvToArray(input.interests, PROFILE_FIELD_LIMITS.interests.max),
-    location: moderatedFields.location || input.location || null,
+      moderatedFields.displayName ?? input.displayName ?? existingProfile?.displayName ?? session.user.name,
+    headline: moderatedFields.headline ?? input.headline ?? existingProfile?.headline ?? null,
+    bio: moderatedFields.bio ?? input.bio ?? existingProfile?.bio ?? null,
+    profileImage: input.profileImage ?? existingProfile?.profileImage ?? null,
+    skills:
+      input.skills !== undefined
+        ? csvToArray(input.skills, PROFILE_FIELD_LIMITS.skills.max)
+        : existingProfile?.skills ?? null,
+    interests:
+      input.interests !== undefined
+        ? csvToArray(input.interests, PROFILE_FIELD_LIMITS.interests.max)
+        : existingProfile?.interests ?? null,
+    location:
+      moderatedFields.location ?? (input.location !== undefined ? input.location : existingProfile?.location ?? null),
     links,
     availability,
-    showcase: Boolean(input.showcase),
+    showcase: input.showcase !== undefined ? Boolean(input.showcase) : existingProfile?.showcase ?? false,
     // Raw onboarding data
-    vibeSelections: input.vibeSelections,
-    vibeText: input.vibeText,
-    stackSelections: input.stackSelections,
-    stackText: input.stackText,
-    expertiseSelections: input.expertiseSelections,
+    vibeSelections: input.vibeSelections ?? existingProfile?.vibeSelections ?? null,
+    vibeText: input.vibeText ?? existingProfile?.vibeText ?? null,
+    vibeTags: input.vibeTags ?? existingProfile?.vibeTags ?? null,
+    stackSelections: input.stackSelections ?? existingProfile?.stackSelections ?? null,
+    stackText: input.stackText ?? existingProfile?.stackText ?? null,
+    expertiseSelections: input.expertiseSelections ?? existingProfile?.expertiseSelections ?? null,
     updatedAt: new Date(),
   };
 
-  await db
-    .insert(profiles)
-    .values({
-      ...values,
-      createdAt: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: profiles.userId,
-      set: values,
-    });
+  if (existingProfile) {
+    await db
+      .update(profiles)
+      .set(values)
+      .where(eq(profiles.userId, session.user.id));
+  } else {
+    await db.insert(profiles).values({ ...values, createdAt: new Date() });
+  }
 
   // Trigger embedding generation for the profile
   // Use immediate mode for new profiles, queued for updates
-  const isNewProfile =
-    !existingSameHandle[0] || existingSameHandle[0].userId !== session.user.id;
+  const isNewProfile = !existingProfile;
   await onProfileChange(session.user.id, isNewProfile);
 }
 

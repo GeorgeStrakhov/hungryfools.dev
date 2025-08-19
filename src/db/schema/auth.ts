@@ -19,6 +19,8 @@ export const users = pgTable("user", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   isAdmin: boolean("isAdmin").notNull().default(false),
+  onboardingCompleted: boolean("onboardingCompleted").notNull().default(false),
+  githubUsername: text("githubUsername"),
 });
 
 export const accounts = pgTable(

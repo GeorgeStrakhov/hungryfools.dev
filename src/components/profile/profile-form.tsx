@@ -43,11 +43,20 @@ const schema = z.object({
 
 export function ProfileForm({
   defaults,
+  onboardingData,
   redirectTo,
   profileImage,
   userImage,
 }: {
   defaults?: Partial<z.infer<typeof schema>>;
+  onboardingData?: {
+    vibeTags?: string[];
+    vibeSelections?: string[];
+    vibeText?: string;
+    stackSelections?: string[];
+    stackText?: string;
+    expertiseSelections?: string[];
+  };
   redirectTo?: string;
   profileImage?: string | null;
   userImage?: string | null;
@@ -86,9 +95,14 @@ export function ProfileForm({
       posthog.capture("profile_update");
       toast.success("Profile saved");
       router.push(redirectTo || "/directory");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      alert("Failed to save");
+      const error = err as { name?: string; message?: string };
+      if (error?.name === "ModerationError") {
+        toast.error(error.message || "Content did not pass moderation");
+      } else {
+        toast.error("Failed to save profile");
+      }
     } finally {
       setPending(false);
     }
@@ -249,6 +263,9 @@ export function ProfileForm({
           <label htmlFor="availHiring">I am hiring</label>
         </div>
       </div>
+
+      {/* Onboarding Data section removed to simplify edit UI */}
+
       <div>
         <Button type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save profile"}
