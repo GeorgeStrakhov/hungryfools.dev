@@ -20,15 +20,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [GitHub],
   session: { strategy: "database" },
   callbacks: {
-    async signIn({
-      user,
-      account,
-      profile,
-    }: {
-      user: { id?: string };
-      account?: { provider?: string };
-      profile?: { login?: string };
-    }) {
+    async signIn(params) {
+      const {
+        user,
+        account,
+        profile,
+      }: {
+        user: { id?: string };
+        account?: { provider?: string | null } | null;
+        profile?: { login?: string };
+      } = params as unknown as {
+        user: { id?: string };
+        account?: { provider?: string | null } | null;
+        profile?: { login?: string };
+      };
       // Capture GitHub username on first sign-in/link
       try {
         if (account?.provider === "github" && user?.id) {
@@ -74,15 +79,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   events: {
-    async signIn({
-      user,
-      account,
-      profile,
-    }: {
-      user: { id?: string };
-      account?: { provider?: string };
-      profile?: { login?: string };
-    }) {
+    async signIn(message: unknown) {
+      const {
+        user,
+        account,
+        profile,
+      }: {
+        user: { id?: string };
+        account?: { provider?: string | null } | null;
+        profile?: { login?: string };
+      } = message as unknown as {
+        user: { id?: string };
+        account?: { provider?: string | null } | null;
+        profile?: { login?: string };
+      };
       try {
         if (account?.provider === "github" && user?.id) {
           const githubLogin = (profile as unknown as { login?: string })

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 interface AnimatedPlaceholderProps {
   /** Array of example search suggestions to cycle through */

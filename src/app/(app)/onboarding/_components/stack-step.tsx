@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { validateStep } from "@/lib/hooks/useModeration";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
-// import { STACK_CORE } from "@/lib/onboarding-options";
+import { STACK_CORE } from "@/lib/onboarding-options";
 
 // options centralized in lib
 
@@ -102,8 +102,8 @@ export function StackStep({ onNext, onBack }: StackStepProps) {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-2">
-          {CORE.map((tech) => (
+          <div className="grid grid-cols-2 gap-2">
+          {STACK_CORE.map((tech) => (
             <Button
               key={tech}
               variant={
