@@ -3,6 +3,7 @@ import { ExternalLink, Github, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import type { ProjectSearchResult } from "@/app/actions/projects-search";
 import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
@@ -16,76 +17,71 @@ export function ProjectCard({ project, showOwner = true }: ProjectCardProps) {
   const primaryImage = project.media?.find((m) => m.type === "image");
 
   return (
-    <Card className="group h-full overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg">
-      {/* Media section */}
-      {primaryImage && (
-        <div className="relative aspect-video w-full overflow-hidden">
-          <img
-            src={primaryImage.url}
-            alt={project.name}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
-          />
+    <Card className="group h-full overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+      <CardContent className="flex h-full flex-col p-6">
+        {/* Header with title and featured badge */}
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <h3 className="flex-1 text-xl leading-tight font-semibold">
+            {project.ownerHandle ? (
+              <Link
+                href={`/u/${project.ownerHandle}/p/${project.slug}`}
+                className="hover:text-primary transition-colors"
+                onClick={() => {
+                  analytics.track(ANALYTICS_EVENTS.SEARCH_RESULT_CLICKED, {
+                    result_type: "project",
+                    project_slug: project.slug,
+                    project_name: project.name,
+                    owner_handle: project.ownerHandle,
+                  });
+                }}
+              >
+                {project.name}
+              </Link>
+            ) : (
+              <span>{project.name}</span>
+            )}
+          </h3>
           {project.featured && (
-            <div className="absolute top-3 left-3">
-              <Badge className="bg-yellow-500 text-yellow-900">
-                <Star className="mr-1 h-3 w-3" />
-                Featured
-              </Badge>
+            <Badge className="flex-shrink-0 bg-yellow-500 text-yellow-900 hover:bg-yellow-600">
+              <Star className="mr-1 h-3 w-3" />
+              Featured
+            </Badge>
+          )}
+        </div>
+
+        {/* One-liner */}
+        {project.oneliner && (
+          <p className="text-muted-foreground mb-3 text-sm font-medium">
+            {project.oneliner}
+          </p>
+        )}
+
+        {/* Description with markdown rendering */}
+        <div className="mb-4 flex-1">
+          {project.description && (
+            <div className="prose prose-sm line-clamp-4 max-w-none">
+              <MarkdownRenderer
+                content={project.description}
+                className="text-muted-foreground text-sm"
+              />
             </div>
           )}
         </div>
-      )}
 
-      <CardContent className="flex h-full flex-col p-4">
-        {/* Project header */}
-        <div className="mb-3 flex-1">
-          <div className="mb-2 flex items-start justify-between">
-            <h3 className="line-clamp-2 text-lg leading-tight font-semibold">
-              {project.ownerHandle ? (
-                <Link
-                  href={`/u/${project.ownerHandle}/p/${project.slug}`}
-                  className="transition-colors"
-                  onClick={() => {
-                    analytics.track(ANALYTICS_EVENTS.SEARCH_RESULT_CLICKED, {
-                      result_type: "project",
-                      project_slug: project.slug,
-                      project_name: project.name,
-                      owner_handle: project.ownerHandle,
-                    });
-                  }}
-                >
-                  {project.name}
-                </Link>
-              ) : (
-                <span>{project.name}</span>
-              )}
-            </h3>
-            {!primaryImage && project.featured && (
-              <Badge variant="secondary" className="ml-2 flex-shrink-0">
-                <Star className="mr-1 h-3 w-3" />
-                Featured
-              </Badge>
-            )}
+        {/* Compact image strip */}
+        {primaryImage && (
+          <div className="mb-4 overflow-hidden rounded-md">
+            <img
+              src={primaryImage.url}
+              alt={project.name}
+              className="h-20 w-full object-cover transition-transform duration-200 group-hover:scale-105"
+            />
           </div>
+        )}
 
-          {/* One-liner */}
-          {project.oneliner && (
-            <p className="text-muted-foreground mb-2 text-sm font-medium">
-              {project.oneliner}
-            </p>
-          )}
-
-          {/* Description */}
-          {project.description && (
-            <p className="text-muted-foreground line-clamp-3 text-sm">
-              {project.description}
-            </p>
-          )}
-        </div>
-
-        {/* Owner info (if enabled) */}
+        {/* Owner info */}
         {showOwner && project.ownerHandle && (
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-4 flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarImage
                 src={
@@ -104,7 +100,7 @@ export function ProjectCard({ project, showOwner = true }: ProjectCardProps) {
             <div className="min-w-0 flex-1">
               <Link
                 href={`/u/${project.ownerHandle}`}
-                className="text-muted-foreground text-sm transition-colors"
+                className="text-muted-foreground hover:text-primary text-sm transition-colors"
                 onClick={() => {
                   analytics.track(ANALYTICS_EVENTS.SEARCH_RESULT_CLICKED, {
                     result_type: "profile",
@@ -122,13 +118,13 @@ export function ProjectCard({ project, showOwner = true }: ProjectCardProps) {
         )}
 
         {/* Action links */}
-        <div className="flex items-center gap-3 pt-2">
+        <div className="flex items-center gap-4 border-t pt-4">
           {project.url && (
             <a
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground flex items-center gap-1 text-sm transition-colors"
+              className="text-muted-foreground hover:text-primary flex items-center gap-1.5 text-sm transition-colors"
             >
               <ExternalLink className="h-4 w-4" />
               <span>Live Demo</span>
@@ -139,7 +135,7 @@ export function ProjectCard({ project, showOwner = true }: ProjectCardProps) {
               href={project.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground flex items-center gap-1 text-sm transition-colors"
+              className="text-muted-foreground hover:text-primary flex items-center gap-1.5 text-sm transition-colors"
             >
               <Github className="h-4 w-4" />
               <span>Code</span>

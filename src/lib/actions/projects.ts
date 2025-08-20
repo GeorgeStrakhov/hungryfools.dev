@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { projects, profiles } from "@/db/schema/profile";
 import { eq, and } from "drizzle-orm";
-import { redirect } from "next/navigation";
+
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { validateFields } from "@/lib/moderation/server";
@@ -128,7 +128,7 @@ export async function createProject(data: unknown) {
     );
   }
 
-  // Get user's handle for redirect
+  // Get user's handle for revalidation
   const [profile] = await db
     .select()
     .from(profiles)
@@ -137,10 +137,7 @@ export async function createProject(data: unknown) {
 
   if (profile) {
     revalidatePath(`/u/${profile.handle}`);
-    redirect(`/u/${profile.handle}`);
   }
-
-  redirect("/");
 }
 
 export async function updateProject(projectId: string, data: unknown) {
@@ -231,7 +228,7 @@ export async function updateProject(projectId: string, data: unknown) {
     `[Analytics] Project updated: ${validatedData.name} by user ${session.user.id}`,
   );
 
-  // Get user's handle for redirect
+  // Get user's handle for revalidation
   const [profile] = await db
     .select()
     .from(profiles)
@@ -241,10 +238,7 @@ export async function updateProject(projectId: string, data: unknown) {
   if (profile) {
     revalidatePath(`/u/${profile.handle}`);
     revalidatePath(`/u/${profile.handle}/p/${validatedData.slug}`);
-    redirect(`/u/${profile.handle}`);
   }
-
-  redirect("/");
 }
 
 export async function deleteProject(projectId: string) {
@@ -278,7 +272,7 @@ export async function deleteProject(projectId: string) {
   // Update profile embedding since project list changed
   await onProjectDelete(session.user.id);
 
-  // Get user's handle for revalidation and redirect
+  // Get user's handle for revalidation
   const [profile] = await db
     .select()
     .from(profiles)
@@ -287,9 +281,5 @@ export async function deleteProject(projectId: string) {
 
   if (profile) {
     revalidatePath(`/u/${profile.handle}`);
-    redirect(`/u/${profile.handle}`);
   }
-
-  // Fallback redirect
-  redirect("/");
 }
