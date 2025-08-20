@@ -363,6 +363,7 @@ const MobileNav = () => {
 
 export function Topbar() {
   const { data: session } = useSession();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   return (
     <header className="supports-[backdrop-filter]:bg-background/80 bg-background/60 sticky top-0 z-40 w-full border-b backdrop-blur">
@@ -393,14 +394,16 @@ export function Topbar() {
           ) : (
             <Button
               variant="outline"
+              disabled={isSigningIn}
               onClick={() => {
+                setIsSigningIn(true);
                 analytics.track(ANALYTICS_EVENTS.SIGN_IN_CLICKED, {
                   provider: "github",
                 });
                 signIn("github", { callbackUrl: "/post-auth" });
               }}
             >
-              Sign in
+              {isSigningIn ? "Signing in..." : "Sign in"}
             </Button>
           )}
         </div>

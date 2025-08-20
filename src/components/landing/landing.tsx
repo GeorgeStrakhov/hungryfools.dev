@@ -108,19 +108,22 @@ function InlineDivider() {
 
 function CTA() {
   const { data: session } = useSession();
+  const [isSigningIn, setIsSigningIn] = React.useState(false);
   if (session?.user) return null;
   return (
     <Button
       size="lg"
       className="hf-cta"
+      disabled={isSigningIn}
       onClick={() => {
+        setIsSigningIn(true);
         analytics.track(ANALYTICS_EVENTS.GITHUB_SIGNIN_INITIATED, {
           provider: "github",
         });
         signIn("github", { callbackUrl: "/post-auth" });
       }}
     >
-      Sign in with GitHub
+      {isSigningIn ? "Signing in..." : "Sign in with GitHub"}
     </Button>
   );
 }

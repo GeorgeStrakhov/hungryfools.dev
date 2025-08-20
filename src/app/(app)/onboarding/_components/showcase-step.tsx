@@ -80,7 +80,7 @@ export function ShowcaseStep({
         onBack={onBack}
         onSkip={onSkip}
         enhanceWithAI={true}
-        showPreview={true}
+        showPreview={false}
         submitLabel="Create Project"
         isLoading={isSaving || isFinalizingProfile}
         initialData={{
