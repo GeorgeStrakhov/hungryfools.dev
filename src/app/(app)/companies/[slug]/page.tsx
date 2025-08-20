@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Globe, Mail } from "lucide-react";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -28,7 +29,7 @@ export default async function CompanyDetailPage({ params }: Params) {
               <img
                 src={row.logoUrl}
                 alt={row.name}
-                className="h-20 w-20 rounded-lg"
+                className="h-20 max-w-[120px] rounded-lg object-contain"
               />
             )}
             <div className="flex-1">
@@ -42,8 +43,11 @@ export default async function CompanyDetailPage({ params }: Params) {
           </div>
 
           {row.description && (
-            <div className="prose prose-invert mt-8 max-w-none whitespace-pre-wrap">
-              {row.description}
+            <div className="mt-8">
+              <MarkdownRenderer
+                content={row.description}
+                className="prose prose-gray max-w-none"
+              />
             </div>
           )}
         </div>

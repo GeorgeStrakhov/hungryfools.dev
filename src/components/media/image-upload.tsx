@@ -105,7 +105,11 @@ export function ImageUpload({
 
       {value && (
         <div className="flex items-center gap-3">
-          <img src={value} alt="Logo preview" className="h-12 w-12 rounded" />
+          <img
+            src={value}
+            alt="Logo preview"
+            className="h-12 max-w-[80px] rounded object-contain"
+          />
           <Button
             type="button"
             variant="outline"
