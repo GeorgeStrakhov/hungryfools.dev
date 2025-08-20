@@ -79,6 +79,11 @@ export default async function PublicProfilePage({ params }: Params) {
               {profile.headline && (
                 <p className="mt-3 text-base sm:text-lg">{profile.headline}</p>
               )}
+              {profile.location && (
+                <p className="text-muted-foreground mt-2 text-sm">
+                  📍 {profile.location}
+                </p>
+              )}
               {profile.vibeTags && profile.vibeTags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {profile.vibeTags.map((tag) => (
@@ -86,6 +91,32 @@ export default async function PublicProfilePage({ params }: Params) {
                       {tag}
                     </Badge>
                   ))}
+                </div>
+              )}
+              {profile.vibeText && (
+                <p className="text-muted-foreground mt-2 text-sm italic">
+                  &ldquo;{profile.vibeText}&rdquo;
+                </p>
+              )}
+
+              {/* Availability Badges - Prominent placement */}
+              {profile.availability && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {profile.availability.hire && (
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      Available for hire
+                    </Badge>
+                  )}
+                  {profile.availability.collab && (
+                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      Open to collaboration
+                    </Badge>
+                  )}
+                  {profile.availability.hiring && (
+                    <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                      Hiring
+                    </Badge>
+                  )}
                 </div>
               )}
             </div>
@@ -122,18 +153,26 @@ export default async function PublicProfilePage({ params }: Params) {
 
         {/* Skills & Interests */}
         <div className="mt-6 space-y-4">
-          {profile.skills && profile.skills.length > 0 && (
+          {(profile.skills && profile.skills.length > 0) ||
+          profile.stackText ? (
             <div>
               <h3 className="mb-2 text-sm font-medium">Skills</h3>
-              <div className="flex flex-wrap gap-2">
-                {profile.skills.map((skill) => (
-                  <Badge key={skill} variant="secondary">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
+              {profile.skills && profile.skills.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {profile.skills.map((skill) => (
+                    <Badge key={skill} variant="secondary">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {profile.stackText && (
+                <p className="text-muted-foreground mt-2 text-sm">
+                  <strong>Power tool:</strong> {profile.stackText}
+                </p>
+              )}
             </div>
-          )}
+          ) : null}
 
           {profile.interests && profile.interests.length > 0 && (
             <div>
@@ -148,27 +187,6 @@ export default async function PublicProfilePage({ params }: Params) {
             </div>
           )}
         </div>
-
-        {/* Availability Badges */}
-        {profile.availability && (
-          <div className="mt-6 flex flex-wrap gap-2">
-            {profile.availability.hire && (
-              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                Available for hire
-              </Badge>
-            )}
-            {profile.availability.collab && (
-              <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                Open to collaboration
-              </Badge>
-            )}
-            {profile.availability.hiring && (
-              <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                Hiring
-              </Badge>
-            )}
-          </div>
-        )}
 
         {/* Contact Links */}
         {profile.links && Object.keys(profile.links).length > 0 && (

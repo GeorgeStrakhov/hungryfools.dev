@@ -10,17 +10,15 @@ import {
   type ProfileLinks,
 } from "@/db/schema/profile";
 import { eq } from "drizzle-orm";
-import { normalizeAndModerate } from "@/lib/moderation/normalize";
-import { PACDUCK_MESSAGES } from "@/lib/moderation/shared";
 import {
   generateDefaultHandle,
   normalizeHandle,
   csvToArray,
   PROFILE_FIELD_LIMITS,
-  PROFILE_MODERATION_PROMPT,
 } from "@/lib/profile-utils";
-import { z } from "zod";
 import { onProfileChange } from "@/lib/services/embeddings/lifecycle";
+import { sanitizeProfileFields } from "@/lib/utils/sanitize";
+import { moderateProfileFields } from "@/lib/moderation/profile-moderation";
 
 type Input = {
   handle?: string;
@@ -48,21 +46,6 @@ type Input = {
   expertiseSelections?: string[];
 };
 
-// Moderation schemas
-const profileInput = z.object({
-  displayName: z.string().optional(),
-  headline: z.string().optional(),
-  bio: z.string().optional(),
-  location: z.string().optional(),
-});
-
-const profileOutput = z.object({
-  displayName: z.string().max(PROFILE_FIELD_LIMITS.displayName.max).optional(),
-  headline: z.string().max(PROFILE_FIELD_LIMITS.headline.max).optional(),
-  bio: z.string().max(PROFILE_FIELD_LIMITS.bio.max).optional(),
-  location: z.string().max(PROFILE_FIELD_LIMITS.location.max).optional(),
-});
-
 export async function createOrUpdateProfileAction(input: Input) {
   console.log(
     "🔵 [SERVER] createOrUpdateProfileAction received:",
@@ -79,42 +62,23 @@ export async function createOrUpdateProfileAction(input: Input) {
     .where(eq(profiles.userId, session.user.id))
     .limit(1);
 
-  // Moderate free text fields (only those explicitly provided)
-  const textFields = {
+  // First, moderate the content using smart moderation system
+  await moderateProfileFields({
     displayName: input.displayName,
     headline: input.headline,
     bio: input.bio,
     location: input.location,
-  };
-  const fieldsToModerate = Object.fromEntries(
-    Object.entries(textFields).filter(
-      ([, value]) => value !== undefined && value !== "",
-    ),
-  );
-  type ModeratedFields = {
-    displayName?: string;
-    headline?: string;
-    bio?: string;
-    location?: string;
-  };
-  let moderatedFields: ModeratedFields = {};
-  if (Object.keys(fieldsToModerate).length > 0) {
-    try {
-      moderatedFields = (await normalizeAndModerate(
-        fieldsToModerate,
-        profileInput,
-        profileOutput,
-        PROFILE_MODERATION_PROMPT,
-      )) as ModeratedFields;
-    } catch (e: unknown) {
-      const err = e as { message?: string };
-      const ex: Error & { name: string } = new Error(
-        err?.message || PACDUCK_MESSAGES.generic,
-      ) as Error & { name: string };
-      ex.name = "ModerationError";
-      throw ex;
-    }
-  }
+    skills: input.skills,
+    interests: input.interests,
+  });
+
+  // Then sanitize (basic cleaning only)
+  const sanitizedFields = sanitizeProfileFields({
+    displayName: input.displayName,
+    headline: input.headline,
+    bio: input.bio,
+    location: input.location,
+  });
 
   // Determine final handle
   const userProvidedHandle = Boolean(
@@ -197,16 +161,16 @@ export async function createOrUpdateProfileAction(input: Input) {
     userId: session.user.id,
     handle: finalHandle.toLowerCase(),
     displayName:
-      moderatedFields.displayName ??
+      sanitizedFields.displayName ??
       input.displayName ??
       existingProfile?.displayName ??
       session.user.name,
     headline:
-      moderatedFields.headline ??
+      sanitizedFields.headline ??
       input.headline ??
       existingProfile?.headline ??
       null,
-    bio: moderatedFields.bio ?? input.bio ?? existingProfile?.bio ?? null,
+    bio: sanitizedFields.bio ?? input.bio ?? existingProfile?.bio ?? null,
     profileImage: input.profileImage ?? existingProfile?.profileImage ?? null,
     skills:
       input.skills !== undefined
@@ -217,7 +181,7 @@ export async function createOrUpdateProfileAction(input: Input) {
         ? csvToArray(input.interests, PROFILE_FIELD_LIMITS.interests.max)
         : (existingProfile?.interests ?? null),
     location:
-      moderatedFields.location ??
+      sanitizedFields.location ??
       (input.location !== undefined
         ? input.location
         : (existingProfile?.location ?? null)),

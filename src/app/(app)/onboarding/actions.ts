@@ -5,38 +5,23 @@ import { projects, type ProjectMedia } from "@/db/schema/profile";
 import { auth } from "@/auth";
 import { z } from "zod";
 import { PACDUCK_MESSAGES } from "@/lib/moderation/shared";
-import { normalizeAndModerate } from "@/lib/moderation/normalize";
 import { createOrUpdateProfileAction } from "@/components/profile/profile.actions";
 import { PROFILE_FIELD_LIMITS } from "@/lib/profile-utils";
+import { sanitizeText, sanitizeArray } from "@/lib/utils/sanitize";
+import { moderateOnboardingFields } from "@/lib/moderation/profile-moderation";
 import slugify from "slugify";
 
 const vibeInput = z.object({
   vibes: z.array(z.string()).optional(),
   oneLine: z.string().optional(),
 });
-const vibeOutput = z.object({
-  headline: z.string().max(PROFILE_FIELD_LIMITS.headline.max).optional(),
-  vibeTags: z
-    .array(z.string())
-    .max(PROFILE_FIELD_LIMITS.vibeTags.max)
-    .optional(),
-});
 
 const stackInput = z.object({
   stack: z.array(z.string()).optional(),
   power: z.string().optional(),
 });
-const stackOutput = z.object({
-  stack: z.array(z.string()).max(PROFILE_FIELD_LIMITS.skills.max).optional(),
-});
 
 const expertiseInput = z.object({ expertise: z.array(z.string()).optional() });
-const expertiseOutput = z.object({
-  expertiseOther: z
-    .array(z.string())
-    .max(PROFILE_FIELD_LIMITS.interests.max)
-    .optional(),
-});
 
 const showcaseInput = z.object({
   title: z.string().optional(),
@@ -56,64 +41,75 @@ const showcaseInput = z.object({
     )
     .optional(),
 });
-const showcaseOutput = z.object({
-  name: z.string().optional(),
-  url: z.string().optional(),
-  githubUrl: z.string().optional(),
-  oneliner: z.string().optional(),
-  description: z.string().optional(),
-});
 
 export async function saveVibeAction(payload: unknown) {
   const input = vibeInput.parse(payload);
 
-  // If user provided text, use it directly as headline (preserve their exact words)
+  // Moderate content first using smart moderation
+  await moderateOnboardingFields({
+    vibeText: input.oneLine,
+    vibes: input.vibes,
+  });
+
+  const updates: Record<string, unknown> = {};
+
+  // Save user's text directly as headline (preserve their exact words)
   if (input.oneLine?.trim()) {
-    await createOrUpdateProfileAction({ headline: input.oneLine.trim() });
+    updates.headline = sanitizeText(
+      input.oneLine,
+      PROFILE_FIELD_LIMITS.headline.max,
+    );
   }
 
-  // Process vibe selections into standardized tags (if any selected)
+  // Save vibe selections as lowercase tags (no LLM processing)
   if (input.vibes && input.vibes.length > 0) {
-    const out = await normalizeAndModerate(
-      { vibes: input.vibes },
-      z.object({ vibes: z.array(z.string()) }),
-      vibeOutput,
-      `
-You are a helpful assistant that normalizes developer vibe selections into standardized tags.
-- Convert vibe selections into lowercase kebab-case tags (e.g., "Ship-first Vibecoder" → "ship-first-vibecoder").
-- Keep tags consistent and searchable.
-- Return only the vibeTags array.
-`,
+    updates.vibeTags = sanitizeArray(
+      input.vibes,
+      PROFILE_FIELD_LIMITS.vibeTags.max,
     );
-    await createOrUpdateProfileAction({ vibeTags: out.vibeTags });
+  }
+
+  if (Object.keys(updates).length > 0) {
+    await createOrUpdateProfileAction(updates);
   }
 }
 
 export async function saveStackAction(payload: unknown) {
-  const out = await normalizeAndModerate(
-    payload,
-    stackInput,
-    stackOutput,
-    `
-Normalize tech names into canonical short tokens (lowercase), dedupe, sort by relevance.
-`,
+  const input = stackInput.parse(payload);
+
+  // Moderate content first using smart moderation
+  await moderateOnboardingFields({
+    stackText: input.power,
+    stack: input.stack,
+  });
+
+  // Save stack selections directly (no LLM processing)
+  const skills = sanitizeArray(
+    input.stack || [],
+    PROFILE_FIELD_LIMITS.skills.max,
   );
+
   await createOrUpdateProfileAction({
-    skills: out.stack?.join(", "),
+    skills: skills.join(", "),
   });
 }
 
 export async function saveExpertiseAction(payload: unknown) {
-  const out = await normalizeAndModerate(
-    payload,
-    expertiseInput,
-    expertiseOutput,
-    `
-Normalize non-dev expertise tags (lowercase). Avoid personal identifiers.
-`,
+  const input = expertiseInput.parse(payload);
+
+  // Moderate content first using smart moderation
+  await moderateOnboardingFields({
+    expertise: input.expertise,
+  });
+
+  // Save expertise selections directly (no LLM processing)
+  const interests = sanitizeArray(
+    input.expertise || [],
+    PROFILE_FIELD_LIMITS.interests.max,
   );
+
   await createOrUpdateProfileAction({
-    interests: out.expertiseOther?.join(", "),
+    interests: interests.join(", "),
   });
 }
 
@@ -121,28 +117,59 @@ export async function saveShowcaseAction(payload: unknown) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const out = await normalizeAndModerate(
-    payload,
-    showcaseInput,
-    showcaseOutput,
-    `
-Clean up project info:
-- name: Keep project titles crisp and professional
-- url: Ensure URLs are valid if provided (regular project URLs, not GitHub)
-- githubUrl: Ensure GitHub URLs are valid if provided
-- oneliner: Create a punchy one-liner tagline
-- description: Expand the summary into a clear description
-`,
-  );
+  const input = showcaseInput.parse(payload);
+
+  // Moderate project content using the existing smart moderation (like projects.ts)
+  const fieldsToValidate = [];
+  if (input.title?.trim()) {
+    fieldsToValidate.push({
+      text: input.title.trim(),
+      context: "project-name",
+      maxLength: 100,
+    });
+  }
+  if (input.oneliner?.trim()) {
+    fieldsToValidate.push({
+      text: input.oneliner.trim(),
+      context: "project-oneliner",
+      maxLength: 200,
+    });
+  }
+  if (input.summary?.trim()) {
+    fieldsToValidate.push({
+      text: input.summary.trim(),
+      context: "project-description",
+      maxLength: 1000,
+    });
+  }
+
+  // Use the same moderation as projects
+  if (fieldsToValidate.length > 0) {
+    const { validateFields } = await import("@/lib/moderation/server");
+    await validateFields(fieldsToValidate);
+  }
+
+  // Basic sanitization without LLM processing
+  const sanitizedProject = {
+    name: input.title ? sanitizeText(input.title, 100) : undefined,
+    url: input.link?.trim() || undefined,
+    githubUrl: input.githubUrl?.trim() || undefined,
+    oneliner: input.oneliner ? sanitizeText(input.oneliner, 200) : undefined,
+    description: input.summary ? sanitizeText(input.summary, 1000) : undefined,
+  };
 
   // Only create project if we have meaningful content
-  if (!out.name && !out.oneliner && !out.description) {
+  if (
+    !sanitizedProject.name &&
+    !sanitizedProject.oneliner &&
+    !sanitizedProject.description
+  ) {
     return; // Skip project creation for empty showcase
   }
 
   // Generate a slug from the project name
-  const projectSlug = out.name
-    ? slugify(out.name, { lower: true, strict: true, trim: true })
+  const projectSlug = sanitizedProject.name
+    ? slugify(sanitizedProject.name, { lower: true, strict: true, trim: true })
     : `project-${Date.now()}`;
 
   const now = new Date();
@@ -154,11 +181,11 @@ Clean up project info:
   await db.insert(projects).values({
     userId: session.user.id,
     slug: projectSlug,
-    name: out.name || "My Project",
-    url: out.url || null,
-    githubUrl: out.githubUrl || null,
-    oneliner: out.oneliner || null,
-    description: out.description || null,
+    name: sanitizedProject.name || "My Project",
+    url: sanitizedProject.url || null,
+    githubUrl: sanitizedProject.githubUrl || null,
+    oneliner: sanitizedProject.oneliner || null,
+    description: sanitizedProject.description || null,
     media,
     featured: true, // First project is featured by default
     createdAt: now,
@@ -214,32 +241,32 @@ export async function completeOnboardingAction(payload: unknown) {
     expertiseSelections: input.expertise ?? [],
   });
 
-  // 2) Run AI enrichment in parallel where applicable
-  const enrichCalls: Promise<unknown>[] = [];
-  if ((input.vibes?.length || 0) > 0 || (input.vibeText || "").trim()) {
-    enrichCalls.push(
-      saveVibeAction({ vibes: input.vibes ?? [], oneLine: input.vibeText }),
-    );
-  }
-  if ((input.stack?.length || 0) > 0 || (input.stackText || "").trim()) {
-    enrichCalls.push(
-      saveStackAction({ stack: input.stack ?? [], power: input.stackText }),
-    );
-  }
-  if ((input.expertise?.length || 0) > 0) {
-    enrichCalls.push(saveExpertiseAction({ expertise: input.expertise ?? [] }));
-  }
-  if (enrichCalls.length > 0) {
-    try {
-      await Promise.all(enrichCalls);
-    } catch (e: unknown) {
-      const err = e as { message?: string };
-      const ex: Error & { name: string } = new Error(
-        err?.message || PACDUCK_MESSAGES.generic,
-      ) as Error & { name: string };
-      ex.name = "ModerationError";
-      throw ex;
+  // 2) Save additional onboarding data directly (no LLM processing)
+  try {
+    if ((input.vibes?.length || 0) > 0 || (input.vibeText || "").trim()) {
+      await saveVibeAction({
+        vibes: input.vibes ?? [],
+        oneLine: input.vibeText,
+      });
     }
+
+    if ((input.stack?.length || 0) > 0 || (input.stackText || "").trim()) {
+      await saveStackAction({
+        stack: input.stack ?? [],
+        power: input.stackText,
+      });
+    }
+
+    if ((input.expertise?.length || 0) > 0) {
+      await saveExpertiseAction({ expertise: input.expertise ?? [] });
+    }
+  } catch (e: unknown) {
+    const err = e as { message?: string };
+    const ex: Error & { name: string } = new Error(
+      err?.message || PACDUCK_MESSAGES.generic,
+    ) as Error & { name: string };
+    ex.name = "ModerationError";
+    throw ex;
   }
 
   // 3) Mark onboarding completed
@@ -276,8 +303,40 @@ export async function updateOnboardingFromEditAction(payload: unknown) {
       }
     : null;
 
-  // Persist raw selections + availability mapping
+  // Moderate all onboarding content first
+  await moderateOnboardingFields({
+    vibeText: input.vibeText,
+    stackText: input.stackText,
+    vibes: input.vibes,
+    stack: input.stack,
+    expertise: input.expertise,
+  });
+
+  // Process selections for derived fields
+  const vibeTags =
+    input.vibes && input.vibes.length > 0
+      ? sanitizeArray(input.vibes, PROFILE_FIELD_LIMITS.vibeTags.max)
+      : undefined;
+
+  const skills =
+    input.stack && input.stack.length > 0
+      ? sanitizeArray(input.stack, PROFILE_FIELD_LIMITS.skills.max).join(", ")
+      : undefined;
+
+  const interests =
+    input.expertise && input.expertise.length > 0
+      ? sanitizeArray(input.expertise, PROFILE_FIELD_LIMITS.interests.max).join(
+          ", ",
+        )
+      : undefined;
+
+  const headline = input.vibeText?.trim()
+    ? sanitizeText(input.vibeText, PROFILE_FIELD_LIMITS.headline.max)
+    : undefined;
+
+  // Single database update with all fields
   await createOrUpdateProfileAction({
+    // Availability flags
     ...(availability
       ? {
           availCollab: availability.collab,
@@ -286,6 +345,7 @@ export async function updateOnboardingFromEditAction(payload: unknown) {
           showcase: availability.showcase,
         }
       : {}),
+    // Raw selections for storage
     ...(input.vibes ? { vibeSelections: input.vibes } : {}),
     ...(input.vibeText && input.vibeText.trim()
       ? { vibeText: input.vibeText.trim() }
@@ -295,32 +355,12 @@ export async function updateOnboardingFromEditAction(payload: unknown) {
       ? { stackText: input.stackText.trim() }
       : {}),
     ...(input.expertise ? { expertiseSelections: input.expertise } : {}),
+    // Derived processed fields
+    ...(headline ? { headline } : {}),
+    ...(vibeTags ? { vibeTags } : {}),
+    ...(skills ? { skills } : {}),
+    ...(interests ? { interests } : {}),
   });
-
-  // Enrichment calls
-  const enrich: Promise<unknown>[] = [];
-  if (
-    (input.vibes && input.vibes.length > 0) ||
-    (input.vibeText && input.vibeText.trim())
-  ) {
-    enrich.push(
-      saveVibeAction({ vibes: input.vibes ?? [], oneLine: input.vibeText }),
-    );
-  }
-  if (
-    (input.stack && input.stack.length > 0) ||
-    (input.stackText && input.stackText.trim())
-  ) {
-    enrich.push(
-      saveStackAction({ stack: input.stack ?? [], power: input.stackText }),
-    );
-  }
-  if (input.expertise && input.expertise.length > 0) {
-    enrich.push(saveExpertiseAction({ expertise: input.expertise }));
-  }
-  if (enrich.length > 0) {
-    await Promise.all(enrich);
-  }
 
   return { success: true } as const;
 }

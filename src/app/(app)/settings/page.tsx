@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { CookiePreferences } from "@/components/settings/cookie-preferences";
 import { DataControls } from "@/components/settings/data-controls";
 
 export default async function SettingsPage() {
@@ -20,7 +19,6 @@ export default async function SettingsPage() {
       </div>
 
       <div className="space-y-6">
-        <CookiePreferences />
         <DataControls />
       </div>
     </div>

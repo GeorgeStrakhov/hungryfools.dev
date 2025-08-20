@@ -1,15 +1,10 @@
 - checkbox to allow / disallow being introduced
 
-- nicer directory view. show projects with opensource (githubUrl)
+- projects tab with projects only search. show projects with opensource (githubUrl)
+- separate page for the directory of projects. isOpenSource (github code link add to the schema)
 
 - one more pass at analytics
 
-- separate page for the directory of projects. isOpenSource (github code link add to the schema)
-
-- add functionality to show a banner from admin (just in case)
-
 - why admin picture previews not showing on upload
 
-- not mobile friendly some pills on the onboarding flow
-
-- alert invalid input on profile edit - change hiring or not
+- double check how we are creating and re-creating profile and project embeddings

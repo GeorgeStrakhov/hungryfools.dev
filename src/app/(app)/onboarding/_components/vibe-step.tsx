@@ -63,7 +63,7 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
       </div>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid auto-rows-fr grid-cols-2 gap-3">
           {VIBE_OPTIONS.map((option) => (
             <Button
               key={option}
@@ -71,7 +71,8 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
                 vibes.includes(option.toLowerCase()) ? "default" : "outline"
               }
               onClick={() => toggle(option)}
-              className="justify-start"
+              className="h-full items-center justify-center p-3 text-center text-xs leading-tight whitespace-normal sm:text-sm"
+              title={option}
             >
               {option}
             </Button>
@@ -88,18 +89,6 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
             onChange={(e) => setField("vibeText", e.target.value)}
             placeholder="e.g., I focus on early-stage prototypes and MVPs"
           />
-        </div>
-
-        <div className="bg-muted/30 border-primary/20 rounded-lg border p-4 text-sm">
-          <p className="flex items-start gap-2">
-            <span className="text-lg">🦆</span>
-            <span>
-              <strong>Heads up!</strong> PacDuck will clean up and structure
-              your responses to keep them professional and consistent. Your
-              unique voice will be preserved while making everything
-              community-friendly.
-            </span>
-          </p>
         </div>
 
         <div className="nav-buttons flex justify-between">

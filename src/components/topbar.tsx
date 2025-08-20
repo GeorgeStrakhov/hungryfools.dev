@@ -12,7 +12,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { getAvatarUrl } from "@/lib/utils/avatar";
@@ -225,6 +232,12 @@ const MobileNav = () => {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="pr-0 pl-3">
+        <SheetHeader>
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Mobile navigation menu for the website
+          </SheetDescription>
+        </SheetHeader>
         <div className="my-4 h-[calc(100vh-8rem)] pt-8 pr-4 pb-10 pl-4">
           <div className="flex flex-col space-y-2">
             <Link

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Cookie, X } from "lucide-react";
+import { Check, Cookie } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,7 +19,7 @@ const CookieConsent = React.forwardRef(
       variant = "default",
       demo = false,
       onAcceptCallback = () => {},
-      onDeclineCallback = () => {},
+
       className,
       description = "We use cookies to ensure you get the best experience on our website. For more information on how we use cookies, please see our cookie policy.",
       learnMoreHref = "/privacy",
@@ -33,21 +33,31 @@ const CookieConsent = React.forwardRef(
     const handleAccept = React.useCallback(() => {
       setIsOpen(false);
       document.cookie =
-        "cookieConsent=true; expires=Fri, 31 Dec 9999 23:59:59 GMT";
+        "cookieConsent=true; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
       setTimeout(() => {
         setHide(true);
       }, 700);
       onAcceptCallback();
 
-      // If user is on cookies-declined page and accepts, redirect to landing
-      if (window.location.pathname === "/cookies-declined") {
-        window.location.href = "/";
+      // Initialize PostHog after consent is given
+      if (typeof window !== "undefined" && window.posthog) {
+        // PostHog is already loaded, just need to enable it
+        window.location.reload(); // Reload to initialize PostHog properly
+      } else {
+        // Import and initialize PostHog
+        import("posthog-js").then((posthog) => {
+          posthog.default.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+            api_host: "/ingest",
+            ui_host: "https://eu.posthog.com",
+            defaults: "2025-05-24",
+            capture_exceptions: true,
+            debug: process.env.NODE_ENV === "development",
+          });
+        });
       }
     }, [onAcceptCallback]);
 
-    const handleDecline = React.useCallback(() => {
-      window.location.href = "/cookies-declined";
-    }, []);
+    // Removed decline handler - consent required for service use
 
     React.useEffect(() => {
       try {
@@ -93,8 +103,9 @@ const CookieConsent = React.forwardRef(
                 {description}
               </CardDescription>
               <p className="text-muted-foreground text-xs">
-                By clicking <span className="font-medium">"Accept"</span>, you
-                agree to our use of cookies.
+                Cookies are required to use our service. By clicking{" "}
+                <span className="font-medium">"Accept"</span>, you agree to our
+                use of cookies for essential functionality and analytics.
               </p>
               <a
                 href={learnMoreHref}
@@ -104,15 +115,8 @@ const CookieConsent = React.forwardRef(
               </a>
             </CardContent>
             <CardFooter className="flex gap-2 pt-2">
-              <Button
-                onClick={handleDecline}
-                variant="secondary"
-                className="flex-1"
-              >
-                Decline
-              </Button>
               <Button onClick={handleAccept} className="flex-1">
-                Accept
+                Accept and Continue
               </Button>
             </CardFooter>
           </Card>
@@ -142,19 +146,11 @@ const CookieConsent = React.forwardRef(
             </CardContent>
             <CardFooter className="flex h-0 gap-2 px-4 py-2">
               <Button
-                onClick={handleDecline}
-                variant="secondary"
-                size="sm"
-                className="flex-1 rounded-full"
-              >
-                Decline
-              </Button>
-              <Button
                 onClick={handleAccept}
                 size="sm"
                 className="flex-1 rounded-full"
               >
-                Accept
+                Accept and Continue
               </Button>
             </CardFooter>
           </Card>
@@ -178,16 +174,6 @@ const CookieConsent = React.forwardRef(
                 {description}
               </CardDescription>
               <div className="flex items-center gap-2 sm:gap-3">
-                <Button
-                  onClick={handleDecline}
-                  size="sm"
-                  variant="secondary"
-                  className="text-xs"
-                >
-                  <span className="hidden sm:block">Decline</span>
-                  <X className="h-3 w-3 sm:hidden" />
-                  <span className="sr-only sm:hidden">Decline</span>
-                </Button>
                 <Button onClick={handleAccept} size="sm" className="text-xs">
                   <span className="hidden sm:block">Accept</span>
                   <Check className="h-3 w-3 sm:hidden" />

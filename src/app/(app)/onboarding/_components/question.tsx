@@ -63,16 +63,19 @@ export function Question({
         {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid auto-rows-fr grid-cols-2 gap-3">
         {options.map((option) => (
           <Button
             key={option.key}
             variant={value.includes(option.key) ? "default" : "outline"}
             onClick={() => select(option.key)}
-            className="flex h-auto items-center justify-start gap-3 p-4"
+            className="flex h-full items-center justify-center gap-2 p-3 text-center whitespace-normal"
+            title={option.label}
           >
-            {option.icon}
-            <span>{option.label}</span>
+            {option.icon && <div className="flex-shrink-0">{option.icon}</div>}
+            <span className="text-xs leading-tight sm:text-sm">
+              {option.label}
+            </span>
           </Button>
         ))}
       </div>

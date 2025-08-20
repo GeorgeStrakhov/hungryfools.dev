@@ -21,6 +21,7 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [userHasEdited, setUserHasEdited] = useState(false);
 
   // Initialize from wizard state (only once)
   useEffect(() => {
@@ -101,6 +102,7 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
               onChange={(e) => {
                 setLocalLocation(e.target.value);
                 setField("location", e.target.value);
+                setUserHasEdited(true);
               }}
               placeholder={
                 isDetecting ? "Detecting location..." : "San Francisco, CA"
@@ -114,7 +116,7 @@ export function LocationStep({ onNext, onBack, onSkip }: LocationStepProps) {
               </div>
             )}
           </div>
-          {detectedLocation && (
+          {detectedLocation && !userHasEdited && (
             <p className="mt-2 flex items-center gap-1 text-sm text-green-600">
               <MapPin className="h-3 w-3" />
               Auto-detected from your IP address

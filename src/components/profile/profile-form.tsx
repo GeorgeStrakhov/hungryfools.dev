@@ -114,7 +114,7 @@ export function ProfileForm({
 
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
-      alert(parsed.error.issues.map((i) => i.message).join("\n"));
+      toast.error(parsed.error.issues.map((i) => i.message).join(", "));
       return;
     }
     setPending(true);
