@@ -36,8 +36,8 @@ const schema = z.object({
     .min(PROFILE_FIELD_LIMITS.headline.min)
     .max(PROFILE_FIELD_LIMITS.headline.max),
   bio: z.string().max(PROFILE_FIELD_LIMITS.bio.max).optional().default(""),
-  skills: z.string().max(256).optional(), // comma-separated for v1
-  interests: z.string().max(256).optional(), // comma-separated for v1
+  skills: z.string().max(4000).optional(), // comma-separated, generous limit
+  interests: z.string().max(4000).optional(), // comma-separated, generous limit
   location: z.string().max(PROFILE_FIELD_LIMITS.location.max).optional(),
   github: z.string().url().optional().or(z.literal("")),
   x: z.string().url().optional().or(z.literal("")),
@@ -125,9 +125,22 @@ export function ProfileForm({
       });
       const errorMessages = parsed.error.issues.map((issue) => {
         const field = issue.path.join(".");
+        const fieldName = field || "Field";
+
+        // Provide more helpful error messages
+        if (issue.code === "too_big" && field === "skills") {
+          return `Skills list is too long (max 4000 characters).`;
+        }
+        if (issue.code === "too_big" && field === "interests") {
+          return `Interests list is too long (max 4000 characters).`;
+        }
+        if (issue.message.toLowerCase().includes("url")) {
+          return `${fieldName} must be a valid URL (starting with https://) or empty`;
+        }
+
         return field ? `${field}: ${issue.message}` : issue.message;
       });
-      toast.error(errorMessages.join(", ") || "Invalid input");
+      toast.error(errorMessages.join(". ") || "Invalid input");
       return;
     }
     setPending(true);
