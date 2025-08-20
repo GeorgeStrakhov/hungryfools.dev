@@ -3,7 +3,7 @@ import { ExternalLink, Github, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
+import { renderMarkdownPreview } from "@/lib/utils/markdown-client";
 import type { ProjectSearchResult } from "@/app/actions/projects-search";
 import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
@@ -59,12 +59,12 @@ export function ProjectCard({ project, showOwner = true }: ProjectCardProps) {
         {/* Description with markdown rendering */}
         <div className="mb-4 flex-1">
           {project.description && (
-            <div className="prose prose-sm line-clamp-4 max-w-none">
-              <MarkdownRenderer
-                content={project.description}
-                className="text-muted-foreground text-sm"
-              />
-            </div>
+            <div 
+              className="prose prose-sm line-clamp-4 max-w-none text-muted-foreground text-sm"
+              dangerouslySetInnerHTML={{ 
+                __html: renderMarkdownPreview(project.description) 
+              }}
+            />
           )}
         </div>
 
