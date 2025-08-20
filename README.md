@@ -24,6 +24,7 @@ HungryFools.dev is a directory where AI-first developers can show off their work
 - 🚀 **Project Portfolios** - Show your best work with images and videos
 - 🔍 **Smart Search** - AI-powered search that actually works
 - 🏢 **Company Directory** - Companies can hire vibecoders
+- 🎨 **Dynamic OG Images** - Beautiful social media previews with custom branding and Pixelify Sans font
 - 📱 **Responsive Design** - Built on Tailwind CSS and shadcn/ui
 - 🌍 **GDPR Compliant** - EU-first data residency with simplified cookie consent
 

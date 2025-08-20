@@ -1,3 +1,2 @@
-- add my company button not mobile friendly
 - add to admin interface introductions that packduck sends - so that we can inspect them
 - add prompt management to the admin panel for easy change of basic prompts like introduction without the need to redeploy.
