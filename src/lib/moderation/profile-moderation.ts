@@ -27,7 +27,7 @@ export async function moderateProfileFields(
     fieldsToValidate.push({
       text: input.displayName.trim(),
       context: "profile-display-name",
-      maxLength: 50,
+      maxLength: 200,
     });
   }
 
@@ -35,7 +35,7 @@ export async function moderateProfileFields(
     fieldsToValidate.push({
       text: input.headline.trim(),
       context: "profile-headline",
-      maxLength: 100,
+      maxLength: 500,
     });
   }
 
@@ -43,7 +43,7 @@ export async function moderateProfileFields(
     fieldsToValidate.push({
       text: input.bio.trim(),
       context: "profile-bio",
-      maxLength: 500,
+      maxLength: 2000,
     });
   }
 
@@ -51,7 +51,7 @@ export async function moderateProfileFields(
     fieldsToValidate.push({
       text: input.location.trim(),
       context: "profile-location",
-      maxLength: 100,
+      maxLength: 200,
     });
   }
 
@@ -59,7 +59,7 @@ export async function moderateProfileFields(
     fieldsToValidate.push({
       text: input.skills.trim(),
       context: "profile-skills",
-      maxLength: 256,
+      maxLength: 1000,
     });
   }
 
@@ -67,7 +67,7 @@ export async function moderateProfileFields(
     fieldsToValidate.push({
       text: input.interests.trim(),
       context: "profile-interests",
-      maxLength: 256,
+      maxLength: 1000,
     });
   }
 
@@ -93,7 +93,7 @@ export async function moderateOnboardingFields(input: {
     fieldsToValidate.push({
       text: input.vibeText.trim(),
       context: "vibe-description",
-      maxLength: 140,
+      maxLength: 1000,
     });
   }
 
@@ -101,7 +101,7 @@ export async function moderateOnboardingFields(input: {
     fieldsToValidate.push({
       text: input.stackText.trim(),
       context: "power-tool",
-      maxLength: 100,
+      maxLength: 500,
     });
   }
 
@@ -110,7 +110,7 @@ export async function moderateOnboardingFields(input: {
     fieldsToValidate.push({
       text: input.vibes.join(", "),
       context: "vibe-selections",
-      maxLength: 200,
+      maxLength: 1000,
     });
   }
 
@@ -118,7 +118,7 @@ export async function moderateOnboardingFields(input: {
     fieldsToValidate.push({
       text: input.stack.join(", "),
       context: "tech-stack",
-      maxLength: 200,
+      maxLength: 1000,
     });
   }
 
@@ -126,7 +126,7 @@ export async function moderateOnboardingFields(input: {
     fieldsToValidate.push({
       text: input.expertise.join(", "),
       context: "expertise",
-      maxLength: 200,
+      maxLength: 1000,
     });
   }
 

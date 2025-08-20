@@ -114,6 +114,9 @@ export function OnboardingWizardProvider({
       try {
         localStorage.removeItem(storageKey(session.user.id));
       } catch {}
+    } catch (error) {
+      // Re-throw the error so it can be handled by the calling component
+      throw error;
     } finally {
       setFinalizing(false);
     }

@@ -96,7 +96,7 @@ importers:
         version: 0.4.6(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       openai:
         specifier: ^5.12.2
-        version: 5.12.2(zod@4.0.17)
+        version: 5.12.2(ws@8.18.3)(zod@4.0.17)
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -6598,6 +6598,21 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
+  ws@8.18.3:
+    resolution:
+      {
+        integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==,
+      }
+    engines: { node: ">=10.0.0" }
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: ">=5.0.2"
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xtend@4.0.2:
     resolution:
       {
@@ -10497,8 +10512,9 @@ snapshots:
       define-properties: 1.2.1
       es-object-atoms: 1.1.1
 
-  openai@5.12.2(zod@4.0.17):
+  openai@5.12.2(ws@8.18.3)(zod@4.0.17):
     optionalDependencies:
+      ws: 8.18.3
       zod: 4.0.17
 
   optionator@0.9.4:
@@ -11351,6 +11367,9 @@ snapshots:
   wink-nlp@2.4.0: {}
 
   word-wrap@1.2.5: {}
+
+  ws@8.18.3:
+    optional: true
 
   xtend@4.0.2: {}
 

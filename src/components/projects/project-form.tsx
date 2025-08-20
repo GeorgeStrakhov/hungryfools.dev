@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { DeleteProjectButton } from "./delete-project-button";
 import { MediaUpload } from "./media-upload";
+import { renderMarkdownPreview } from "@/lib/utils/markdown-client";
 import type { ProjectMedia } from "@/db/schema/profile";
 
 interface ProjectFormData {
@@ -282,6 +283,10 @@ export function ProjectForm({
               placeholder="Tell people about your project. What does it do? What problem does it solve? What technologies did you use?"
               rows={6}
             />
+            <p className="mt-1 text-xs text-gray-500">
+              📝 Markdown supported: **bold**, *italic*, `code`, [links](url),
+              lists, headers, etc.
+            </p>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -368,9 +373,12 @@ export function ProjectForm({
                   </p>
                 )}
                 {formData.description && (
-                  <p className="text-muted-foreground text-sm">
-                    {formData.description}
-                  </p>
+                  <div
+                    className="text-muted-foreground prose prose-sm max-w-none text-sm"
+                    dangerouslySetInnerHTML={{
+                      __html: renderMarkdownPreview(formData.description),
+                    }}
+                  />
                 )}
                 {formData.media.length > 0 && (
                   <div className="grid grid-cols-2 gap-2">
@@ -441,7 +449,14 @@ export function ProjectForm({
         <div className="flex items-center justify-between">
           <div className="flex gap-4">
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : submitLabel}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                submitLabel
+              )}
             </Button>
             <Button
               type="button"

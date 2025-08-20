@@ -43,74 +43,98 @@ const showcaseInput = z.object({
 });
 
 export async function saveVibeAction(payload: unknown) {
-  const input = vibeInput.parse(payload);
+  try {
+    const input = vibeInput.parse(payload);
 
-  // Moderate content first using smart moderation
-  await moderateOnboardingFields({
-    vibeText: input.oneLine,
-    vibes: input.vibes,
-  });
+    // Moderate content first using smart moderation
+    await moderateOnboardingFields({
+      vibeText: input.oneLine,
+      vibes: input.vibes,
+    });
 
-  const updates: Record<string, unknown> = {};
+    const updates: Record<string, unknown> = {};
 
-  // Save user's text directly as headline (preserve their exact words)
-  if (input.oneLine?.trim()) {
-    updates.headline = sanitizeText(
-      input.oneLine,
-      PROFILE_FIELD_LIMITS.headline.max,
-    );
-  }
+    // Save user's text directly as headline (preserve their exact words)
+    if (input.oneLine?.trim()) {
+      updates.headline = sanitizeText(
+        input.oneLine,
+        PROFILE_FIELD_LIMITS.headline.max,
+      );
+    }
 
-  // Save vibe selections as lowercase tags (no LLM processing)
-  if (input.vibes && input.vibes.length > 0) {
-    updates.vibeTags = sanitizeArray(
-      input.vibes,
-      PROFILE_FIELD_LIMITS.vibeTags.max,
-    );
-  }
+    // Save vibe selections as lowercase tags (no LLM processing)
+    if (input.vibes && input.vibes.length > 0) {
+      updates.vibeTags = sanitizeArray(
+        input.vibes,
+        PROFILE_FIELD_LIMITS.vibeTags.max,
+      );
+    }
 
-  if (Object.keys(updates).length > 0) {
-    await createOrUpdateProfileAction(updates);
+    if (Object.keys(updates).length > 0) {
+      await createOrUpdateProfileAction(updates);
+    }
+  } catch (error: unknown) {
+    // If it's a ModerationError, preserve the message for the client
+    if (error instanceof Error && error.name === "ModerationError") {
+      throw new Error(error.message);
+    }
+    throw error;
   }
 }
 
 export async function saveStackAction(payload: unknown) {
-  const input = stackInput.parse(payload);
+  try {
+    const input = stackInput.parse(payload);
 
-  // Moderate content first using smart moderation
-  await moderateOnboardingFields({
-    stackText: input.power,
-    stack: input.stack,
-  });
+    // Moderate content first using smart moderation
+    await moderateOnboardingFields({
+      stackText: input.power,
+      stack: input.stack,
+    });
 
-  // Save stack selections directly (no LLM processing)
-  const skills = sanitizeArray(
-    input.stack || [],
-    PROFILE_FIELD_LIMITS.skills.max,
-  );
+    // Save stack selections directly (no LLM processing)
+    const skills = sanitizeArray(
+      input.stack || [],
+      PROFILE_FIELD_LIMITS.skills.max,
+    );
 
-  await createOrUpdateProfileAction({
-    skills: skills.join(", "),
-  });
+    await createOrUpdateProfileAction({
+      skills: skills.join(", "),
+    });
+  } catch (error: unknown) {
+    // If it's a ModerationError, preserve the message for the client
+    if (error instanceof Error && error.name === "ModerationError") {
+      throw new Error(error.message);
+    }
+    throw error;
+  }
 }
 
 export async function saveExpertiseAction(payload: unknown) {
-  const input = expertiseInput.parse(payload);
+  try {
+    const input = expertiseInput.parse(payload);
 
-  // Moderate content first using smart moderation
-  await moderateOnboardingFields({
-    expertise: input.expertise,
-  });
+    // Moderate content first using smart moderation
+    await moderateOnboardingFields({
+      expertise: input.expertise,
+    });
 
-  // Save expertise selections directly (no LLM processing)
-  const interests = sanitizeArray(
-    input.expertise || [],
-    PROFILE_FIELD_LIMITS.interests.max,
-  );
+    // Save expertise selections directly (no LLM processing)
+    const interests = sanitizeArray(
+      input.expertise || [],
+      PROFILE_FIELD_LIMITS.interests.max,
+    );
 
-  await createOrUpdateProfileAction({
-    interests: interests.join(", "),
-  });
+    await createOrUpdateProfileAction({
+      interests: interests.join(", "),
+    });
+  } catch (error: unknown) {
+    // If it's a ModerationError, preserve the message for the client
+    if (error instanceof Error && error.name === "ModerationError") {
+      throw new Error(error.message);
+    }
+    throw error;
+  }
 }
 
 export async function saveShowcaseAction(payload: unknown) {

@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { ProjectViewTracker } from "@/components/analytics/project-view-tracker";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
 type Params = {
   params: Promise<{ handle: string; slug: string }>;
@@ -152,9 +153,10 @@ export default async function ProjectPage({ params }: Params) {
       {project.description && (
         <div className="mb-8">
           <h2 className="mb-4 text-xl font-semibold">About this project</h2>
-          <div className="prose prose-gray max-w-none">
-            <p className="whitespace-pre-wrap">{project.description}</p>
-          </div>
+          <MarkdownRenderer
+            content={project.description}
+            className="prose prose-gray max-w-none"
+          />
         </div>
       )}
 
