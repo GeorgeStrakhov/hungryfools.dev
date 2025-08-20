@@ -11,11 +11,14 @@ async function getPixelifySansFont() {
     // Try local file first (for local development)
     const fs = await import("fs");
     const path = await import("path");
-    const fontPath = path.join(process.cwd(), 'public/fonts/PixelifySans-Regular.ttf');
+    const fontPath = path.join(
+      process.cwd(),
+      "public/fonts/PixelifySans-Regular.ttf",
+    );
     return fs.readFileSync(fontPath);
   } catch {
     // Fallback to fetch from public URL (for Vercel/production)
-    const fontUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://hungryfools.dev'}/fonts/PixelifySans-Regular.ttf`;
+    const fontUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://hungryfools.dev"}/fonts/PixelifySans-Regular.ttf`;
     const response = await fetch(fontUrl);
     return Buffer.from(await response.arrayBuffer());
   }
@@ -63,7 +66,7 @@ export async function GET(request: Request) {
     const featured = project.featured;
     const hasUrl = Boolean(project.url);
     const hasGithub = Boolean(project.githubUrl);
-    
+
     // Load font
     const pixelifySansBuffer = await getPixelifySansFont();
 
