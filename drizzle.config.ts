@@ -13,6 +13,7 @@ export default defineConfig({
     "./src/db/schema/auth.ts",
     "./src/db/schema/profile.ts",
     "./src/db/schema/company.ts",
+    "./src/db/schema/banner.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",

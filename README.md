@@ -179,7 +179,28 @@ pnpm dev
 
 Visit [http://localhost:3000](http://localhost:3000) to see the application.
 
-### 7. Testing the Search System (Optional)
+### 7. Setting up Admin Access
+
+To grant admin privileges to users:
+
+```bash
+# Open Drizzle Studio
+pnpm db:studio
+```
+
+1. Navigate to the `users` table in Drizzle Studio (opens at http://localhost:4983)
+2. Find the user you want to make an admin
+3. Set the `isAdmin` field to `true`
+4. Save the changes
+
+Admin users will have access to the admin interface at `/admin` which includes:
+
+- User management
+- Content moderation tools
+- System monitoring
+- Service testing endpoints (LLM, S3, embeddings, email)
+
+### 8. Testing the Search System (Optional)
 
 To test the intelligent search functionality, you can generate mock profiles:
 
@@ -256,6 +277,7 @@ pnpm format           # Format code with Prettier
 # Database
 pnpm db:generate      # Generate migration files
 pnpm db:migrate       # Run database migrations
+pnpm db:studio        # Open Drizzle Studio for database management
 
 # Testing & Development
 npx tsx scripts/generate-test-profiles.ts           # Generate 5 test profiles

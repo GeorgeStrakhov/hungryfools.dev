@@ -14,6 +14,7 @@ import {
   Upload,
   Mic,
   ArrowLeft,
+  Megaphone,
 } from "lucide-react";
 
 import {
@@ -74,6 +75,11 @@ const adminNavItems: AdminNavSection[] = [
         title: "Companies",
         url: "/admin/companies",
         icon: Users,
+      },
+      {
+        title: "Site Banner",
+        url: "/admin/banner",
+        icon: Megaphone,
       },
     ],
   },
