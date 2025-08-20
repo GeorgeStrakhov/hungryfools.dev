@@ -112,17 +112,8 @@ export function ProfileForm({
       availHiring: purposes.includes("hiring"),
     } as Record<string, unknown>;
 
-    // Debug logging
-    console.log("[DEBUG] Form submission values:", values);
-    console.log("[DEBUG] Purposes state:", purposes);
-
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
-      console.error("[DEBUG] Validation failed:", {
-        errors: parsed.error.format(),
-        issues: parsed.error.issues,
-        values: values,
-      });
       const errorMessages = parsed.error.issues.map((issue) => {
         const field = issue.path.join(".");
         const fieldName = field || "Field";

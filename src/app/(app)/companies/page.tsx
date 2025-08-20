@@ -20,19 +20,35 @@ export default async function CompaniesPage() {
 
   return (
     <div className="hf-container py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold sm:text-3xl">
-          Vibecoder-Friendly Companies
-        </h1>
-        {session?.user ? (
-          <Button asChild>
-            <Link href="/companies/submit">Add my company</Link>
-          </Button>
-        ) : (
-          <Button asChild>
-            <Link href="/api/auth/signin">Sign in to add your company</Link>
-          </Button>
-        )}
+      <div className="mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Companies</h1>
+            <p className="text-muted-foreground mt-2">
+              Vibecoder-friendly companies where you can thrive
+            </p>
+          </div>
+
+          <div className="flex shrink-0">
+            {session?.user ? (
+              <Button asChild>
+                <Link href="/companies/submit">
+                  <span className="hidden sm:inline">Add My Company</span>
+                  <span className="sm:hidden">Add Company</span>
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link href="/api/auth/signin">
+                  <span className="hidden sm:inline">
+                    Sign in to add company
+                  </span>
+                  <span className="sm:hidden">Sign in</span>
+                </Link>
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       {rows.length === 0 ? (

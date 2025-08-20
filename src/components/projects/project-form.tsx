@@ -283,7 +283,7 @@ export function ProjectForm({
               placeholder="Tell people about your project. What does it do? What problem does it solve? What technologies did you use?"
               rows={6}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="text-muted-foreground mt-3 text-xs">
               📝 Markdown supported: **bold**, *italic*, `code`, [links](url),
               lists, headers, etc.
             </p>

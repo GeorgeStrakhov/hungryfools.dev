@@ -198,7 +198,9 @@ export async function generateMetadata({ params }: Params) {
     .limit(1);
 
   if (!profile) {
-    return {};
+    return {
+      title: "Project Not Found - HungryFools.dev",
+    };
   }
 
   const [project] = await db
@@ -213,14 +215,77 @@ export async function generateMetadata({ params }: Params) {
     .limit(1);
 
   if (!project) {
-    return {};
+    return {
+      title: "Project Not Found - HungryFools.dev",
+    };
   }
 
+  const title = `${project.name} by ${profile.displayName || profile.handle} - HungryFools.dev`;
+  const description =
+    project.oneliner ||
+    (project.description ? project.description.slice(0, 160) : null) ||
+    `A project by ${profile.displayName || profile.handle} on HungryFools.dev`;
+
+  const ogImageUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://hungryfools.dev"}/api/og/project?handle=${profile.handle}&slug=${project.slug}`;
+
+  // If project has media images, we could use the first one as a fallback
+  const projectImage =
+    project.media?.[0]?.type === "image" ? project.media[0].url : null;
+
   return {
-    title: `${project.name} by ${profile.displayName || profile.handle}`,
-    description:
-      project.oneliner ||
-      project.description ||
-      `A project by ${profile.displayName || profile.handle}`,
+    title,
+    description,
+    keywords: [
+      project.name,
+      profile.handle,
+      profile.displayName || "",
+      "project",
+      "developer",
+      "vibecoder",
+      "hungryfools",
+    ].filter(Boolean),
+
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      url: `https://hungryfools.dev/u/${profile.handle}/p/${project.slug}`,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${project.name} project preview`,
+        },
+        // Include actual project image as secondary if available
+        ...(projectImage
+          ? [
+              {
+                url: projectImage,
+                alt: `${project.name} screenshot`,
+              },
+            ]
+          : []),
+      ],
+      article: {
+        publishedTime: project.createdAt?.toISOString(),
+        modifiedTime: project.updatedAt?.toISOString(),
+        authors: [`https://hungryfools.dev/u/${profile.handle}`],
+      },
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+      creator: profile.links?.x
+        ? `@${profile.links.x.split("/").pop()}`
+        : undefined,
+    },
+
+    alternates: {
+      canonical: `/u/${profile.handle}/p/${project.slug}`,
+    },
   };
 }

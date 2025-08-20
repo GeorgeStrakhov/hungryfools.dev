@@ -14,6 +14,7 @@ import { IntroductionDialog } from "@/components/profile/introduction-dialog";
 import { SignInToIntroduce } from "@/components/profile/sign-in-to-introduce";
 import { getProfileAvatarUrl } from "@/lib/utils/avatar";
 import { ProfileViewTracker } from "@/components/analytics/profile-view-tracker";
+import type { Metadata } from "next";
 
 type Params = { params: Promise<{ handle: string }> };
 
@@ -400,4 +401,84 @@ export default async function PublicProfilePage({ params }: Params) {
       </div>
     </div>
   );
+}
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const resolvedParams = await params;
+
+  const [result] = await db
+    .select({
+      profile: profiles,
+      user: users,
+    })
+    .from(profiles)
+    .leftJoin(users, eq(profiles.userId, users.id))
+    .where(eq(profiles.handle, resolvedParams.handle.toLowerCase()))
+    .limit(1);
+
+  if (!result?.profile) {
+    return {
+      title: "Profile Not Found - HungryFools.dev",
+    };
+  }
+
+  const profile = result.profile;
+
+  // Build description from available data
+  const descriptionParts = [];
+  if (profile.headline) descriptionParts.push(profile.headline);
+  if (profile.bio) descriptionParts.push(profile.bio.slice(0, 100));
+  if (profile.skills && profile.skills.length > 0) {
+    descriptionParts.push(`Skills: ${profile.skills.slice(0, 5).join(", ")}`);
+  }
+
+  const description =
+    descriptionParts.join(" • ") ||
+    `${profile.displayName || profile.handle} on HungryFools.dev`;
+
+  const title = `${profile.displayName || profile.handle} (@${profile.handle}) - HungryFools.dev`;
+  const ogImageUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://hungryfools.dev"}/api/og/profile?handle=${profile.handle}`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      profile.handle,
+      profile.displayName || "",
+      ...(profile.skills || []),
+      ...(profile.vibeTags || []),
+      "developer",
+      "vibecoder",
+      "hungryfools",
+    ].filter(Boolean),
+
+    openGraph: {
+      title,
+      description,
+      type: "profile",
+      url: `https://hungryfools.dev/u/${profile.handle}`,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${profile.displayName || profile.handle}'s profile`,
+        },
+      ],
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+      creator: profile.links?.x
+        ? `@${profile.links.x.split("/").pop()}`
+        : undefined,
+    },
+
+    alternates: {
+      canonical: `/u/${profile.handle}`,
+    },
+  };
 }
