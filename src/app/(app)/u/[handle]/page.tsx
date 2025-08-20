@@ -10,7 +10,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Edit } from "lucide-react";
 import Link from "next/link";
-import { ProjectDropdownMenu } from "@/components/projects/project-dropdown-menu";
 import { IntroductionDialog } from "@/components/profile/introduction-dialog";
 import { SignInToIntroduce } from "@/components/profile/sign-in-to-introduce";
 import { getProfileAvatarUrl } from "@/lib/utils/avatar";
@@ -129,23 +128,23 @@ export default async function PublicProfilePage({ params }: Params) {
           </div>
 
           {/* Actions */}
-          {(isOwner || session?.user) && (
-            <div className="flex gap-2">
-              {isOwner ? (
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/u/${profile.handle}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Profile
-                  </Link>
-                </Button>
-              ) : (
-                <IntroductionDialog
-                  targetHandle={profile.handle}
-                  targetDisplayName={profile.displayName || profile.handle}
-                />
-              )}
-            </div>
-          )}
+          <div className="flex gap-2">
+            {isOwner ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/u/${profile.handle}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Profile
+                </Link>
+              </Button>
+            ) : session?.user ? (
+              <IntroductionDialog
+                targetHandle={profile.handle}
+                targetDisplayName={profile.displayName || profile.handle}
+              />
+            ) : (
+              <SignInToIntroduce profileHandle={profile.handle} />
+            )}
+          </div>
         </div>
 
         {/* Bio Section */}
@@ -309,13 +308,22 @@ export default async function PublicProfilePage({ params }: Params) {
                   key={project.id}
                   className="group relative overflow-hidden"
                 >
-                  {/* Owner Actions Dropdown */}
+                  {/* Always-visible Edit Button for Owners */}
                   {isOwner && (
-                    <div className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
-                      <ProjectDropdownMenu
-                        handle={profile.handle}
-                        slug={project.slug}
-                      />
+                    <div className="absolute top-2 right-2 z-10">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="bg-background/90 hover:bg-background h-8 border px-2 shadow-sm backdrop-blur-sm"
+                        asChild
+                      >
+                        <Link
+                          href={`/u/${profile.handle}/projects/${project.slug}/edit`}
+                        >
+                          <Edit className="mr-1 h-3 w-3" />
+                          <span className="text-xs">Edit</span>
+                        </Link>
+                      </Button>
                     </div>
                   )}
 

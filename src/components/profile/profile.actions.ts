@@ -32,7 +32,7 @@ type Input = {
   github?: string;
   x?: string;
   website?: string;
-  email?: string;
+  // email is managed through GitHub auth, not editable via form
   availHire?: boolean;
   availCollab?: boolean;
   availHiring?: boolean;
@@ -131,7 +131,7 @@ export async function createOrUpdateProfileAction(input: Input) {
     ...(input.website !== undefined
       ? { website: input.website || undefined }
       : {}),
-    ...(input.email !== undefined ? { email: input.email || undefined } : {}),
+    // email is not editable via form, comes from GitHub auth
   };
   // Best GitHub link: use stored githubUsername only (never guess from handle)
   const githubUsername = (

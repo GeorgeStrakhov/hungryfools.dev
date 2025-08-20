@@ -59,10 +59,10 @@ export function ProjectCard({ project, showOwner = true }: ProjectCardProps) {
         {/* Description with markdown rendering */}
         <div className="mb-4 flex-1">
           {project.description && (
-            <div 
-              className="prose prose-sm line-clamp-4 max-w-none text-muted-foreground text-sm"
-              dangerouslySetInnerHTML={{ 
-                __html: renderMarkdownPreview(project.description) 
+            <div
+              className="prose prose-sm text-muted-foreground line-clamp-4 max-w-none text-sm"
+              dangerouslySetInnerHTML={{
+                __html: renderMarkdownPreview(project.description),
               }}
             />
           )}

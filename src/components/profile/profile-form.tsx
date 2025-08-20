@@ -42,7 +42,7 @@ const schema = z.object({
   github: z.string().url().optional().or(z.literal("")),
   x: z.string().url().optional().or(z.literal("")),
   website: z.string().url().optional().or(z.literal("")),
-  email: z.string().email().optional().or(z.literal("")),
+  // email is managed through GitHub auth, not editable
   availHire: z.boolean().optional(),
   availCollab: z.boolean().optional(),
   availHiring: z.boolean().optional(),
@@ -55,7 +55,7 @@ export function ProfileForm({
   profileImage,
   userImage,
 }: {
-  defaults?: Partial<z.infer<typeof schema>>;
+  defaults?: Partial<z.infer<typeof schema>> & { email?: string }; // email for display only
   onboardingData?: {
     vibeTags?: string[];
     vibeSelections?: string[];
@@ -104,17 +104,30 @@ export function ProfileForm({
     const data = new FormData(formRef.current);
     const raw = Object.fromEntries(data.entries());
 
-    // Normalize booleans
+    // Derive availability from purposes state
     const values = {
       ...raw,
-      availHire: raw.availHire === "on",
-      availCollab: raw.availCollab === "on",
-      availHiring: raw.availHiring === "on",
+      availHire: purposes.includes("get_hired"),
+      availCollab: purposes.includes("find"),
+      availHiring: purposes.includes("hiring"),
     } as Record<string, unknown>;
+
+    // Debug logging
+    console.log("[DEBUG] Form submission values:", values);
+    console.log("[DEBUG] Purposes state:", purposes);
 
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
-      toast.error(parsed.error.issues.map((i) => i.message).join(", "));
+      console.error("[DEBUG] Validation failed:", {
+        errors: parsed.error.format(),
+        issues: parsed.error.issues,
+        values: values,
+      });
+      const errorMessages = parsed.error.issues.map((issue) => {
+        const field = issue.path.join(".");
+        return field ? `${field}: ${issue.message}` : issue.message;
+      });
+      toast.error(errorMessages.join(", ") || "Invalid input");
       return;
     }
     setPending(true);
@@ -283,11 +296,7 @@ export function ProfileForm({
           placeholder="https://you.dev"
           defaultValue={defaults?.website}
         />
-        <Input
-          name="email"
-          placeholder="you@example.com"
-          defaultValue={defaults?.email}
-        />
+        {/* Email is managed through GitHub auth and not editable here */}
       </div>
       {/* Availability now controlled by Purposes section below */}
 
