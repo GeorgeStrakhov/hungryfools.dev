@@ -13,6 +13,7 @@ import { DoneStep } from "../_components/done-step";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 interface OnboardingStepClientProps {
   step: Step;
@@ -29,6 +30,18 @@ export function OnboardingStepClient({ step }: OnboardingStepClientProps) {
 
   // Progress indicator
   const progress = getStepProgress(step);
+
+  // Track onboarding started and step views
+  useEffect(() => {
+    if (step === "purpose") {
+      analytics.track(ANALYTICS_EVENTS.ONBOARDING_STARTED);
+    }
+
+    analytics.track(ANALYTICS_EVENTS.ONBOARDING_STEP_COMPLETED, {
+      step: step,
+      progress: progress,
+    });
+  }, [step, progress]);
 
   // Wrapper: before navigating from the last data step to done, finalize data
   const goNext = async () => {

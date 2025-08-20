@@ -7,7 +7,7 @@ import { STEP_CONFIG } from "../_lib/steps";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { PURPOSE_OPTIONS } from "@/lib/onboarding-options";
 import { useState } from "react";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 const OPTIONS = PURPOSE_OPTIONS.map((o) => ({
   ...o,
@@ -36,7 +36,7 @@ export function PurposeStep({ onNext }: PurposeStepProps) {
     try {
       setIsSubmitting(true);
       data.purposes.forEach((v) =>
-        posthog.capture("purpose_select", { choice: v }),
+        analytics.track(ANALYTICS_EVENTS.PURPOSE_SELECT, { choice: v }),
       );
       onNext();
     } finally {

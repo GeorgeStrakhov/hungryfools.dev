@@ -288,7 +288,7 @@ export function DirectorySearch({
       </div>
 
       {/* Pagination Controls (Top) */}
-      {count > 0 && (
+      {count > 0 && !isSearching && (
         <div className="mb-6">
           <PaginationControls
             currentPage={page}
@@ -355,7 +355,7 @@ export function DirectorySearch({
       </div>
 
       {/* Pagination Controls (Bottom) */}
-      {count > 0 && totalPages > 1 && (
+      {count > 0 && totalPages > 1 && !isSearching && (
         <div className="mt-6">
           <PaginationBottom
             currentPage={page}

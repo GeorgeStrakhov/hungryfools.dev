@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 interface DoneStepProps {
   onFinish: () => void;
@@ -22,6 +23,9 @@ export function DoneStep({ onFinish }: DoneStepProps) {
 
   useEffect(() => {
     let active = true;
+    // Track onboarding completion when done step is reached
+    analytics.track(ANALYTICS_EVENTS.ONBOARDING_COMPLETED);
+
     // Poll a couple times briefly in case finalize just updated the handle
     const fetchOnce = async () => {
       try {

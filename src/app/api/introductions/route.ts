@@ -77,6 +77,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if target user allows introductions
+    if (!targetProfile.allowIntroductions) {
+      return NextResponse.json(
+        {
+          error: `${targetProfile.displayName || targetProfile.handle} has disabled PacDuck introductions. You can try connecting with them directly through their other social links!`,
+        },
+        { status: 403 },
+      );
+    }
+
     // 2. Generate introduction with LLM
     const { systemPrompt, userPrompt } = createIntroductionPrompt(
       requesterProfile,

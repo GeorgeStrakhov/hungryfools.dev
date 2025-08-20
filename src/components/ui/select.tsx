@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 import { cn } from "@/lib/utils";
 
@@ -12,7 +12,7 @@ function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   const handleValueChange = (value: string) => {
-    posthog.capture("select_value_changed", { value });
+    analytics.track(ANALYTICS_EVENTS.SELECT_VALUE_CHANGED, { value });
     if (onValueChange) {
       onValueChange(value);
     }

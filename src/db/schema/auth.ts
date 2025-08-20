@@ -21,6 +21,7 @@ export const users = pgTable("user", {
   isAdmin: boolean("isAdmin").notNull().default(false),
   onboardingCompleted: boolean("onboardingCompleted").notNull().default(false),
   githubUsername: text("githubUsername"),
+  allowIntroductions: boolean("allowIntroductions").notNull().default(true),
 });
 
 export const accounts = pgTable(

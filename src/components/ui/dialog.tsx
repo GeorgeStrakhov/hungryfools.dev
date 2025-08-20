@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 import { cn } from "@/lib/utils";
 
@@ -13,9 +13,9 @@ function Dialog({
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   const handleOpenChange = (open: boolean) => {
     if (open) {
-      posthog.capture("dialog_opened");
+      analytics.track(ANALYTICS_EVENTS.DIALOG_OPENED);
     } else {
-      posthog.capture("dialog_closed");
+      analytics.track(ANALYTICS_EVENTS.DIALOG_CLOSED);
     }
     onOpenChange?.(open);
   };

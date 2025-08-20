@@ -2,6 +2,8 @@ import { db } from "@/db";
 import { profiles, projects } from "@/db/schema/profile";
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
+import { ProjectViewTracker } from "@/components/analytics/project-view-tracker";
 
 type Params = {
   params: Promise<{ handle: string; slug: string }>;
@@ -9,6 +11,7 @@ type Params = {
 
 export default async function ProjectPage({ params }: Params) {
   const resolvedParams = await params;
+  const session = await auth();
 
   // First get the profile to get userId
   const [profile] = await db
@@ -37,8 +40,17 @@ export default async function ProjectPage({ params }: Params) {
     notFound();
   }
 
+  // Check if this is the owner viewing their own project
+  const isOwner = session?.user?.id === profile.userId;
+
   return (
     <div className="hf-container py-10">
+      <ProjectViewTracker
+        projectSlug={project.slug}
+        projectName={project.name}
+        profileHandle={profile.handle}
+        isOwner={isOwner}
+      />
       {/* Breadcrumb */}
       <div className="text-muted-foreground mb-6 text-sm">
         <a href={`/u/${profile.handle}`} className="hover:underline">

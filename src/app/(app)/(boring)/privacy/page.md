@@ -111,7 +111,7 @@ We use cookies and similar technologies to:
 - Analyze usage
 - Provide targeted content
 
-You can manage cookie preferences through your browser settings. Analytics will not run until you provide consent; you can revoke consent at any time from settings.
+We use cookies for essential functionality (authentication, sessions) and analytics. Cookies are required to use our service. You can manage cookie preferences through your browser settings, though disabling cookies will prevent the service from functioning properly.
 
 ## 8. Children's Privacy
 

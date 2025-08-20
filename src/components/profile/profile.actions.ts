@@ -293,6 +293,7 @@ export async function getFullUserProfile(
     name: result.user.name,
     email: result.user.email,
     image: result.user.image,
+    allowIntroductions: result.user.allowIntroductions,
     ...result.profile,
     projects: userProjects.map((p) => ({
       name: p.name,

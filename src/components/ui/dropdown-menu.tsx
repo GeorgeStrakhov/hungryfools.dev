@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 import { cn } from "@/lib/utils";
 
@@ -80,7 +80,9 @@ function DropdownMenuItem({
       )}
       {...props}
       onSelect={(event) => {
-        posthog.capture("dropdown_menu_item_selected", { variant });
+        analytics.track(ANALYTICS_EVENTS.DROPDOWN_MENU_ITEM_SELECTED, {
+          variant,
+        });
         props.onSelect?.(event);
       }}
     />
@@ -103,7 +105,7 @@ function DropdownMenuCheckboxItem({
       checked={checked}
       {...props}
       onSelect={(event) => {
-        posthog.capture("dropdown_menu_checkbox_item_toggled", {
+        analytics.track(ANALYTICS_EVENTS.DROPDOWN_MENU_CHECKBOX_TOGGLED, {
           checked: !checked,
         });
         props.onSelect?.(event);

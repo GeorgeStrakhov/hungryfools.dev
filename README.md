@@ -25,7 +25,7 @@ HungryFools.dev is a directory where AI-first developers can show off their work
 - 🔍 **Smart Search** - AI-powered search that actually works
 - 🏢 **Company Directory** - Companies can hire vibecoders
 - 📱 **Responsive Design** - Built on Tailwind CSS and shadcn/ui
-- 🌍 **GDPR Compliant** - EU-first data residency and privacy controls
+- 🌍 **GDPR Compliant** - EU-first data residency with simplified cookie consent
 
 ## 🛠️ Tech Stack
 
@@ -303,7 +303,7 @@ pnpm prettier:fix     # Fix code formatting
 ### Project Showcase
 
 - Full CRUD system for developer projects
-- Media uploads (images/videos) via Cloudflare R2
+- Media uploads (images/videos) via Cloudflare R2 including automatic image transformations and optimizations
 - Individual project pages at `/u/{handle}/p/{slug}`
 - Content moderation with LLM + profanity filtering
 
@@ -325,7 +325,7 @@ pnpm prettier:fix     # Fix code formatting
 ## 🌍 Privacy & Compliance
 
 - **EU-first architecture** with data residency in Europe
-- **GDPR compliant** with cookie consent and data controls
+- **GDPR compliant** with simplified cookie consent (required for service use)
 - **Content moderation** using AI + manual review
 - **Secure authentication** with encrypted sessions
 

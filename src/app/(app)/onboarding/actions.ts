@@ -274,6 +274,9 @@ export async function completeOnboardingAction(payload: unknown) {
     .update(users)
     .set({ onboardingCompleted: true })
     .where(eq(users.id, session.user.id));
+
+  // 4) Track onboarding completion (server-side analytics will be handled by client)
+  console.log(`[Analytics] Onboarding completed for user ${session.user.id}`);
 }
 
 // Update onboarding-derived fields from the profile edit page

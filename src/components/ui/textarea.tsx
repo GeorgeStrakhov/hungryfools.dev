@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 import { cn } from "@/lib/utils";
 
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   const handleBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
-    posthog.capture("textarea-input-finished", {
+    analytics.track(ANALYTICS_EVENTS.TEXTAREA_INPUT_FINISHED, {
       component_id: props.id,
       component_name: props.name,
       input_length: e.target.value.length,

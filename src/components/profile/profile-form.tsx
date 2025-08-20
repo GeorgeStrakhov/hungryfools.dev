@@ -10,7 +10,7 @@ import { createOrUpdateProfileAction } from "./profile.actions";
 import { PROFILE_FIELD_LIMITS, normalizeHandle } from "@/lib/profile-utils";
 import { ImageUpload } from "@/components/media/image-upload";
 import { getAvatarUrl } from "@/lib/utils/avatar";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import {
   PURPOSE_OPTIONS,
   VIBE_OPTIONS,
@@ -133,7 +133,7 @@ export function ProfileForm({
         stackText,
         expertise,
       });
-      posthog.capture("profile_update");
+      analytics.track(ANALYTICS_EVENTS.PROFILE_UPDATED);
       toast.success("Profile saved");
       try {
         const res = await fetch("/api/user/handle");

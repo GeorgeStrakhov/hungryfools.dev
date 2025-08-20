@@ -57,16 +57,18 @@ Primary users: AI‑first developers; Secondary users: hiring managers/companies
 
 #### Search & Discovery
 
-- **Basic Search**: Keyword search across profiles and projects
-- **Directory**: Paginated listing with search functionality
-- **Enhanced Results**: Projects included in search results with preview cards
+- **Intelligent Profile Search**: Hybrid search (BM25 + vector + reranking) on `/directory` with natural language queries
+- **Intelligent Project Search**: Dedicated project search on `/projects` with same hybrid search system
+- **Enhanced Results**: Rich previews for both profiles and projects with search highlighting
+- **Query Intelligence**: LLM-powered entity extraction for companies, locations, skills, interests
 
 #### Admin & Analytics
 
 - **Admin Dashboard**: User stats, profile metrics, system monitoring
 - **User Management**: Admin role system with user promotion/demotion
 - **Service Testing**: Admin pages for testing LLM, S3, embeddings, email
-- **Analytics**: PostHog integration (EU) with event tracking infrastructure
+- **Analytics**: Comprehensive PostHog integration (EU) with centralized event tracking system
+- **User Analytics**: Complete user identification, onboarding funnel tracking, profile/project view analytics
 - **Moderation Tools**: Batch content validation with leo-profanity filtering
 
 ### 🔧 Technical Infrastructure
@@ -78,36 +80,43 @@ Primary users: AI‑first developers; Secondary users: hiring managers/companies
 - **Analytics**: PostHog (EU data residency)
 - **Moderation**: LLM-powered content validation + leo-profanity filtering
 
-## 🎯 Current Status: Intelligent Search ✅ COMPLETED
+## 🎯 Current Status: Intelligent Search System ✅ COMPLETED
 
-**Goal**: ✅ **IMPLEMENTED** - Intelligent hybrid search that handles natural language queries like "mastra.ai developers in Germany who also like music"
+**Goal**: ✅ **IMPLEMENTED** - Intelligent hybrid search for both profiles and projects that handles natural language queries
 
-The hybrid search system is now live and operational, combining BM25 keyword matching, vector similarity search, and BGE reranking.
+The hybrid search system is now live and operational across two main areas:
+
+- **Profile Search** (`/directory`): "mastra.ai developers in Germany who also like music"
+- **Project Search** (`/projects`): "AI automation tools built with Next.js"
 
 ### ✅ Implemented Search Architecture
 
 1. **✅ LLM Query Intelligence**: Parses natural language to extract entities (companies, locations, skills, interests)
-2. **✅ Multi-Modal Search**:
-   - BM25 keyword matching (wink-nlp)
-   - Vector similarity search (BGE-M3 embeddings via pgvector)
-   - SQL filters for structured data
-3. **✅ BGE Reranking**: Final result ordering using Cloudflare's BGE reranker
-4. **✅ Performance Optimization**: Parallel search execution with timing analytics
+2. **✅ Multi-Modal Hybrid Search**:
+   - BM25 keyword matching (wink-nlp) for both profiles and projects
+   - Vector similarity search (BGE-M3 embeddings via pgvector) with dedicated profile and project embeddings
+   - SQL filters for structured data (location, availability, featured status)
+3. **✅ BGE Reranking**: Final result ordering using Cloudflare's BGE reranker for optimal relevance
+4. **✅ Dual Search Interfaces**:
+   - `/directory` for profile discovery
+   - `/projects` for project discovery
+5. **✅ Performance Optimization**: Parallel search execution with detailed timing analytics
 
 ### ✅ Implemented Technical Stack
 
-- **✅ Embeddings**: BGE-M3 (1024 dimensions) via Cloudflare Workers AI
+- **✅ Embeddings**: BGE-M3 (1024 dimensions) via Cloudflare Workers AI for both profiles and projects
 - **✅ Vector Storage**: pgvector extension on Neon with HNSW indexing
-- **✅ BM25**: wink-nlp library for fast keyword matching
-- **✅ Test Data**: Scripts for generating realistic test profiles
-- **✅ Analytics**: Search timing and performance tracking
+- **✅ Dedicated Embedding Tables**: Separate `profile_embeddings` and `project_embeddings` tables
+- **✅ BM25**: wink-nlp library for fast keyword matching across all content types
+- **✅ Test Data**: Scripts for generating realistic test profiles and projects
+- **✅ Search Analytics**: Comprehensive timing and performance tracking for both search types
 
 ## 📋 Current Development Priorities
 
 ### Next Priorities
 
 1. **Enhanced UI/UX**: Improve search interface with filters, facets, and result previews
-2. **Search Analytics**: Complete PostHog instrumentation for search queries and CTR
+2. **Additional Analytics**: Complete remaining analytics tracking (search analytics, navigation tracking, settings tracking, error tracking)
 3. **Performance Optimization**: Caching, query optimization, and response time improvements
 4. **Company Features**: Enhanced company directory and hiring tools
 
@@ -173,10 +182,13 @@ Infrastructure
 
 ## 📈 Development Status
 
-**✅ Major Milestone**: Intelligent search system completed and operational
-**Current Focus**: UI/UX improvements and analytics instrumentation
-**Status**: Ready for launch - core functionality implemented
+**✅ Major Milestones**:
+
+- Intelligent search system completed and operational
+- Centralized analytics system implemented with comprehensive tracking
+  **Current Focus**: UI/UX improvements and remaining analytics features
+  **Status**: Ready for launch - core functionality implemented
 
 ---
 
-_Last updated: August 13, 2025_
+_Last updated: August 20, 2025_

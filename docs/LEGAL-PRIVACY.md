@@ -14,10 +14,11 @@ This document outlines the legal/compliance steps for HungryFools.dev operating 
 
 ### 3) Consent (Cookies/Tracking)
 
-- Implement a cookie banner and consent management:
-  - Default to functional cookies only; block analytics until user consents.
-  - Provide a persistent settings UI to revoke/change consent.
-  - Store consent state (local storage or cookie) and respect Do Not Track.
+- Implement a simplified cookie consent model:
+  - Cookies are required for service functionality and analytics.
+  - Clear consent banner with "Accept to Continue" approach.
+  - Store consent state in cookies; analytics blocked until consent given.
+  - No decline option - users who don't consent cannot use the service.
 
 ### 4) Privacy Policy & Terms of Service
 

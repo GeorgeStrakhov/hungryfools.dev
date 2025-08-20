@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 interface SignInToIntroduceProps {
   profileHandle: string;
@@ -14,8 +14,8 @@ export function SignInToIntroduce({ profileHandle }: SignInToIntroduceProps) {
       variant="outline"
       size="sm"
       onClick={() => {
-        posthog.capture("sign-in-for-introduction", {
-          profileHandle,
+        analytics.track(ANALYTICS_EVENTS.SIGN_IN_FOR_INTRODUCTION, {
+          profile_handle: profileHandle,
           provider: "github",
         });
         signIn("github", {

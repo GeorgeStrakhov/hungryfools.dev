@@ -14,6 +14,7 @@ import { ProjectDropdownMenu } from "@/components/projects/project-dropdown-menu
 import { IntroductionDialog } from "@/components/profile/introduction-dialog";
 import { SignInToIntroduce } from "@/components/profile/sign-in-to-introduce";
 import { getProfileAvatarUrl } from "@/lib/utils/avatar";
+import { ProfileViewTracker } from "@/components/analytics/profile-view-tracker";
 
 type Params = { params: Promise<{ handle: string }> };
 
@@ -57,6 +58,11 @@ export default async function PublicProfilePage({ params }: Params) {
 
   return (
     <div className="hf-container py-6 md:py-10">
+      <ProfileViewTracker
+        profileHandle={profile.handle}
+        profileId={profile.userId}
+        isOwner={isOwner}
+      />
       {/* Profile Header Section */}
       <div className="mb-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -247,6 +253,7 @@ export default async function PublicProfilePage({ params }: Params) {
             )}
             {profile.links.email &&
               !isOwner &&
+              user?.allowIntroductions &&
               (session?.user ? (
                 <IntroductionDialog
                   targetHandle={profile.handle}

@@ -8,7 +8,7 @@ import { validateStep } from "@/lib/hooks/useModeration";
 import { useOnboardingWizard } from "../_context/wizard-context";
 import { STEP_CONFIG } from "../_lib/steps";
 import { VIBE_OPTIONS } from "@/lib/onboarding-options";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import React from "react";
 
 // options centralized in lib
@@ -37,7 +37,7 @@ export function VibeStep({ onNext, onBack }: VibeStepProps) {
       if (vibeText.trim()) {
         await validateStep(vibeText.trim(), "vibe-description", 140);
       }
-      posthog.capture("vibe_complete", { vibes, free: vibeText });
+      analytics.track(ANALYTICS_EVENTS.VIBE_COMPLETE, { vibes, vibeText });
       onNext();
     } catch (error: unknown) {
       const err = error as { name?: string; message?: string };

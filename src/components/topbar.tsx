@@ -20,11 +20,11 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { getAvatarUrl } from "@/lib/utils/avatar";
-import { Building2, Users, Github } from "lucide-react";
+import { Building2, Users, Github, Folder } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { clsx } from "clsx";
 
 function UserAvatar() {
@@ -151,7 +151,8 @@ function UserAvatar() {
           <button
             className="w-full"
             onClick={() => {
-              posthog.capture("user-signed-out");
+              analytics.track(ANALYTICS_EVENTS.USER_SIGNED_OUT);
+              analytics.reset();
               signOut({ callbackUrl: "/" });
             }}
           >
@@ -181,20 +182,47 @@ const MainNav = () => (
     <Link
       href="/directory"
       className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+      onClick={() =>
+        analytics.track(ANALYTICS_EVENTS.NAVIGATION_CLICKED, {
+          destination: "directory",
+        })
+      }
     >
       Developers
     </Link>
     <Link
+      href="/projects"
+      className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+      onClick={() =>
+        analytics.track(ANALYTICS_EVENTS.NAVIGATION_CLICKED, {
+          destination: "projects",
+        })
+      }
+    >
+      Projects
+    </Link>
+    <Link
       href="/companies"
       className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+      onClick={() =>
+        analytics.track(ANALYTICS_EVENTS.NAVIGATION_CLICKED, {
+          destination: "companies",
+        })
+      }
     >
       Companies
     </Link>
     <Link
       href="https://github.com/GeorgeStrakhov/hungryfools.dev"
-      className="text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+      className="text-hf-yellow hover:text-hf-yellow transition-colors"
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() =>
+        analytics.track(ANALYTICS_EVENTS.PROJECT_LINK_CLICKED, {
+          link_type: "github",
+          destination: "source_code",
+        })
+      }
     >
       Source Code
     </Link>
@@ -248,7 +276,13 @@ const MobileNav = () => {
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false);
+                analytics.track(ANALYTICS_EVENTS.NAVIGATION_CLICKED, {
+                  destination: "home",
+                  source: "mobile_nav",
+                });
+              }}
             >
               <Image
                 src="/images/PacDuck.png"
@@ -267,10 +301,35 @@ const MobileNav = () => {
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false);
+                analytics.track(ANALYTICS_EVENTS.NAVIGATION_CLICKED, {
+                  destination: "directory",
+                  source: "mobile_nav",
+                });
+              }}
             >
               <Users className="h-5 w-5" />
               Developers
+            </Link>
+            <Link
+              href="/projects"
+              className={clsx(
+                "flex items-center gap-2 rounded-md p-2 text-sm font-medium",
+                pathname === "/projects"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+              onClick={() => {
+                setOpen(false);
+                analytics.track(ANALYTICS_EVENTS.NAVIGATION_CLICKED, {
+                  destination: "projects",
+                  source: "mobile_nav",
+                });
+              }}
+            >
+              <Folder className="h-5 w-5" />
+              Projects
             </Link>
             <Link
               href="/companies"
@@ -287,7 +346,7 @@ const MobileNav = () => {
             </Link>
             <Link
               href="https://github.com/GeorgeStrakhov/hungryfools.dev"
-              className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex items-center gap-2 rounded-md p-2 text-sm font-medium"
+              className="text-hf-yellow hover:bg-accent hover:text-hf-yellow flex items-center gap-2 rounded-md p-2 text-sm font-medium"
               onClick={() => setOpen(false)}
               target="_blank"
               rel="noopener noreferrer"
@@ -335,7 +394,9 @@ export function Topbar() {
             <Button
               variant="outline"
               onClick={() => {
-                posthog.capture("sign-in-clicked", { provider: "github" });
+                analytics.track(ANALYTICS_EVENTS.SIGN_IN_CLICKED, {
+                  provider: "github",
+                });
                 signIn("github", { callbackUrl: "/post-auth" });
               }}
             >

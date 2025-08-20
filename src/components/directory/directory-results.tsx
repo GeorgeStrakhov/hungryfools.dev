@@ -6,6 +6,7 @@ import { SearchMatchIndicator } from "./search-match-indicator";
 import Link from "next/link";
 import { MapPin, ExternalLink } from "lucide-react";
 import type { DirectorySearchResult } from "@/app/actions/search";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 interface DirectoryResultsProps {
   results: DirectorySearchResult[];
@@ -98,6 +99,14 @@ export function DirectoryResults({
               <Link
                 href={`/u/${profile.handle}`}
                 className="group/header mb-4 flex items-start gap-3 transition-opacity hover:opacity-80"
+                onClick={() => {
+                  analytics.track(ANALYTICS_EVENTS.SEARCH_RESULT_CLICKED, {
+                    result_type: "profile",
+                    profile_handle: profile.handle,
+                    search_query: searchQuery,
+                    position: index + 1,
+                  });
+                }}
               >
                 <img
                   src={avatarUrl}
@@ -218,6 +227,15 @@ export function DirectoryResults({
               <Link
                 href={`/u/${profile.handle}`}
                 className="text-muted-foreground hover:text-foreground group-hover:text-foreground mt-auto flex w-full items-center justify-center gap-1 text-sm transition-colors"
+                onClick={() => {
+                  analytics.track(ANALYTICS_EVENTS.SEARCH_RESULT_CLICKED, {
+                    result_type: "profile",
+                    profile_handle: profile.handle,
+                    search_query: searchQuery,
+                    position: index + 1,
+                    source: "view_profile_cta",
+                  });
+                }}
               >
                 View Profile
                 <ExternalLink className="h-3 w-3" />

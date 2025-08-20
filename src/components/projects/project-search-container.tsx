@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import {
-  searchDirectory,
-  type DirectorySearchResult,
-} from "@/app/actions/search";
-import { DirectorySearch } from "./directory-search";
+  searchProjects,
+  type ProjectSearchResult,
+} from "@/app/actions/projects-search";
+import { ProjectSearch } from "./project-search";
 import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 
-interface DirectorySearchContainerProps {
+interface ProjectSearchContainerProps {
   searchParams: {
     q?: string;
     page?: string;
@@ -17,19 +17,16 @@ interface DirectorySearchContainerProps {
   };
 }
 
-export function DirectorySearchContainer({
+export function ProjectSearchContainer({
   searchParams,
-}: DirectorySearchContainerProps) {
+}: ProjectSearchContainerProps) {
   const [initialData, setInitialData] = useState<{
     query: string;
-    results: DirectorySearchResult[];
+    results: ProjectSearchResult[];
     count: number;
     timing?: {
-      parsing: number;
-      bm25: number;
       vector: number;
-      filtering: number;
-      fusion: number;
+      keywords: number;
       reranking: number;
       total: number;
     };
@@ -48,20 +45,20 @@ export function DirectorySearchContainer({
       )
         ? parseInt(searchParams.limit ?? "24", 10)
         : 24;
-      const sort = searchParams.sort ?? (q ? "relevance" : "random");
+      const sort = searchParams.sort ?? (q ? "relevance" : "recent");
 
       try {
-        const searchResult = await searchDirectory(q, {
+        const searchResult = await searchProjects(q, {
           page,
           limit,
-          sort: sort as "relevance" | "recent" | "name" | "random",
+          sort: sort as "relevance" | "recent" | "featured" | "name" | "random",
         });
 
-        // Track directory search analytics
+        // Track project search analytics
         if (q.trim()) {
           analytics.track(ANALYTICS_EVENTS.SEARCH_PERFORMED, {
             query: q,
-            search_type: "directory",
+            search_type: "projects",
             results_count: searchResult.totalCount,
             response_time_ms: searchResult.timing?.total,
             page: page,
@@ -79,7 +76,7 @@ export function DirectorySearchContainer({
           sort,
         });
       } catch (error) {
-        console.error("Failed to load initial search data:", error);
+        console.error("Failed to load initial project search data:", error);
         // Set empty state on error
         setInitialData({
           query: q,
@@ -107,14 +104,14 @@ export function DirectorySearchContainer({
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground">Loading directory...</p>
+          <p className="text-muted-foreground">Loading projects...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <DirectorySearch
+    <ProjectSearch
       initialQuery={initialData.query}
       initialResults={initialData.results}
       initialCount={initialData.count}

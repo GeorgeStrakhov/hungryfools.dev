@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import posthog from "posthog-js";
+import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { signIn, useSession } from "next-auth/react";
@@ -71,7 +71,7 @@ function SearchBar() {
 
   const handleSearch = (query: string) => {
     if (query.trim()) {
-      posthog.capture("directory_search", { query });
+      analytics.track(ANALYTICS_EVENTS.DIRECTORY_SEARCH, { query });
       router.push(`/directory?q=${encodeURIComponent(query.trim())}`);
     } else {
       router.push("/directory");
@@ -114,7 +114,9 @@ function CTA() {
       size="lg"
       className="hf-cta"
       onClick={() => {
-        posthog.capture("github_signin_initiated", { provider: "github" });
+        analytics.track(ANALYTICS_EVENTS.GITHUB_SIGNIN_INITIATED, {
+          provider: "github",
+        });
         signIn("github", { callbackUrl: "/post-auth" });
       }}
     >

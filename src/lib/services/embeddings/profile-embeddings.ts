@@ -25,6 +25,12 @@ export interface ProfileWithProjects {
     collab?: boolean;
     hiring?: boolean;
   } | null;
+  vibeText: string | null;
+  vibeTags: string[] | null;
+  stackText: string | null;
+  vibeSelections: string[] | null;
+  stackSelections: string[] | null;
+  expertiseSelections: string[] | null;
   projects?: Array<{
     name: string;
     oneliner: string | null;
@@ -77,6 +83,33 @@ export function buildProfileEmbeddingContent(
   // Bio
   if (profile.bio) {
     parts.push(profile.bio);
+  }
+
+  // Vibe information
+  if (profile.vibeText) {
+    parts.push(`Vibe: ${profile.vibeText}`);
+  }
+
+  if (profile.vibeTags && profile.vibeTags.length > 0) {
+    parts.push(`Personality: ${profile.vibeTags.join(", ")}`);
+  }
+
+  // Stack information
+  if (profile.stackText) {
+    parts.push(`Power tool: ${profile.stackText}`);
+  }
+
+  // Raw selections for additional context
+  if (profile.vibeSelections && profile.vibeSelections.length > 0) {
+    parts.push(`Vibes: ${profile.vibeSelections.join(", ")}`);
+  }
+
+  if (profile.stackSelections && profile.stackSelections.length > 0) {
+    parts.push(`Tech stack: ${profile.stackSelections.join(", ")}`);
+  }
+
+  if (profile.expertiseSelections && profile.expertiseSelections.length > 0) {
+    parts.push(`Expertise areas: ${profile.expertiseSelections.join(", ")}`);
   }
 
   // Availability
@@ -155,7 +188,7 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
   const startTime = Date.now();
 
   try {
-    // Fetch profile with projects
+    // Fetch profile with projects (including all onboarding fields)
     const profileData = await db
       .select({
         userId: profiles.userId,
@@ -167,6 +200,12 @@ export async function generateProfileEmbedding(userId: string): Promise<void> {
         interests: profiles.interests,
         location: profiles.location,
         availability: profiles.availability,
+        vibeText: profiles.vibeText,
+        vibeTags: profiles.vibeTags,
+        stackText: profiles.stackText,
+        vibeSelections: profiles.vibeSelections,
+        stackSelections: profiles.stackSelections,
+        expertiseSelections: profiles.expertiseSelections,
       })
       .from(profiles)
       .where(eq(profiles.userId, userId))

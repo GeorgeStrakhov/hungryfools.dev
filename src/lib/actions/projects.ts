@@ -123,6 +123,9 @@ export async function createProject(data: unknown) {
   // Trigger embedding generation for the new project
   if (newProject) {
     await onProjectChange(newProject.id, true); // Immediate mode for new projects
+    console.log(
+      `[Analytics] Project created: ${newProject.name} by user ${session.user.id}`,
+    );
   }
 
   // Get user's handle for redirect
@@ -224,6 +227,9 @@ export async function updateProject(projectId: string, data: unknown) {
 
   // Trigger embedding update for the project
   await onProjectChange(projectId, false); // Queued mode for updates
+  console.log(
+    `[Analytics] Project updated: ${validatedData.name} by user ${session.user.id}`,
+  );
 
   // Get user's handle for redirect
   const [profile] = await db

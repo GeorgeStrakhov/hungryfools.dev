@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "allowIntroductions" boolean DEFAULT true NOT NULL;

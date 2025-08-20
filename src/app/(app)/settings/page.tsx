@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { DataControls } from "@/components/settings/data-controls";
+import { IntroductionPreferences } from "@/components/settings/introduction-preferences";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -19,6 +20,7 @@ export default async function SettingsPage() {
       </div>
 
       <div className="space-y-6">
+        <IntroductionPreferences />
         <DataControls />
       </div>
     </div>
